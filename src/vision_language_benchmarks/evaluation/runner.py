@@ -223,7 +223,7 @@ def _make_result(
         ),
         "text_count": evaluation.get(
             "text_count",
-            record.get("text_count", dataset.expected_texts),
+            record.get("text_count", dataset.expected_text_count(normalized_language)),
         ),
         "class_count": evaluation.get(
             "class_count",

@@ -207,7 +207,7 @@ uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0
 
 - `doctor` diagnoses CUDA/PyTorch compatibility, disk capacity, Hugging Face authentication presence (without displaying secrets), and external dataset access requirements.
 - `run` options include model, dataset, split, language, protocol, precision, device, batch size, seed, output, resume, and force. `--dry-run` prints the plan and estimated resource requirements.
-- Before large network downloads, display the dataset/model, size, and license notice. Surface failures clearly.
+- Before downloads, display the dataset/model, size, and license notice. Use the official source; a public download does not override any access or license restriction.
 - On resume, compare run ID, model revision, dataset checksum, and configuration. Do not reuse a result when they differ.
 
 ## 9. Data storage and reporting
@@ -302,8 +302,8 @@ Add Japanese Stable CLIP, ImageNet-A/R/Sketch, SugarCrepe, MIEB Lite, detailed V
 
 - First inspect the existing repository, this specification, dependencies, and licenses. **Do not create another repository.**
 - Use a dedicated `feature/*` branch and small pull requests. Implement Phase 0→1→2→3 in order and record intermediate results and evidence.
-- Do not push directly to `main`, merge a pull request without approval, fabricate published results, automatically accept unknown licenses, or run large downloads without confirmation.
-- Before a large model evaluation or long GPU job, state the model, dataset, estimated runtime, and disk use, then obtain user confirmation.
+- Do not push directly to `main`, merge a pull request without approval, fabricate published results, or automatically accept unknown licenses. Obtain user authorization for downloads and long evaluations unless already explicitly authorized for the current task.
+- A download confirmation flag never substitutes for accepting a legal agreement. If terms require acceptance, stop before access; otherwise follow the user's explicit authorization and preserve attribution.
 - Always retain evaluation failures. Never hide unfavorable results or weaken thresholds for convenience.
 
 ## 13. Acceptance checklist

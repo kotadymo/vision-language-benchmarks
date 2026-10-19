@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 
 import pytest
@@ -9,32 +10,92 @@ from vision_language_benchmarks.errors import DataIntegrityError, DatasetUnavail
 from vision_language_benchmarks.registry import get_dataset
 
 
-def test_cifar_preparation_requires_terms_before_creating_files(tmp_path) -> None:
-    data_root = tmp_path / "not-created"
+def test_cifar_official_download_needs_citation_but_no_acceptance_gate() -> None:
+    for dataset_key in ("cifar10", "cifar100"):
+        spec = get_dataset(dataset_key)
 
-    with pytest.raises(DatasetUnavailableError, match="confirm-data-terms"):
-        prepare.prepare_dataset("cifar10", data_root)
+        assert spec.access_status == "available"
+        assert spec.license_status == "public_download_citation_required"
+        prepare._require_dataset_access(spec, confirm_data_terms=False)
 
-    assert not data_root.exists()
+
+def test_xm3600_requires_per_image_attribution_validation_not_terms_acceptance() -> None:
+    spec = get_dataset("crossmodal3600")
+
+    assert spec.access_status == "available"
+    assert spec.license_status == "verified_attribution_required"
+    assert spec.expected_text_count("en") == 7_200
+    assert spec.expected_text_count("ja") == 7_185
+    prepare._require_dataset_access(spec, confirm_data_terms=False)
 
 
-def test_xm3600_preparation_requires_terms_before_network_access(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
-) -> None:
-    def unexpected_network_request(*args: object, **kwargs: object) -> None:
-        pytest.fail(
-            "XM3600 metadata request must not happen before terms confirmation: "
-            f"{args!r}, {kwargs!r}"
+def test_xm3600_records_all_captions_per_image(tmp_path) -> None:
+    captions = tmp_path / "captions.jsonl"
+    captions.write_text(
+        json.dumps(
+            {
+                "image/key": "image-1",
+                "en": {"caption": ["caption one", "caption two"]},
+            }
         )
+        + "\n",
+        encoding="utf-8",
+    )
 
-    monkeypatch.setattr(prepare, "_remote_size", unexpected_network_request)
-    data_root = tmp_path / "not-created"
+    records = prepare._xm3600_records(captions, None, "en")
 
-    with pytest.raises(DatasetUnavailableError, match="confirm-data-terms"):
-        prepare.prepare_xm3600(data_root)
+    assert records == [
+        {
+            "image_id": "image-1",
+            "image_path": "image-1.jpg",
+            "captions": ["caption one", "caption two"],
+        }
+    ]
 
-    assert not data_root.exists()
+
+def test_xm3600_attribution_manifest_validates_ids_and_licenses(tmp_path) -> None:
+    path = tmp_path / "image_attributions.csv"
+    rows = [
+        {
+            "ImageID": image_id,
+            "Subset": "test",
+            "OriginalURL": f"https://example.com/{image_id}.jpg",
+            "OriginalLandingURL": f"https://example.com/{image_id}",
+            "License": "https://creativecommons.org/licenses/by/2.0/",
+            "Author": "Example photographer",
+            "Title": image_id,
+        }
+        for image_id in ("image-1", "image-2")
+    ]
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    metadata = prepare._validate_xm3600_attributions(
+        path,
+        {"image-1", "image-2"},
+        expected_image_count=2,
+    )
+
+    assert metadata["image_license_count"] == 2
+    assert metadata["image_license_counts"] == {
+        "https://creativecommons.org/licenses/by/2.0/": 2
+    }
+    assert metadata["image_attribution_subset_counts"] == {"test": 2}
+
+    rows[0]["License"] = "https://example.com/unknown-license"
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    with pytest.raises(DataIntegrityError, match="unverified license"):
+        prepare._validate_xm3600_attributions(
+            path,
+            {"image-1", "image-2"},
+            expected_image_count=2,
+        )
 
 
 def test_blocked_coco_preparation_never_requests_downloads(
@@ -49,7 +110,7 @@ def test_blocked_coco_preparation_never_requests_downloads(
         prepare.prepare_dataset("mscoco_captions", tmp_path)
 
 
-def test_cifar_marker_does_not_bypass_terms_confirmation(
+def test_cifar_marker_loads_without_terms_acceptance(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -69,9 +130,19 @@ def test_cifar_marker_does_not_bypass_terms_confirmation(
         encoding="utf-8",
     )
 
-    def unexpected_cifar_load(*args: object, **kwargs: object) -> None:
-        pytest.fail(f"CIFAR must not load without confirmed terms: {args!r}, {kwargs!r}")
+    class FakeCIFAR:
+        classes = [f"class-{index}" for index in range(spec.expected_classes or 0)]
 
-    monkeypatch.setattr(prepare, "_load_torchvision_cifar", unexpected_cifar_load)
-    with pytest.raises(DataIntegrityError, match="metadata is inconsistent"):
-        prepare.load_cifar_dataset("cifar10", tmp_path)
+        def __len__(self) -> int:
+            return spec.expected_images or 0
+
+    dataset = FakeCIFAR()
+
+    def load_cifar(dataset_key: str, root) -> FakeCIFAR:
+        assert dataset_key == "cifar10"
+        assert root == dataset_root
+        return dataset
+
+    monkeypatch.setattr(prepare, "_load_torchvision_cifar", load_cifar)
+
+    assert prepare.load_cifar_dataset("cifar10", tmp_path) is dataset

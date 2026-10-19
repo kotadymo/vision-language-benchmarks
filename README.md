@@ -7,9 +7,10 @@ models.
 ## Status
 
 The v0.1.0 framework, result schema, report generator, and offline tests are implemented.
-No real model evaluations or measured results have been published. The tests use synthetic
-features and mocked model loading; they do not download datasets or model weights. Numerical
-parity with CLIP Benchmark and the Phase 1–3 dataset evaluations remain outstanding.
+All seven registered pretrained-model adapters have passed opt-in CUDA image/text smoke tests
+on an NVIDIA RTX 4070 Ti SUPER. Smoke tests are not benchmark results; full-dataset CIFAR and
+XM3600 evaluations and numerical parity with CLIP Benchmark remain outstanding. See the
+[implementation status](docs/implementation-status.md) for verified milestones and blockers.
 
 Dataset access is deliberately conservative: unverified or restricted sources are blocked or
 require explicit user review. No dataset terms have been accepted for this project. See
@@ -37,10 +38,12 @@ uv run vlbench doctor --device cuda
 ```
 
 Installing a Python extra does not download model weights or benchmark datasets. A real run
-may download them and is separately gated by the CLI. `--yes` authorizes planned network
-downloads; `--confirm-data-terms` records that you reviewed and are authorized to use a
-dataset. Do not pass either flag until you have reviewed the exact plan and applicable terms.
-See [reproducibility](docs/reproducibility.md) for other model extras and run procedures.
+may download them and is separately gated by the CLI. `--yes` authorizes the reviewed network
+plan; it does not accept legal terms. CIFAR-10/100 use official downloadable test archives
+with report attribution, and XM3600 uses CC BY 4.0 annotations plus verified per-image
+CC BY 2.0 attribution records; none of these files are redistributed. Use
+`--confirm-data-terms` only when a dataset's exact terms require separate user acceptance.
+See [reproducibility](docs/reproducibility.md) for model extras and run procedures.
 
 ## Documentation
 
@@ -49,4 +52,5 @@ See [reproducibility](docs/reproducibility.md) for other model extras and run pr
 - [Model and dataset licenses](docs/model-and-dataset-licenses.md)
 - [Development environment](docs/environment.md)
 - [Reproducibility and CLI](docs/reproducibility.md)
+- [Implementation status](docs/implementation-status.md)
 - [Results status](results/README.md)

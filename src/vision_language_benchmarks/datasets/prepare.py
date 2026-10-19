@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import csv
 import json
 import os
 import shutil
@@ -50,6 +51,10 @@ CIFAR_ARCHIVES = {
 }
 XM3600_IMAGES_URL = "https://open-images-dataset.s3.amazonaws.com/crossmodal-3600/images.tgz"
 XM3600_CAPTIONS_URL = "https://google.github.io/crossmodal-3600/web-data/captions.zip"
+XM3600_ATTRIBUTIONS_URL = (
+    "https://google.github.io/crossmodal-3600/web-data/image_attributions.csv"
+)
+XM3600_IMAGE_LICENSE = "https://creativecommons.org/licenses/by/2.0/"
 KARPATHY_ANNOTATIONS_URL = (
     "https://cs.stanford.edu/people/karpathy/deepimagesent/caption_datasets.zip"
 )
@@ -257,10 +262,10 @@ def load_cifar_dataset(dataset_key: str, data_root: Path = DATA_ROOT) -> Any:
 
 def _xm3600_records(
     captions_path: Path,
-    images_path: Path,
+    images_path: Path | None,
     language_code: str,
-) -> list[dict[str, str]]:
-    records: list[dict[str, str]] = []
+) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     with captions_path.open("r", encoding="utf-8") as stream:
         for line_number, line in enumerate(stream, start=1):
@@ -276,18 +281,93 @@ def _xm3600_records(
                 raise DataIntegrityError(
                     f"XM3600 line {line_number} has no {language_code!r} caption."
                 )
+            captions = language["caption"]
+            if not isinstance(captions, list) or not captions or any(
+                not isinstance(caption, str) or not caption.strip() for caption in captions
+            ):
+                raise DataIntegrityError(
+                    f"XM3600 line {line_number} has invalid {language_code!r} captions."
+                )
             image_name = f"{image_id}.jpg"
-            image_path = images_path / image_name
-            if not image_path.is_file():
+            if images_path is not None and not (images_path / image_name).is_file():
                 raise DataIntegrityError(f"XM3600 image is missing: {image_name}.")
             records.append(
                 {
                     "image_id": image_id,
                     "image_path": image_name,
-                    "caption": str(language["caption"][0]),
+                    "captions": [caption.strip() for caption in captions],
                 }
             )
     return records
+
+
+def _validate_xm3600_attributions(
+    path: Path,
+    expected_image_ids: set[str],
+    expected_image_count: int,
+) -> dict[str, Any]:
+    required_columns = {
+        "ImageID",
+        "Subset",
+        "OriginalURL",
+        "OriginalLandingURL",
+        "License",
+        "Author",
+        "Title",
+    }
+    seen_ids: set[str] = set()
+    subset_counts: dict[str, int] = {}
+    license_counts: dict[str, int] = {}
+    with path.open("r", encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        if reader.fieldnames is None or not required_columns.issubset(reader.fieldnames):
+            raise DataIntegrityError("XM3600 image attribution CSV has an invalid header.")
+        for line_number, row in enumerate(reader, start=2):
+            image_id = (row.get("ImageID") or "").strip()
+            if not image_id or image_id in seen_ids:
+                raise DataIntegrityError(
+                    f"XM3600 attribution row {line_number} has an empty or duplicate image ID."
+                )
+            seen_ids.add(image_id)
+            license_url = (row.get("License") or "").strip()
+            if license_url.rstrip("/") != XM3600_IMAGE_LICENSE.rstrip("/"):
+                raise DataIntegrityError(
+                    f"XM3600 image {image_id!r} has unverified license {license_url!r}."
+                )
+            subset = (row.get("Subset") or "").strip()
+            if subset not in {"train", "validation", "test"}:
+                raise DataIntegrityError(
+                    f"XM3600 image {image_id!r} has unexpected subset {subset!r}."
+                )
+            if any(
+                not (row.get(field) or "").strip()
+                for field in ("OriginalURL", "OriginalLandingURL", "Author", "Title")
+            ):
+                raise DataIntegrityError(
+                    f"XM3600 image {image_id!r} has incomplete attribution metadata."
+                )
+            subset_counts[subset] = subset_counts.get(subset, 0) + 1
+            license_counts[license_url] = license_counts.get(license_url, 0) + 1
+
+    if seen_ids != expected_image_ids:
+        missing = sorted(expected_image_ids - seen_ids)
+        unexpected = sorted(seen_ids - expected_image_ids)
+        raise DataIntegrityError(
+            "XM3600 attribution IDs do not match caption image IDs: "
+            f"{len(missing)} missing and {len(unexpected)} unexpected."
+        )
+    if len(seen_ids) != expected_image_count:
+        raise DataIntegrityError(
+            f"XM3600 attribution CSV has {len(seen_ids)} rows; "
+            f"expected {expected_image_count}."
+        )
+    return {
+        "sha256": sha256_file(path),
+        "image_license": XM3600_IMAGE_LICENSE,
+        "image_license_count": len(seen_ids),
+        "image_attribution_subset_counts": dict(sorted(subset_counts.items())),
+        "image_license_counts": dict(sorted(license_counts.items())),
+    }
 
 
 def prepare_xm3600(
@@ -302,18 +382,32 @@ def prepare_xm3600(
     dataset_root.mkdir(parents=True, exist_ok=True)
     image_archive = dataset_root / "images.tgz"
     caption_archive = dataset_root / "captions.zip"
+    attribution_path = dataset_root / "image_attributions.csv"
     images_path = dataset_root / "images"
     captions_path = dataset_root / "captions.jsonl"
     marker_path = dataset_root / ".vlbench-dataset.json"
+    expected_image_count = spec.expected_images
+    if expected_image_count is None:
+        raise DataIntegrityError("XM3600 has no registered expected image count.")
+    expected_text_counts = {
+        language: spec.expected_text_count(language) for language in spec.languages
+    }
+    if any(count is None for count in expected_text_counts.values()):
+        raise DataIntegrityError("XM3600 has no registered caption counts by language.")
 
     if marker_path.is_file():
         existing = json.loads(marker_path.read_text(encoding="utf-8"))
         if (
             existing.get("dataset") == "crossmodal3600"
             and str(existing.get("data_integrity_status", "")).startswith("verified")
-            and existing.get("actual_sample_count") == spec.expected_images
+            and existing.get("actual_sample_count") == expected_image_count
+            and existing.get("license_status") == spec.license_status
+            and existing.get("text_count_by_language") == expected_text_counts
+            and attribution_path.is_file()
+            and captions_path.is_file()
+            and images_path.is_dir()
         ):
-            cached_records: dict[str, list[dict[str, str]]] = {}
+            cached_records: dict[str, list[dict[str, Any]]] = {}
             for language in spec.languages:
                 language_code = spec.source_language_code(language)
                 cached_records[language] = _xm3600_records(
@@ -321,6 +415,16 @@ def prepare_xm3600(
                     images_path,
                     language_code,
                 )
+            image_ids = {record["image_id"] for record in cached_records["en"]}
+            attribution = _validate_xm3600_attributions(
+                attribution_path,
+                image_ids,
+                expected_image_count,
+            )
+            caption_counts = {
+                language: sum(len(record["captions"]) for record in records)
+                for language, records in cached_records.items()
+            }
             annotations_exist = all(
                 (
                     dataset_root
@@ -330,23 +434,34 @@ def prepare_xm3600(
             )
             if (
                 annotations_exist
-                and all(len(records) == spec.expected_images for records in cached_records.values())
+                and all(len(records) == expected_image_count for records in cached_records.values())
+                and all(
+                    {
+                        record["image_id"] for record in records
+                    } == image_ids
+                    for records in cached_records.values()
+                )
+                and caption_counts == expected_text_counts
+                and attribution["sha256"] == existing.get("image_attributions_sha256")
             ):
-                existing["dataset_terms_confirmed"] = confirm_data_terms
-                existing["license_status"] = spec.license_status
-                atomic_write_json(marker_path, existing)
                 return existing
 
     image_size = _remote_size(XM3600_IMAGES_URL)
     caption_size = _remote_size(XM3600_CAPTIONS_URL)
-    estimate = (image_size or 2 * 1024**3) * 2 + (caption_size or 100 * 1024**2) * 2
+    attribution_size = _remote_size(XM3600_ATTRIBUTIONS_URL)
+    estimate = (
+        (image_size or 302 * 1024**2) * 2
+        + (caption_size or 17 * 1024**2) * 2
+        + (attribution_size or 2 * 1024**2)
+    )
     space = _ensure_space(data_root, estimate)
     if progress:
         progress(
             f"Preparing {spec.name}: approximately {estimate / 1024**3:.2f} GiB "
             f"download/extraction space estimated; {space['free_bytes_before'] / 1024**3:.2f} "
-            f"GiB currently free. Terms status: {spec.license_status}. {spec.license} "
-            "Images will not be published."
+            f"GiB currently free. License status: {spec.license_status}. {spec.license} "
+            "The official per-image license and attribution CSV is verified before image "
+            "inference; dataset files will not be published."
         )
 
     if not captions_path.is_file():
@@ -369,6 +484,43 @@ def prepare_xm3600(
     elif not caption_archive.exists():
         download_file(XM3600_CAPTIONS_URL, caption_archive, retries=3)
 
+    if not attribution_path.is_file():
+        download_file(XM3600_ATTRIBUTIONS_URL, attribution_path, retries=3)
+
+    language_records = {
+        language: _xm3600_records(
+            captions_path,
+            None,
+            spec.source_language_code(language),
+        )
+        for language in spec.languages
+    }
+    if any(len(records) != expected_image_count for records in language_records.values()):
+        raise DataIntegrityError(
+            f"XM3600 expected {expected_image_count} image records per language."
+        )
+    image_ids_by_language = {
+        language: {record["image_id"] for record in records}
+        for language, records in language_records.items()
+    }
+    expected_image_ids = image_ids_by_language["en"]
+    if any(image_ids != expected_image_ids for image_ids in image_ids_by_language.values()):
+        raise DataIntegrityError("XM3600 language annotations do not use identical image IDs.")
+    text_counts = {
+        language: sum(len(record["captions"]) for record in records)
+        for language, records in language_records.items()
+    }
+    if text_counts != expected_text_counts:
+        raise DataIntegrityError(
+            f"XM3600 caption counts changed: expected {expected_text_counts}, "
+            f"found {text_counts}."
+        )
+    attribution = _validate_xm3600_attributions(
+        attribution_path,
+        expected_image_ids,
+        expected_image_count,
+    )
+
     if not images_path.is_dir():
         download_file(XM3600_IMAGES_URL, image_archive, retries=3)
         if not tarfile.is_tarfile(image_archive):
@@ -377,27 +529,19 @@ def prepare_xm3600(
     elif not image_archive.exists():
         download_file(XM3600_IMAGES_URL, image_archive, retries=3)
 
-    language_records = {
-        language: _xm3600_records(
-            captions_path,
-            images_path,
-            spec.source_language_code(language),
-        )
-        for language in spec.languages
-    }
-    if any(len(records) != spec.expected_images for records in language_records.values()):
-        raise DataIntegrityError(
-            f"XM3600 expected {spec.expected_images} records per language."
-        )
+    for record in language_records["en"]:
+        image_name = str(record["image_path"])
+        if not (images_path / image_name).is_file():
+            raise DataIntegrityError(f"XM3600 image is missing: {image_name}.")
     image_hashes = [
         (path.name, sha256_file(path))
         for path in sorted(images_path.iterdir())
         if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg"}
     ]
-    if len(image_hashes) != spec.expected_images:
+    if len(image_hashes) != expected_image_count:
         raise DataIntegrityError(
             f"XM3600 image folder has {len(image_hashes)} JPEG files; "
-            f"expected {spec.expected_images}."
+            f"expected {expected_image_count}."
         )
     images_archive_sha = sha256_file(image_archive)
     captions_archive_sha = sha256_file(caption_archive)
@@ -408,17 +552,21 @@ def prepare_xm3600(
         "download_sources": {
             "images": XM3600_IMAGES_URL,
             "captions": XM3600_CAPTIONS_URL,
+            "image_attributions": XM3600_ATTRIBUTIONS_URL,
         },
         "license": spec.license,
         "license_status": spec.license_status,
         "dataset_terms_confirmed": confirm_data_terms,
         "split": spec.split,
-        "expected_sample_count": spec.expected_images,
+        "expected_sample_count": expected_image_count,
         "actual_sample_count": len(image_hashes),
-        "text_count_by_language": {
-            language: len(records) for language, records in language_records.items()
-        },
+        "expected_text_count_by_language": expected_text_counts,
+        "text_count_by_language": text_counts,
         "annotation_source": captions_sha,
+        "image_attributions_sha256": attribution["sha256"],
+        "image_license": attribution["image_license"],
+        "image_license_counts": attribution["image_license_counts"],
+        "image_attribution_subset_counts": attribution["image_attribution_subset_counts"],
         "images_archive_sha256": images_archive_sha,
         "captions_archive_sha256": captions_archive_sha,
         "image_files_sha256": content_hash(image_hashes),
@@ -427,9 +575,13 @@ def prepare_xm3600(
                 "images_archive_sha256": images_archive_sha,
                 "captions_sha256": captions_sha,
                 "image_files_sha256": content_hash(image_hashes),
+                "image_attributions_sha256": attribution["sha256"],
             }
         ),
-        "data_integrity_status": "verified; upstream per-file checksums not published",
+        "data_integrity_status": (
+            "verified; all image IDs matched captions and CC BY 2.0 attributions; "
+            "upstream per-image checksums not published"
+        ),
         "missing_or_excluded_samples": [],
         "language_codes": {
             language: spec.source_language_code(language) for language in spec.languages
@@ -658,16 +810,52 @@ def retrieval_items(
                 "--dataset crossmodal3600` first."
             )
         records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
-        if len(records) != spec.expected_texts:
+        if len(records) != spec.expected_images:
             raise DataIntegrityError(
-                f"XM3600 {language} annotations contain {len(records)} texts; "
-                f"expected {spec.expected_texts}."
+                f"XM3600 {language} annotations contain {len(records)} image records; "
+                f"expected {spec.expected_images}."
+            )
+        image_ids = {str(item["image_id"]) for item in records}
+        if len(image_ids) != len(records):
+            raise DataIntegrityError(f"XM3600 {language} annotations contain duplicate image IDs.")
+        text_count = sum(len(item.get("captions", [])) for item in records)
+        expected_text_count = spec.expected_text_count(language)
+        marker_text_count = marker.get("text_count_by_language", {}).get(language)
+        if (
+            text_count != expected_text_count
+            or text_count != marker_text_count
+            or any(
+                not isinstance(item.get("captions"), list)
+                or not item["captions"]
+                or any(
+                    not isinstance(caption, str) or not caption.strip()
+                    for caption in item["captions"]
+                )
+                for item in records
+            )
+        ):
+            raise DataIntegrityError(
+                f"XM3600 {language} annotations contain {text_count} invalid or unexpected "
+                f"captions; expected {expected_text_count}."
+            )
+        attribution_path = data_root / dataset_key / "image_attributions.csv"
+        attribution = _validate_xm3600_attributions(
+            attribution_path,
+            image_ids,
+            int(spec.expected_images or 0),
+        )
+        if (
+            attribution["sha256"] != marker.get("image_attributions_sha256")
+            or marker.get("image_license") != XM3600_IMAGE_LICENSE
+        ):
+            raise DataIntegrityError(
+                "XM3600 image attribution metadata does not match its manifest."
             )
         return [
             {
                 "image_id": item["image_id"],
                 "image_path": data_root / dataset_key / "images" / item["image_path"],
-                "captions": [item["caption"]],
+                "captions": item["captions"],
             }
             for item in records
         ]

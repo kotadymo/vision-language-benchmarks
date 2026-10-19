@@ -77,7 +77,7 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
         for dataset in metadata["datasets"]
         if dataset["dataset_id"] == "crossmodal3600"
     )
-    assert {item["confirmed"] for item in xm3600["terms_confirmations"]} == {False, True}
+    assert {item["confirmed"] for item in xm3600["terms_confirmations"]} == {False}
     assert "No values are estimated or fabricated." in files["report_markdown"].read_text(
         encoding="utf-8"
     )

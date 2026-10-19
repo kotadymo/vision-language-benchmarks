@@ -5,7 +5,7 @@ import json
 from vision_language_benchmarks.cli import main
 
 
-def test_dry_run_displays_pinned_model_size_and_terms_gate_without_downloads(
+def test_dry_run_displays_pinned_model_size_and_verified_access_without_downloads(
     capsys,
     tmp_path,
 ) -> None:
@@ -33,11 +33,16 @@ def test_dry_run_displays_pinned_model_size_and_terms_gate_without_downloads(
     assert report["model"]["checkpoint_size_bytes"] == 1_464_635_263
     assert report["model"]["checkpoint_filename"] == "open_clip_pytorch_model.bin"
     assert report["model"]["supported_languages"] == ["en", "ja"]
-    assert report["dataset"]["access"] == "requires_data_terms_confirmation"
+    assert report["dataset"]["access"] == "available"
+    assert report["dataset"]["license_status"] == "verified_attribution_required"
+    assert report["dataset"]["expected_text_counts_by_language"] == {
+        "en": 7_200,
+        "ja": 7_185,
+    }
     assert not output_path.exists()
 
 
-def test_data_terms_confirmation_changes_only_the_plan_gate(capsys, tmp_path) -> None:
+def test_data_terms_confirmation_does_not_override_verified_access(capsys, tmp_path) -> None:
     exit_code = main(
         [
             "run",
@@ -59,4 +64,4 @@ def test_data_terms_confirmation_changes_only_the_plan_gate(capsys, tmp_path) ->
 
     assert exit_code == 0
     assert report["dataset"]["access"] == "available"
-    assert report["dataset"]["license_status"] == "requires_user_confirmation"
+    assert report["dataset"]["license_status"] == "verified_attribution_required"

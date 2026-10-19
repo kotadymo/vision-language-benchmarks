@@ -78,8 +78,8 @@ def _dataset_download_estimate(dataset_key: str) -> str:
         return "Approximately 5 GiB for the 5K test images, plus annotation files."
     if dataset_key == "crossmodal3600":
         return (
-            "Remote Content-Length is checked at preparation time; if unavailable, "
-            "the current fallback estimate is about 4.1 GiB including temporary copies."
+            "The official page lists 302 MiB of images, 17 MiB of captions, and a 1.3 MiB "
+            "image-attribution CSV; temporary extraction space is also required."
         )
     return "No download size is available; this dataset is currently blocked."
 
@@ -159,6 +159,9 @@ def _run_plan(
             "task": dataset.task,
             "expected_images": dataset.expected_images,
             "expected_texts": dataset.expected_texts,
+            "expected_text_counts_by_language": dict(
+                dataset.expected_text_counts_by_language
+            ),
             "download_estimate": _dataset_download_estimate(dataset.key),
             "license": dataset.license,
             "license_status": dataset.license_status,
@@ -210,6 +213,7 @@ def _command_prepare(args: argparse.Namespace) -> int:
         "split": dataset.split,
         "expected_images": dataset.expected_images,
         "expected_texts": dataset.expected_texts,
+        "expected_text_counts_by_language": dict(dataset.expected_text_counts_by_language),
         "download_estimate": _dataset_download_estimate(dataset.key),
         "license": dataset.license,
         "license_status": dataset.license_status,

@@ -49,6 +49,7 @@ class DatasetSpec:
     license_status: str = "unverified"
     access_reason: str = ""
     duplicate_of: str | None = None
+    expected_text_counts_by_language: tuple[tuple[str, int], ...] = ()
 
     def source_language_code(self, language: str) -> str:
         codes = dict(self.language_codes)
@@ -59,6 +60,10 @@ class DatasetSpec:
                 f"Dataset {self.key!r} does not provide language {language!r}; "
                 f"available languages: {', '.join(self.languages)}."
             ) from error
+
+    def expected_text_count(self, language: str) -> int | None:
+        counts = dict(self.expected_text_counts_by_language)
+        return counts.get(canonical_language(language), self.expected_texts)
 
 
 MODELS: dict[str, ModelSpec] = {
@@ -216,13 +221,14 @@ DATASETS: dict[str, DatasetSpec] = {
         languages=("en",),
         language_codes=(("en", "en"),),
         license=(
-            "The official source publishes a download but does not state explicit usage "
-            "terms. Do not acquire or use until the user confirms applicable rights; "
-            "do not redistribute."
+            "The official University of Toronto page publishes the Python archive and "
+            "requests citation of the dataset technical report; no separate acceptance "
+            "agreement is displayed. This benchmark performs evaluation only and does "
+            "not redistribute the archive."
         ),
         source="https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
         access_status="available",
-        license_status="requires_user_confirmation",
+        license_status="public_download_citation_required",
     ),
     "cifar100": DatasetSpec(
         key="cifar100",
@@ -235,13 +241,14 @@ DATASETS: dict[str, DatasetSpec] = {
         languages=("en",),
         language_codes=(("en", "en"),),
         license=(
-            "The official source publishes a download but does not state explicit usage "
-            "terms. Do not acquire or use until the user confirms applicable rights; "
-            "do not redistribute."
+            "The official University of Toronto page publishes the Python archive and "
+            "requests citation of the dataset technical report; no separate acceptance "
+            "agreement is displayed. This benchmark performs evaluation only and does "
+            "not redistribute the archive."
         ),
         source="https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz",
         access_status="available",
-        license_status="requires_user_confirmation",
+        license_status="public_download_citation_required",
     ),
     "flickr30k": DatasetSpec(
         key="flickr30k",
@@ -329,18 +336,19 @@ DATASETS: dict[str, DatasetSpec] = {
         task="retrieval",
         split="all 3,600 images",
         expected_images=3_600,
-        expected_texts=3_600,
+        expected_texts=None,
         expected_classes=None,
         languages=("en", "ja"),
         language_codes=(("en", "en"), ("ja", "ja")),
         license=(
-            "The Crossmodal-3600 main image/caption release terms have not been verified "
-            "for the exact archives. A separate web-data README licenses translated "
-            "COCO/CC3M text under CC-BY-4.0, which is not assumed to govern these files."
+            "Google LLC licenses the XM3600 annotations under CC BY 4.0. The official "
+            "image-attribution CSV lists all 3,600 images as CC BY 2.0; preserve "
+            "attribution and do not redistribute the images."
         ),
         source="https://google.github.io/crossmodal-3600/",
         access_status="available",
-        license_status="requires_user_confirmation",
+        license_status="verified_attribution_required",
+        expected_text_counts_by_language=(("en", 7_200), ("ja", 7_185)),
     ),
     "multilingual_mscoco_captions": DatasetSpec(
         key="multilingual_mscoco_captions",

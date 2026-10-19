@@ -225,3 +225,82 @@ def test_huggingface_openclip_models_use_pinned_files_and_configs(
         assert tokenizer_calls[0][0] == spec.model_id
         assert model_calls[0][1]["image_mean"] == [0.48, 0.46, 0.41]
         assert metadata["tokenizer_repository"] == f"open_clip:{spec.model_id}"
+
+
+def test_openai_checkpoint_uses_quick_gelu_from_pretrained_config(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    spec = get_model("openai_clip_b32")
+    checkpoint = tmp_path / "ViT-B-32.pt"
+    checkpoint.write_bytes(b"synthetic checkpoint")
+    created_model = FakeModel()
+    model_calls: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
+
+    def create_model_and_transforms(
+        *args: Any,
+        **kwargs: Any,
+    ) -> tuple[FakeModel, None, Any]:
+        model_calls.append((args, kwargs))
+        return created_model, None, lambda image: image
+
+    def download_pretrained(config: dict[str, Any], *, cache_dir: str) -> str:
+        assert config["quick_gelu"] is True
+        assert cache_dir == str(tmp_path / "cache" / "open_clip")
+        return str(checkpoint)
+
+    def get_pretrained_config(model_name: str, pretrained: str) -> dict[str, Any]:
+        assert model_name == spec.model_id
+        assert pretrained == spec.pretrained_tag
+        return {
+            "quick_gelu": True,
+            "mean": [0.48, 0.46, 0.41],
+            "std": [0.27, 0.26, 0.28],
+            "interpolation": "bicubic",
+            "resize_mode": "shortest",
+        }
+
+    def get_tokenizer(model_name: str, *, cache_dir: str) -> object:
+        assert model_name == spec.model_id
+        assert cache_dir == str(tmp_path / "cache" / "open_clip")
+        return object()
+
+    fake_open_clip = SimpleNamespace(
+        create_model_and_transforms=create_model_and_transforms,
+        download_pretrained=download_pretrained,
+        get_pretrained_cfg=get_pretrained_config,
+        get_tokenizer=get_tokenizer,
+    )
+
+    def fake_import_module(name: str) -> object:
+        assert name == "open_clip"
+        return fake_open_clip
+
+    def fake_torch_adapter_init(
+        adapter: Any,
+        model_spec: ModelSpec,
+        device: str,
+        precision: str,
+    ) -> None:
+        adapter.spec = model_spec
+        adapter.device = device
+        adapter.precision = precision
+        adapter.device_object = SimpleNamespace(type="cpu")
+
+    monkeypatch.setattr(
+        openclip_adapter,
+        "importlib",
+        SimpleNamespace(import_module=fake_import_module),
+    )
+    monkeypatch.setattr(openclip_adapter, "CACHE_ROOT", tmp_path / "cache")
+    monkeypatch.setattr(
+        openclip_adapter.TorchAdapter,
+        "__init__",
+        fake_torch_adapter_init,
+    )
+
+    adapter = openclip_adapter.Adapter(spec, "cpu", "fp32")
+
+    assert created_model.evaluated
+    assert model_calls[0][1]["force_quick_gelu"] is True
+    assert adapter.metadata()["checkpoint_sha256"]

@@ -30,8 +30,8 @@ addition to the license before using results outside this benchmark.
 
 | Dataset | Registry state | Current safeguard |
 | --- | --- | --- |
-| CIFAR-10 / CIFAR-100 | `requires_user_confirmation` | The official download is available, but explicit use terms were not established. Preparation requires `--confirm-data-terms`; the archive is not redistributed. |
-| Crossmodal-3600 (XM3600) | `requires_user_confirmation` | Terms for the exact image/caption archives have not been verified. A separate translated-text license is not assumed to cover these files. Preparation requires explicit confirmation. |
+| CIFAR-10 / CIFAR-100 | `public_download_citation_required` | The [official University of Toronto page](https://www.cs.toronto.edu/~kriz/cifar.html) publishes the Python archives, defines the test splits, and requests citation of the dataset technical report. It displays no separate acceptance agreement. This benchmark downloads only the official archives for non-redistributive evaluation and cites the report; this is not a claim of a formal open-source license. |
+| Crossmodal-3600 (XM3600) | `verified_attribution_required` | The [official project page](https://google.github.io/crossmodal-3600/) states that Google LLC licenses annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Its [image-attribution CSV](https://google.github.io/crossmodal-3600/web-data/image_attributions.csv) was checked on 2026-10-19: all 3,600 unique image IDs match the caption set, all entries list [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), and author, title, and source fields are present. Preparation repeats these checks before image inference. Images are not redistributed. |
 | Flickr30k | `blocked` | No authorized local Karpathy test copy or permitted image download was established. |
 | MS COCO Captions | `blocked` | The current preparer does not preserve/verify per-image third-party licenses for the selected test images. |
 | ImageNet-1K | `blocked` | Requires authorized ImageNet access; the framework will not bypass registration or access controls. |
@@ -40,11 +40,14 @@ addition to the license before using results outside this benchmark.
 | Babel-ImageNet | `blocked` | Requires authorized ImageNet images and verified Japanese class coverage. |
 
 The registry and CLI plan show the access state before an evaluation. `--confirm-data-terms`
-does not override a `blocked` status. `--yes` authorizes the reviewed network plan; it does
-not accept a license or grant dataset rights. Do not use either flag without the required
-review and authorization.
+does not override a `blocked` status and is not used for the reviewed CIFAR or XM3600 sources.
+`--yes` authorizes the reviewed network plan; it does not accept a license or grant dataset
+rights. CIFAR use is limited here to official-source research evaluation with citation and no
+redistribution. XM3600 attribution metadata is validated against the downloaded captions
+before images are acquired. Do not use either flag as a substitute for any acceptance that a
+different source may require.
 
-No dataset or model checkpoint has been downloaded for this repository's tests, and no
-dataset terms have been accepted. The authoritative access states are in
+No dataset terms have been accepted. The authoritative access states are in
 [`registry.py`](../src/vision_language_benchmarks/registry.py); check the original sources
-again before any acquisition or publication.
+again before any acquisition or publication. The benchmark code does not redistribute
+dataset files.

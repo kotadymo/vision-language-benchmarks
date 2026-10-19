@@ -234,7 +234,9 @@
             "verified",
             "requires_user_confirmation",
             "blocked",
-            "unverified"
+            "unverified",
+            "public_download_citation_required",
+            "verified_attribution_required"
           ]
         },
         "dataset_terms_confirmed": {

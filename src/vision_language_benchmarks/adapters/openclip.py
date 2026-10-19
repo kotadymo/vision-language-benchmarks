@@ -207,6 +207,7 @@ class Adapter(TorchAdapter):
                 precision="fp32",
                 device=self.device_object,
                 cache_dir=str(self.cache_dir),
+                force_quick_gelu=bool(pretrained_config.get("quick_gelu", False)),
             )
             tokenizer_name = spec.model_id
 
