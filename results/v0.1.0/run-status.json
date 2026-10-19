@@ -1,6 +1,6 @@
 {
   "manifest_schema_version": "1.0.0",
-  "updated_at_utc": "2026-10-19T18:02:21Z",
+  "updated_at_utc": "2026-10-19T18:07:41Z",
   "benchmark_source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
   "source_commit_note": "The v0.1.0 run matrix contains clean-source measurements from the three listed commits; each run record is authoritative for its own source commit. The branch source used for all CIFAR runs and the SigLIP XM3600 pair is recorded here.",
   "hardware": {
@@ -63,7 +63,7 @@
       },
       "gpu_peak_allocated_bytes": 624222720,
       "gpu_peak_reserved_bytes": 687865856,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -71,7 +71,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:03+00:00",
+      "model_initialization_seconds": 6.953583599999547,
+      "inference_seconds": 0.2948832999682054,
+      "execution_log_record_key": "openai_clip_b32",
+      "source_execution_log_retained_locally": true
     },
     "openclip_b32_laion2b": {
       "status": "completed",
@@ -87,7 +92,7 @@
       },
       "gpu_peak_allocated_bytes": 628135424,
       "gpu_peak_reserved_bytes": 769654784,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -95,7 +100,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:11+00:00",
+      "model_initialization_seconds": 2.6783667000127025,
+      "inference_seconds": 0.060666599951218814,
+      "execution_log_record_key": "openclip_b32_laion2b",
+      "source_execution_log_retained_locally": true
     },
     "openclip_l14_laion2b": {
       "status": "completed",
@@ -111,7 +121,7 @@
       },
       "gpu_peak_allocated_bytes": 1737028608,
       "gpu_peak_reserved_bytes": 1797259264,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -119,7 +129,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:14+00:00",
+      "model_initialization_seconds": 6.813904399983585,
+      "inference_seconds": 0.09997780004050583,
+      "execution_log_record_key": "openclip_l14_laion2b",
+      "source_execution_log_retained_locally": true
     },
     "embeddinggemma2": {
       "status": "completed",
@@ -138,9 +153,9 @@
           "text_examples": 2
         }
       },
-      "gpu_peak_allocated_bytes": 3158132736,
-      "gpu_peak_reserved_bytes": 3238002688,
-      "execution_log": "local_only",
+      "gpu_peak_allocated_bytes": 3137030144,
+      "gpu_peak_reserved_bytes": 3214934016,
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -148,7 +163,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:31:12+00:00",
+      "model_initialization_seconds": 9.410432500008028,
+      "inference_seconds": 2.8866543999756686,
+      "execution_log_record_key": "embeddinggemma2",
+      "source_execution_log_retained_locally": true
     },
     "siglip2_base_224": {
       "status": "completed",
@@ -169,7 +189,7 @@
       },
       "gpu_peak_allocated_bytes": 1533650432,
       "gpu_peak_reserved_bytes": 3810525184,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -177,7 +197,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:35+00:00",
+      "model_initialization_seconds": 5.520322999975178,
+      "inference_seconds": 0.08623130002524704,
+      "execution_log_record_key": "siglip2_base_224",
+      "source_execution_log_retained_locally": true
     },
     "openclip_multilingual_b32": {
       "status": "completed",
@@ -198,7 +223,7 @@
       },
       "gpu_peak_allocated_bytes": 1525939200,
       "gpu_peak_reserved_bytes": 1652555776,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -206,7 +231,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:41+00:00",
+      "model_initialization_seconds": 10.073471000010613,
+      "inference_seconds": 0.2156669999822043,
+      "execution_log_record_key": "openclip_multilingual_b32",
+      "source_execution_log_retained_locally": true
     },
     "rinna_ja_clip_b16": {
       "status": "completed",
@@ -224,7 +254,7 @@
       },
       "gpu_peak_allocated_bytes": 821198336,
       "gpu_peak_reserved_bytes": 1642070016,
-      "execution_log": "local_only",
+      "execution_log": "validation/model-smoke-tests.json",
       "checkpoint_loaded_on_cuda": true,
       "image_inference_passed": true,
       "text_inference_passed": true,
@@ -232,7 +262,12 @@
       "embeddings_finite": true,
       "normalized_cosine_finite": true,
       "device": "cuda:0",
-      "precision": "fp32"
+      "precision": "fp32",
+      "timestamp_utc": "2026-10-19T15:03:52+00:00",
+      "model_initialization_seconds": 2.526987499964889,
+      "inference_seconds": 0.07102430000668392,
+      "execution_log_record_key": "rinna_ja_clip_b16",
+      "source_execution_log_retained_locally": true
     }
   },
   "dataset_preparation": {

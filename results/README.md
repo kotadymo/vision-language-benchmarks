@@ -4,8 +4,10 @@ The [v0.1.0 report](v0.1.0/report.md) contains 31 schema-validated, full-dataset
 measurements: 24 CIFAR-10/100 classification runs and seven XM3600 retrieval runs. The
 [CSV summary](v0.1.0/summary.csv), [metadata](v0.1.0/metadata.json),
 [run-status manifest](v0.1.0/run-status.json), and [raw per-run JSON](v0.1.0/raw/) are
-published alongside the report. The [official CIFAR-10 parity record](v0.1.0/validation/official-cifar10-parity.json)
-compares OpenAI CLIP P0 with the pinned CLIP Benchmark implementation.
+published alongside the report. Sanitized real-model CUDA smoke-test execution evidence is in
+[model-smoke-tests.json](v0.1.0/validation/model-smoke-tests.json). The
+[official CIFAR-10 parity record](v0.1.0/validation/official-cifar10-parity.json) compares
+OpenAI CLIP P0 with the pinned CLIP Benchmark implementation.
 
 Regenerate derived artifacts from the raw JSON with:
 

@@ -14,6 +14,7 @@ full evaluations.
   [metadata](results/v0.1.0/metadata.json)
 - [Validated per-run JSON results](results/v0.1.0/raw/) ·
   [machine-readable run status](results/v0.1.0/run-status.json)
+- [Real CUDA model smoke-test evidence](results/v0.1.0/validation/model-smoke-tests.json)
 - [Official CLIP Benchmark parity record](results/v0.1.0/validation/official-cifar10-parity.json)
 - Charts: [classification P0](results/v0.1.0/plots/classification_accuracy.png),
   [classification P1](results/v0.1.0/plots/classification_accuracy_p1.png),
