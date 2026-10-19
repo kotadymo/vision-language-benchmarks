@@ -10,6 +10,7 @@ import pytest
 from PIL import Image
 
 from vision_language_benchmarks.adapters import japanese_clip, openclip_gemma, siglip2
+from vision_language_benchmarks.atomic import content_hash
 from vision_language_benchmarks.registry import ModelSpec, get_model
 
 
@@ -346,7 +347,9 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
 
     def load_processor(path: str) -> object:
         processor_paths.append(path)
-        return SimpleNamespace(image_processor=SimpleNamespace(size={"height": 224, "width": 224}))
+        return SimpleNamespace(
+            image_processor=SimpleNamespace(size=SimpleNamespace(height=224, width=224))
+        )
 
     def fake_import_module(name: str) -> object:
         if name == "transformers":
@@ -388,6 +391,7 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     assert processor_paths == [str(snapshot)]
     assert adapter.max_text_length == 64
     assert metadata["input_resolution"] == {"height": 224, "width": 224}
+    assert content_hash(metadata["preprocessing_config"])
     assert metadata["tokenizer_repository"] == spec.hf_repository
     assert metadata["tokenizer_revision"] == spec.checkpoint_revision
 

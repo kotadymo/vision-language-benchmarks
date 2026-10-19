@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import importlib
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from numpy.typing import NDArray
@@ -29,6 +29,21 @@ def _pooler_features(output: Any) -> Any:
     if isinstance(output, tuple) and output:
         return output[0]
     return output
+
+
+def _size_metadata(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Mapping):
+        return dict(value)
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    try:
+        return vars(value)
+    except TypeError as error:
+        raise TypeError(
+            f"Unsupported image processor size metadata type: {type(value).__name__}."
+        ) from error
 
 
 class Adapter(TorchAdapter):
@@ -102,11 +117,12 @@ class Adapter(TorchAdapter):
 
     def metadata(self) -> dict[str, Any]:
         image_processor = getattr(self.processor, "image_processor", None)
-        input_resolution = getattr(image_processor, "size", None)
+        input_resolution = _size_metadata(getattr(image_processor, "size", None))
+        crop_size = _size_metadata(getattr(image_processor, "crop_size", None))
         preprocessing_config = {
             "image_processor": type(image_processor).__name__,
             "size": input_resolution,
-            "crop_size": getattr(image_processor, "crop_size", None),
+            "crop_size": crop_size,
             "do_resize": getattr(image_processor, "do_resize", None),
             "do_center_crop": getattr(image_processor, "do_center_crop", None),
             "do_rescale": getattr(image_processor, "do_rescale", None),
