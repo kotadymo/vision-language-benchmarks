@@ -44,7 +44,7 @@ families and run the seven real adapter smoke tests sequentially with:
 ```powershell
 uv sync --locked --group dev --extra cuda --extra openclip --extra gemma --extra siglip2 --extra japanese-clip
 $env:VLBENCH_RUN_REAL_MODEL_TESTS = "1"
-uv run --locked pytest -q -s tests/real_model/test_real_model_adapters.py
+uv run --locked --extra cuda --extra openclip --extra gemma --extra siglip2 --extra japanese-clip pytest -q -s tests/real_model/test_real_model_adapters.py
 Remove-Item Env:VLBENCH_RUN_REAL_MODEL_TESTS
 ```
 
@@ -59,13 +59,16 @@ To exercise the complete benchmark runner against all 3,600 authorized XM3600 im
 
 ```powershell
 $env:VLBENCH_RUN_REAL_BENCHMARK_TESTS = "1"
-uv run --locked pytest -q -s tests/real_model/test_real_runner.py
+$env:VLBENCH_REAL_BENCHMARK_OUTPUT = "results/v0.1.0"
+uv run --locked --extra cuda --extra openclip pytest -q -s tests/real_model/test_real_runner.py
+Remove-Item Env:VLBENCH_REAL_BENCHMARK_OUTPUT
 Remove-Item Env:VLBENCH_RUN_REAL_BENCHMARK_TESTS
 ```
 
-It writes its schema-validated result and run manifest into pytest's temporary directory.
-Publish benchmark results only from deliberate `vlbench run` commands after verifying the
-recorded source commit, dataset integrity, and run status.
+By default it writes its schema-validated result and run manifest into pytest's temporary
+directory. Setting `VLBENCH_REAL_BENCHMARK_OUTPUT` instead stores the completed run under that
+result root, where the raw JSON can be validated and considered for publication. Verify the
+recorded source commit, dataset integrity, and run status before publishing.
 
 ## Inspect plans before acquisition
 

@@ -22,7 +22,8 @@ def test_runner_completes_full_xm3600_japanese_retrieval(tmp_path: Path) -> None
 
     from vision_language_benchmarks.evaluation.runner import run_benchmark
 
-    results_root = tmp_path / "results"
+    output_root = os.environ.get("VLBENCH_REAL_BENCHMARK_OUTPUT")
+    results_root = Path(output_root) if output_root else tmp_path / "results"
     result = run_benchmark(
         "openclip_multilingual_b32",
         "crossmodal3600",
