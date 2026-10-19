@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Benchmark datasets and large artifacts
+data/
+datasets/
+artifacts/
+results/raw/
+*.safetensors
+*.pt
+*.pth
