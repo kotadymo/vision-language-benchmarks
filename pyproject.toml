@@ -1,25 +1,70 @@
 [project]
 name = "vision-language-benchmarks"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reproducible vision-language model benchmarks"
 readme = "README.md"
 authors = [
-    { name = "KotaN", email = "12345678+kotadymo@users.noreply.github.com" }
+    { name = "KotaN", email = "110246642+kotadymo@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "numpy>=2.5.4",
-    "pandas>=3.0.6",
-    "pillow>=13.0.0",
-    "pyyaml>=6.0.3",
+    "jsonschema==4.26.0",
+    "matplotlib==3.11.2",
+    "numpy==2.5.4",
+    "pillow==13.0.0",
 ]
 
 [build-system]
-requires = ["uv_build>=0.13.1,<0.14.0"]
+requires = ["uv_build==0.13.1"]
 build-backend = "uv_build"
+
+[project.scripts]
+vlbench = "vision_language_benchmarks.cli:main"
+
+[project.optional-dependencies]
+cuda = [
+    "torch==2.14.1",
+    "torchvision==0.29.1",
+]
+openclip = [
+    "open-clip-torch==3.3.0",
+    "transformers==5.20.1",
+]
+gemma = [
+    "openclip-gemma==0.3.0",
+]
+siglip2 = [
+    "transformers==5.20.1",
+]
+japanese-clip = [
+    "japanese-clip @ git+https://github.com/tattn/japanese-clip.git@374e08d48b9ba72fcaf7459af4f8c93caffd6fb3",
+]
 
 [dependency-groups]
 dev = [
-    "pytest>=9.1.1",
-    "ruff>=0.17.1",
+    "pytest==9.1.1",
+    "ruff==0.17.1",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
+
+[tool.uv]
+override-dependencies = ["sentencepiece==0.2.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kotadymo.github.io/vision-language-benchmarks/result.schema.json",
+  "title": "Vision-Language Benchmark Result",
+  "type": "object",
+  "required": [
+    "dataset",
+    "model",
+    "pretrained",
+    "task",
+    "language",
+    "status",
+    "benchmark_metadata"
+  ],
+  "properties": {
+    "dataset": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pretrained": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "task": {
+      "enum": [
+        "classification",
+        "retrieval"
+      ]
+    },
+    "language": {
+      "type": "string",
+      "minLength": 2
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "skipped",
+        "failed",
+        "blocked"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "acc1": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "acc5": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "patternProperties": {
+        "^(image|text)_retrieval_recall@(1|5|10)$": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "benchmark_metadata": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "run_id",
+        "timestamp_utc",
+        "status",
+        "source_commit_sha",
+        "framework_name",
+        "framework_ref",
+        "python_version",
+        "uv_lock_sha256",
+        "model_repo",
+        "checkpoint_revision",
+        "pretrained_tag",
+        "adapter_name",
+        "model_license",
+        "dataset_id",
+        "dataset_revision",
+        "dataset_split",
+        "dataset_checksum",
+        "dataset_license_status",
+        "dataset_terms_confirmed",
+        "image_count",
+        "text_count",
+        "class_count",
+        "language",
+        "original_language_code",
+        "prompt_policy",
+        "prompt_name",
+        "template_hash",
+        "classnames_hash",
+        "device",
+        "gpu_name",
+        "gpu_vram_bytes",
+        "driver_version",
+        "torch_version",
+        "torch_cuda_version",
+        "precision",
+        "amp_enabled",
+        "batch_size_actual",
+        "seed",
+        "throughput_images_per_sec",
+        "throughput_texts_per_sec",
+        "inference_ms_median",
+        "gpu_peak_allocated_bytes",
+        "gpu_peak_reserved_bytes"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "skipped",
+            "failed",
+            "blocked"
+          ]
+        },
+        "reason_if_not_success": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_commit_sha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "framework_name": {
+          "const": "vision-language-benchmarks"
+        },
+        "framework_ref": {
+          "const": "v0.1.0"
+        },
+        "python_version": {
+          "type": "string"
+        },
+        "uv_lock_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_repo": {
+          "type": "string"
+        },
+        "checkpoint_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_checkpoint_filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_checkpoint_size_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "model_languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2
+          },
+          "uniqueItems": true
+        },
+        "pretrained_tag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adapter_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_license": {
+          "type": "string"
+        },
+        "dataset_id": {
+          "type": "string"
+        },
+        "dataset_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dataset_split": {
+          "type": "string"
+        },
+        "dataset_checksum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dataset_license_status": {
+          "enum": [
+            "verified",
+            "requires_user_confirmation",
+            "blocked",
+            "unverified"
+          ]
+        },
+        "dataset_terms_confirmed": {
+          "type": "boolean"
+        },
+        "image_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "text_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "class_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "language": {
+          "type": "string"
+        },
+        "original_language_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prompt_policy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prompt_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "template_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "classnames_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device": {
+          "type": "string"
+        },
+        "gpu_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gpu_vram_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "driver_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "torch_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "torch_cuda_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "precision": {
+          "enum": [
+            "fp32",
+            "bf16"
+          ]
+        },
+        "amp_enabled": {
+          "type": "boolean"
+        },
+        "batch_size_actual": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "throughput_images_per_sec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "throughput_texts_per_sec": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "inference_ms_median": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "gpu_peak_allocated_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "gpu_peak_reserved_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "not": {
+                  "const": "completed"
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason_if_not_success"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "metrics"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "metrics"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "benchmark_metadata": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}
