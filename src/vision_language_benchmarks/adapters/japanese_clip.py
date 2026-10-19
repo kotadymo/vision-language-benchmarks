@@ -154,6 +154,13 @@ class Adapter(TorchAdapter):
         return {
             "adapter_name": "japanese_clip",
             "implementation_version": package_version("japanese-clip"),
+            "preprocessing_version": package_version("japanese-clip"),
+            "preprocessing_config": {
+                "transform": "japanese_clip.load",
+                "input_resolution": getattr(vision, "image_size", None),
+                "max_text_length": 77,
+            },
+            "tokenizer_implementation_version": package_version("transformers"),
             "checkpoint_sha256": self.checkpoint_sha256,
             "checkpoint_files": self.checkpoint_files,
             "model_download_seconds": self.model_download_seconds,

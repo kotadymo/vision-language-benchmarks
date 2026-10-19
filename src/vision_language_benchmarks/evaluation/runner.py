@@ -37,10 +37,12 @@ from vision_language_benchmarks.prompts import (
 )
 from vision_language_benchmarks.registry import (
     ProtocolName,
+    RetrievalVariant,
     canonical_language,
     get_dataset,
     get_model,
     language_is_supported,
+    normalize_retrieval_variant,
 )
 from vision_language_benchmarks.reporting.schema import validate_result
 
@@ -149,6 +151,7 @@ def _make_result(
     configuration_hash: str,
     run_id: str,
     data_terms_confirmed: bool = False,
+    retrieval_variant: RetrievalVariant | None = None,
     dataset_record: dict[str, Any] | None = None,
     model_metadata: dict[str, Any] | None = None,
     evaluation_metadata: dict[str, Any] | None = None,
@@ -171,6 +174,31 @@ def _make_result(
         if dataset.task == "classification"
         else retrieval_prompt_name(model.key)
     )
+    preprocessing_config = adapter_metadata.get("preprocessing_config")
+    if not isinstance(preprocessing_config, dict):
+        preprocessing_config = {
+            "input_resolution": adapter_metadata.get("input_resolution"),
+            "image_batching_strategy": adapter_metadata.get("image_batching_strategy"),
+            "max_text_length": adapter_metadata.get("max_text_length"),
+        }
+    preprocessing_version = adapter_metadata.get(
+        "preprocessing_version",
+        adapter_metadata.get("implementation_version"),
+    )
+    run_configuration = {
+        "model_key": model.key,
+        "dataset_key": dataset.key,
+        "protocol": protocol,
+        "language": normalized_language,
+        "precision": precision,
+        "device": actual_device,
+        "batch_size_requested": batch_size,
+        "seed": seed,
+        "dataset_checksum": record.get("dataset_checksum"),
+        "data_terms_confirmed": data_terms_confirmed,
+    }
+    if retrieval_variant is not None:
+        run_configuration["retrieval_variant"] = retrieval_variant
     metadata = {
         "schema_version": RUN_SCHEMA_VERSION,
         "run_id": run_id,
@@ -198,6 +226,13 @@ def _make_result(
         "checkpoint_files": adapter_metadata.get("checkpoint_files"),
         "parameter_count": adapter_metadata.get("parameter_count"),
         "model_implementation_version": adapter_metadata.get("implementation_version"),
+        "preprocessing_version": preprocessing_version,
+        "preprocessing_config": preprocessing_config,
+        "preprocessing_config_sha256": content_hash(preprocessing_config),
+        "tokenizer_implementation_version": adapter_metadata.get(
+            "tokenizer_implementation_version",
+            adapter_metadata.get("implementation_version"),
+        ),
         "tokenizer_repository": adapter_metadata.get(
             "tokenizer_repository",
             model.tokenizer_repository or model.hf_repository,
@@ -217,27 +252,52 @@ def _make_result(
         "dataset_source": dataset.source,
         "dataset_integrity_status": record.get("data_integrity_status"),
         "annotation_source": record.get("annotation_source"),
+        "images_archive_sha256": record.get("images_archive_sha256"),
+        "captions_archive_sha256": record.get("captions_archive_sha256"),
+        "image_files_sha256": record.get("image_files_sha256"),
+        "image_attributions_sha256": record.get("image_attributions_sha256"),
         "image_count": evaluation.get(
             "image_count",
             record.get("actual_sample_count", dataset.expected_images),
         ),
         "text_count": evaluation.get(
             "text_count",
-            record.get("text_count", dataset.expected_text_count(normalized_language)),
+            record.get(
+                "text_count",
+                dataset.expected_text_count(normalized_language, retrieval_variant),
+            ),
         ),
         "class_count": evaluation.get(
             "class_count",
             record.get("class_count", dataset.expected_classes),
         ),
+        "retrieval_variant": retrieval_variant,
+        "retrieval_variant_reference_commit": evaluation.get(
+            "retrieval_variant_reference_commit"
+        ),
+        "retrieval_variant_source": (
+            "run_configuration" if retrieval_variant is not None else None
+        ),
+        "caption_selection": evaluation.get("caption_selection"),
+        "one_caption_per_image": evaluation.get("one_caption_per_image"),
+        "candidate_counts": evaluation.get("candidate_counts"),
+        "official_image_filtering": evaluation.get("official_image_filtering"),
+        "caption_count_per_image_min": evaluation.get("caption_count_per_image_min"),
+        "caption_count_per_image_max": evaluation.get("caption_count_per_image_max"),
+        "text_content_sha256": evaluation.get("text_content_sha256"),
         "language": normalized_language,
         "original_language_code": language_code,
         "prompt_policy": evaluation.get("prompt_policy"),
         "prompt_name": evaluation.get("prompt_name", default_prompt_name),
+        "task_prompt": evaluation.get("task_prompt"),
         "template_hash": evaluation.get("template_hash"),
         "classnames_hash": evaluation.get("classnames_hash"),
         "image_id_scheme": evaluation.get("image_id_scheme"),
+        "image_ids": evaluation.get("image_ids"),
+        "text_ids": evaluation.get("text_ids"),
         "image_id_order_hash": evaluation.get("image_id_order_hash"),
         "text_id_order_hash": evaluation.get("text_id_order_hash"),
+        "text_id_scheme": evaluation.get("text_id_scheme"),
         "positive_pair_count": evaluation.get("positive_pair_count"),
         "device": actual_device,
         "requested_device": requested_device,
@@ -275,18 +335,7 @@ def _make_result(
             "The model pretraining corpus is not independently verified to exclude this "
             "evaluation dataset; training-data contamination cannot be ruled out."
         ),
-        "run_configuration": {
-            "model_key": model.key,
-            "dataset_key": dataset.key,
-            "protocol": protocol,
-            "language": normalized_language,
-            "precision": precision,
-            "device": actual_device,
-            "batch_size_requested": batch_size,
-            "seed": seed,
-            "dataset_checksum": record.get("dataset_checksum"),
-            "data_terms_confirmed": data_terms_confirmed,
-        },
+        "run_configuration": run_configuration,
     }
     result: dict[str, Any] = {
         "dataset": dataset.key,
@@ -325,6 +374,7 @@ def _persist_result(
             "dataset": result["dataset"],
             "language": result["language"],
             "protocol": metadata["run_configuration"]["protocol"],
+            "retrieval_variant": metadata.get("retrieval_variant"),
             "reason_if_not_success": metadata["reason_if_not_success"],
         },
     )
@@ -349,26 +399,28 @@ def _write_skipped_or_blocked(
     dirty: bool,
     hardware: dict[str, Any],
     confirm_data_terms: bool = False,
+    retrieval_variant: RetrievalVariant | None = None,
     dataset_record: dict[str, Any] | None = None,
     configuration_hash: str | None = None,
     run_id: str | None = None,
 ) -> dict[str, Any]:
-    config = configuration_hash or content_hash(
-        {
-            "model": model_key,
-            "dataset": dataset_key,
-            "protocol": protocol,
-            "language": canonical_language(language),
-            "precision": precision,
-            "device": device,
-            "batch_size": batch_size,
-            "seed": seed,
-            "data_terms_confirmed": confirm_data_terms,
-            "dataset_checksum": (dataset_record or {}).get("dataset_checksum"),
-            "source_commit_sha": source_sha,
-            "uv_lock_sha256": lock_sha,
-        }
-    )
+    configuration = {
+        "model": model_key,
+        "dataset": dataset_key,
+        "protocol": protocol,
+        "language": canonical_language(language),
+        "precision": precision,
+        "device": device,
+        "batch_size": batch_size,
+        "seed": seed,
+        "data_terms_confirmed": confirm_data_terms,
+        "dataset_checksum": (dataset_record or {}).get("dataset_checksum"),
+        "source_commit_sha": source_sha,
+        "uv_lock_sha256": lock_sha,
+    }
+    if retrieval_variant is not None:
+        configuration["retrieval_variant"] = retrieval_variant
+    config = configuration_hash or content_hash(configuration)
     actual_run_id = run_id or config[:16]
     manifest = RunManifest(results_root / "run-manifest.json")
     entry = manifest.get(actual_run_id)
@@ -393,6 +445,7 @@ def _write_skipped_or_blocked(
         configuration_hash=config,
         run_id=actual_run_id,
         data_terms_confirmed=confirm_data_terms,
+        retrieval_variant=retrieval_variant,
         dataset_record=dataset_record,
     )
     manifest.transition(
@@ -404,6 +457,7 @@ def _write_skipped_or_blocked(
             "dataset": result["dataset"],
             "language": result["language"],
             "protocol": protocol,
+            "retrieval_variant": retrieval_variant,
         },
     )
     _persist_result(result, results_root, manifest, config)
@@ -494,10 +548,12 @@ def run_benchmark(
     force: bool = False,
     allow_cpu_fallback: bool = False,
     confirm_data_terms: bool = False,
+    retrieval_variant: RetrievalVariant | None = None,
     progress: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
+    resolved_retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
     if protocol not in {"p0", "p1", "p2"}:
         raise ValueError(f"Unsupported protocol: {protocol!r}.")
     if precision not in {"fp32", "bf16"}:
@@ -508,6 +564,8 @@ def run_benchmark(
         raise ValueError("device must be 'cpu', 'cuda', or 'cuda:<index>'.")
     if protocol == "p2" and dataset.task != "retrieval":
         raise ValueError("P2 is reserved for paired-language retrieval datasets.")
+    if dataset.key == "crossmodal3600" and protocol != "p2":
+        raise ValueError("XM3600 retrieval variants are an additional dimension of P2.")
     normalized_language = canonical_language(language)
     source_sha = _source_commit_sha()
     lock_sha = _lock_sha256()
@@ -533,6 +591,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
     if (
         dataset.license_status == "requires_user_confirmation"
@@ -558,6 +617,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
     if normalized_language not in dataset.languages:
         return _write_skipped_or_blocked(
@@ -580,6 +640,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
     if not language_is_supported(model, normalized_language):
         return _write_skipped_or_blocked(
@@ -599,6 +660,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
     if dataset.task not in model.supported_tasks:
         return _write_skipped_or_blocked(
@@ -618,6 +680,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
 
     if device.startswith("cuda") and not hardware_report.get("torch", {}).get("cuda_available"):
@@ -646,6 +709,7 @@ def run_benchmark(
                 dirty=dirty,
                 hardware=hardware,
                 confirm_data_terms=confirm_data_terms,
+                retrieval_variant=resolved_retrieval_variant,
             )
     else:
         actual_device = device
@@ -675,6 +739,7 @@ def run_benchmark(
             dirty=dirty,
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
         )
     dataset_preparation_seconds = time.perf_counter() - prepare_started
     configuration = {
@@ -695,6 +760,8 @@ def run_benchmark(
         "source_commit_sha": source_sha,
         "uv_lock_sha256": lock_sha,
     }
+    if resolved_retrieval_variant is not None:
+        configuration["retrieval_variant"] = resolved_retrieval_variant
     configuration_hash = content_hash(configuration)
     selected_run_id = _run_id(configuration_hash, results_root, resume, force)
     if resume and not force:
@@ -718,6 +785,7 @@ def run_benchmark(
             "dataset": dataset.key,
             "language": normalized_language,
             "protocol": protocol,
+            "retrieval_variant": resolved_retrieval_variant,
             "dataset_checksum": dataset_record.get("dataset_checksum"),
         },
     )
@@ -750,6 +818,7 @@ def run_benchmark(
                 dataset.key,
                 normalized_language,
                 batch_size,
+                retrieval_variant=resolved_retrieval_variant,
                 progress=progress,
             )
         evaluation_metadata = evaluation.metadata
@@ -804,6 +873,7 @@ def run_benchmark(
             configuration_hash=configuration_hash,
             run_id=selected_run_id,
             data_terms_confirmed=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
             dataset_record=dataset_record,
             model_metadata=model_metadata,
             evaluation_metadata=evaluation_metadata,
@@ -837,6 +907,7 @@ def run_benchmark(
             configuration_hash=configuration_hash,
             run_id=selected_run_id,
             data_terms_confirmed=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
             dataset_record=dataset_record,
             model_metadata=model_metadata,
             evaluation_metadata=evaluation_metadata,

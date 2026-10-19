@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from vision_language_benchmarks.evaluation.runner import _make_result
-from vision_language_benchmarks.registry import get_dataset, get_model
+from vision_language_benchmarks.registry import (
+    RetrievalVariant,
+    get_dataset,
+    get_model,
+)
 
 
 def make_result(
@@ -15,10 +19,15 @@ def make_result(
     status: str = "completed",
     run_id: str | None = None,
     data_terms_confirmed: bool | None = None,
-    image_id_order_hash: str = "synthetic-image-order",
+    image_id_order_hash: str = "a" * 64,
+    retrieval_variant: RetrievalVariant | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
+    if retrieval_variant is not None and (
+        dataset_key != "crossmodal3600" or dataset.task != "retrieval"
+    ):
+        raise ValueError("Test retrieval variants are supported only for XM3600.")
     selected_run_id = run_id or f"synthetic-{dataset_key}-{language}-{status}"
     selected_terms_confirmation = (
         dataset.license_status == "requires_user_confirmation" and status == "completed"
@@ -48,7 +57,9 @@ def make_result(
         text_count = class_count * 18
     else:
         class_count = None
-        text_count = dataset.expected_text_count(language) or image_count
+        text_count = (
+            dataset.expected_text_count(language, retrieval_variant) or image_count
+        )
     dataset_record = {
         "version": "synthetic-v1",
         "dataset_checksum": "b" * 64,
@@ -74,6 +85,40 @@ def make_result(
         "text_batch_size_actual": 2,
         "oom_history": [],
     }
+    if retrieval_variant is not None:
+        image_ids = [f"image-{index}" for index in range(image_count)]
+        text_ids = (
+            [f"{image_id}#0" for image_id in image_ids]
+            if retrieval_variant == "official_first_caption"
+            else [
+                f"image-{index % image_count}#{index // image_count}"
+                for index in range(text_count)
+            ]
+        )
+        evaluation_metadata.update(
+            {
+                "retrieval_variant": retrieval_variant,
+                "retrieval_variant_reference_commit": (
+                    "ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596"
+                    if retrieval_variant == "official_first_caption"
+                    else None
+                ),
+                "caption_selection": (
+                    "captions[0]"
+                    if retrieval_variant == "official_first_caption"
+                    else "all captions"
+                ),
+                "one_caption_per_image": (
+                    True if retrieval_variant == "official_first_caption" else None
+                ),
+                "candidate_counts": {"images": image_count, "texts": text_count},
+                "image_ids": image_ids,
+                "text_ids": text_ids,
+                "image_id_order_hash": "a" * 64,
+                "text_id_order_hash": "b" * 64,
+                "text_content_sha256": "c" * 64,
+            }
+        )
     return _make_result(
         model_key=model_key,
         dataset_key=dataset_key,
@@ -99,6 +144,7 @@ def make_result(
         configuration_hash=f"configuration-{selected_run_id}",
         run_id=selected_run_id,
         data_terms_confirmed=selected_terms_confirmation,
+        retrieval_variant=retrieval_variant,
         dataset_record=dataset_record,
         model_metadata={
             "adapter_name": model.adapter,

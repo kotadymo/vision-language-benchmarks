@@ -38,7 +38,10 @@ This project compares pretrained vision-language models—including EmbeddingGem
 
 - **P0 / CLIP Benchmark-compatible**: Match the official dataset and split, labels/templates, and aggregation definitions. Record any model-specific tokenizer or required task prefix. Do not claim equivalence to official scores when execution conditions differ.
 - **P1 / Model-native**: Use prompts or templates recommended by each model card as a reference comparison. Keep P0 and P1 in separate tables, figures, and rankings.
-- **P2 / Japanese versus English**: Compare Japanese and English on the same dataset and identical image/ID set. Report translation-assisted experiments separately as `translation_assisted`.
+- **P2 / Japanese versus English**: Compare Japanese and English on the same dataset and identical image/ID set. Report translation-assisted experiments separately as `translation_assisted`. For XM3600, P2 is the language-comparison protocol; caption selection is an independent `retrieval_variant`.
+- **XM3600 `official_first_caption`**: Follow the pinned CLIP Benchmark loader's `captions[0]` selection and official image ordering. Exclude only records whose image file is missing, validate one caption per included image, and require the same ordered image IDs across English and Japanese.
+- **XM3600 `all_captions`**: Preserve every valid caption and all corresponding positive-pair mappings. Keep scores and rankings separate from `official_first_caption`.
+- Include the variant in configuration hashes, run IDs, cache/resume decisions, result metadata, reports, charts, and CSV. Historical XM3600 results without the field may be assigned `all_captions` only from their recorded candidate counts; preserve the original JSON and record the inference provenance.
 - Use FP32 for primary accuracy results. Report BF16/AMP separately and state which models support it.
 
 ## 3. Candidate comparison models
@@ -91,11 +94,16 @@ Before evaluation, verify each checkpoint's existence, license, usage conditions
 
 **Shared and overlapping data**:
 
-- XTD10 and CLIP Benchmark's `multilingual_mscoco_captions` may use the same XTD10 images and captions. Do not average them as independent evaluations or add their sample counts. Compare image IDs, annotation sources, and checksums; if they are identical, report one representative dataset.
+- XTD10 and CLIP Benchmark's `multilingual_mscoco_captions` use the same image index and image archive, with language files drawn from XTD10/MIC/STAIR. Do not average them as independent evaluations or add their sample counts. Preserve the requested dataset key and language-specific caption source while reporting their overlap.
 - XTD10 uses `jp` for Japanese while XM3600 uses `ja`. Normalize to ISO `ja` internally only if each dataset adapter preserves the required original identifier.
 - Do not assume Japanese labels exist for all 1,000 ImageNet classes. Define the Japanese-labeled class set and compare English on the same classes and images. Report this separately from standard 1,000-class ImageNet-1K.
 - Japanese Stable CLIP was trained using MS COCO and STAIR; state the training-data overlap risk for COCO-derived evaluations. Check potential training overlap for other models as well.
 - Mark models that cannot accept Japanese as `unsupported`; never record them as 0% accuracy.
+
+Current acquisition status and exact next actions for Flickr30k, COCO, ImageNet, XTD10,
+multilingual COCO, and Babel-ImageNet are tracked in
+[`model-and-dataset-licenses.md`](model-and-dataset-licenses.md). Do not obtain any dataset
+whose terms require user acceptance until the user has personally reviewed and accepted them.
 
 ## 6. Exact metric definitions and aggregation
 
@@ -113,6 +121,7 @@ Before evaluation, verify each checkpoint's existence, license, usage conditions
 - `text_retrieval_recall@1/5/10`: **Image query → text retrieval (I→T)**; whether a correct caption occurs in the top K.
 - Use these CLIP Benchmark metric keys and directions. Figures must explicitly label `T→I` and `I→T`.
 - When an image has multiple captions, an image query succeeds if at least one of its positive captions is in the top K. When a text query has multiple positive images, follow the evaluation set's ground-truth relations.
+- For XM3600 `official_first_caption`, the pinned reference selects one caption per image; `all_captions` retains multiple image-to-text positives. Both variants use hit-based Recall@K and are reported separately.
 - Compute the macro average over all queries in each direction, giving each query equal weight. Never silently remove queries with missing positives.
 - Explicitly handle `K > candidates`, tied scores, invalid inputs (NaN/Inf), and zero-norm features while preserving evaluation completeness.
 - Do not allocate the full similarity matrix on the GPU when unnecessary. Use blockwise exact top-K while preserving the complete candidate set. Approximate search is out of scope for the initial specification.
@@ -195,23 +204,23 @@ vision-language-benchmarks/
 - Include model-specific preprocessing, class-name templates, Hugging Face revision, maximum token length, and prefix in adapter metadata.
 - If dependencies conflict, run the model in an isolated virtual environment or subprocess and aggregate the result JSON. Do not force-install all model packages into one environment by default.
 
-### 8.2 CLI (planned)
-
-The following commands describe the intended completed interface; they are not a claim that the commands currently work:
+### 8.2 CLI
 
 ```powershell
 uv run vlbench doctor --device cuda
 uv run vlbench datasets prepare --dataset cifar10
 uv run vlbench run --model openai_clip_b32 --dataset cifar10 --protocol p0 --device cuda --precision fp32
 uv run vlbench run --model embeddinggemma2 --dataset xtd10 --language ja --protocol p0 --device cuda --precision fp32
+uv run vlbench run --model openclip_multilingual_b32 --dataset crossmodal3600 --protocol p2 --language ja --retrieval-variant official_first_caption --device cuda --precision fp32
+uv run vlbench run --model openclip_multilingual_b32 --dataset crossmodal3600 --protocol p2 --language ja --retrieval-variant all_captions --device cuda --precision fp32
 uv run vlbench suite --name core-en --device cuda --precision fp32
 uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0
 ```
 
 - `doctor` diagnoses CUDA/PyTorch compatibility, disk capacity, Hugging Face authentication presence (without displaying secrets), and external dataset access requirements.
-- `run` options include model, dataset, split, language, protocol, precision, device, batch size, seed, output, resume, and force. `--dry-run` prints the plan and estimated resource requirements.
+- `run` options include model, dataset, split, language, protocol, precision, retrieval variant, device, batch size, seed, output, resume, and force. `--dry-run` prints the plan and estimated resource requirements. XM3600 defaults to `all_captions` for backwards compatibility; reproducible commands should pass the variant explicitly.
 - Before downloads, display the dataset/model, size, and license notice. Use the official source; a public download does not override any access or license restriction.
-- On resume, compare run ID, model revision, dataset checksum, and configuration. Do not reuse a result when they differ.
+- On resume, compare run ID, model revision, dataset checksum, and the complete configuration, including `retrieval_variant`. Do not reuse a result when any field differs.
 
 ## 9. Data storage and reporting
 
@@ -313,6 +322,10 @@ Add Japanese Stable CLIP, ImageNet-A/R/Sketch, SugarCrepe, MIEB Lite, detailed V
 
 - [ ] Confirm IDs, tags, revisions, licenses, and loading methods for all adopted models.
 - [ ] Pin the CLIP Benchmark reference commit/version.
+- [ ] Validate XM3600 `official_first_caption` and `all_captions` selection, ordering, candidate counts, and positive-pair mappings.
+- [ ] Verify variant-aware configuration hashing and resume behavior; keep all retrieval variants separate in reports and charts.
+- [ ] Differentially compare both XM3600 retrieval directions and R@1/5/10 with the pinned metric implementation.
+- [ ] Run and record at least one real end-to-end official CLIP Benchmark XM3600 evaluation before claiming model-level parity.
 - [ ] Verify metric equality against the standard implementation on CIFAR-10/100 and Flickr30k.
 - [ ] Record dataset split, image count, ID correspondence, and prompts for all published results.
 - [ ] Measure FP32 on the RTX 4070 Ti SUPER; state why if unused.

@@ -16,7 +16,7 @@ This report is regenerated from schema-validated raw JSON. Only completed runs c
 - Checkpoint sizes are pinned weight-file sizes; tokenizer and configuration files may add to the download. Peak memory is reported as allocated / reserved GiB.
 - Each completed table row links to its schema-validated raw result JSON.
 
-## English classification
+## English zero-shot classification
 
 ### P0 · FP32
 
@@ -52,40 +52,74 @@ This report is regenerated from schema-validated raw JSON. Only completed runs c
 | OpenCLIP Multilingual ViT-B/32 | 366.1 M | 1.36 GiB | CIFAR-100 | test | 10,000 | 100 | 16 / 16 / 16 | 76.46% | 95.02% | 748.0 | 20.87 | 1.64 / 1.90 | 0 | [d4721f7c31f9d23c-e083b306](raw/d4721f7c31f9d23c-e083b306.json) |
 | SigLIP 2 Base/16 224 | 375.2 M | 1.40 GiB | CIFAR-10 | test | 10,000 | 10 | 16 / 16 / 16 | 93.85% | 99.88% | 336.9 | 48.36 | 1.52 / 1.65 | 0 | [ddcae56da141ed7f](raw/ddcae56da141ed7f.json) |
 
-## English retrieval
-
-### P2 · FP32
-
-| Model | Parameters | Checkpoint | Dataset | Split | Language | Images / captions | Requested / image / text batch | T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | OOM retries | Raw result |
-|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| EmbeddingGemma 2 | 744.4 M | 1.39 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | 3,600 / 7,200 | 16 / 11 / 16 | 61.79% | 83.76% | 90.08% | 70.36% | 90.81% | 95.69% | 7.4 | 207.4 | 84.24 | 4.29 / 6.31 | 0 | [3284f6a2ba1863cc](raw/3284f6a2ba1863cc.json) |
-| SigLIP 2 Base/16 224 | 375.2 M | 1.40 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | 3,600 / 7,200 | 16 / 16 / 16 | 52.44% | 76.92% | 84.08% | 60.67% | 83.89% | 89.72% | 315.4 | 1023.8 | 15.70 | 1.52 / 1.65 | 0 | [36baa9edd5e9fa9a-53dd822c](raw/36baa9edd5e9fa9a-53dd822c.json) |
-| OpenCLIP Multilingual ViT-B/32 | 366.1 M | 1.36 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | 3,600 / 7,200 | 16 / 16 / 16 | 48.72% | 76.18% | 84.35% | 57.75% | 83.50% | 91.06% | 349.5 | 165.8 | 95.16 | 1.64 / 1.91 | 0 | [8f9f79539fb877d6](raw/8f9f79539fb877d6.json) |
-
-## Japanese classification
+## Japanese/English official-compatible XM3600 retrieval (`official_first_caption`)
 
 No completed measured runs are available.
 
-## Japanese retrieval
+## Japanese zero-shot classification
 
-### P2 · FP32
+No completed measured runs are available.
 
-| Model | Parameters | Checkpoint | Dataset | Split | Language | Images / captions | Requested / image / text batch | T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | OOM retries | Raw result |
-|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| OpenCLIP Multilingual ViT-B/32 | 366.1 M | 1.36 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | 3,600 / 7,185 | 16 / 16 / 16 | 59.19% | 84.05% | 91.20% | 71.56% | 92.83% | 96.56% | 389.3 | 167.7 | 94.53 | 1.64 / 1.91 | 0 | [028043fb5a078d1e-214521ad](raw/028043fb5a078d1e-214521ad.json) |
-| rinna Japanese CLIP ViT-B/16 | 196.6 M | 0.73 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | 3,600 / 7,185 | 16 / 16 / 16 | 50.33% | 77.27% | 85.21% | 58.00% | 84.83% | 91.61% | 319.7 | 751.4 | 21.42 | 0.86 / 0.97 | 0 | [221fdf4bab042e89](raw/221fdf4bab042e89.json) |
-| SigLIP 2 Base/16 224 | 375.2 M | 1.40 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | 3,600 / 7,185 | 16 / 16 / 16 | 37.51% | 62.85% | 72.12% | 52.58% | 79.11% | 86.83% | 307.9 | 1024.2 | 15.82 | 1.52 / 1.65 | 0 | [405472b594821180-783ab865](raw/405472b594821180-783ab865.json) |
-| EmbeddingGemma 2 | 744.4 M | 1.39 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | 3,600 / 7,185 | 16 / 11 / 16 | 76.23% | 92.86% | 96.10% | 84.25% | 96.78% | 98.64% | 7.5 | 205.5 | 80.98 | 4.29 / 6.31 | 0 | [5a7dc3bfc3d618c1](raw/5a7dc3bfc3d618c1.json) |
+## XM3600 all-caption retrieval (`all_captions`)
+
+### EN · P2 · FP32
+
+| Model | Parameters | Checkpoint | Dataset | Split | Language | Retrieval variant | Images / captions | Requested / image / text batch | T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | OOM retries | Raw result |
+|---|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| EmbeddingGemma 2 | 744.4 M | 1.39 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | all_captions | 3,600 / 7,200 | 16 / 11 / 16 | 61.79% | 83.76% | 90.08% | 70.36% | 90.81% | 95.69% | 7.4 | 207.4 | 84.24 | 4.29 / 6.31 | 0 | [3284f6a2ba1863cc](raw/3284f6a2ba1863cc.json) |
+| SigLIP 2 Base/16 224 | 375.2 M | 1.40 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | all_captions | 3,600 / 7,200 | 16 / 16 / 16 | 52.44% | 76.92% | 84.08% | 60.67% | 83.89% | 89.72% | 315.4 | 1023.8 | 15.70 | 1.52 / 1.65 | 0 | [36baa9edd5e9fa9a-53dd822c](raw/36baa9edd5e9fa9a-53dd822c.json) |
+| OpenCLIP Multilingual ViT-B/32 | 366.1 M | 1.36 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | en | all_captions | 3,600 / 7,200 | 16 / 16 / 16 | 48.72% | 76.18% | 84.35% | 57.75% | 83.50% | 91.06% | 349.5 | 165.8 | 95.16 | 1.64 / 1.91 | 0 | [8f9f79539fb877d6](raw/8f9f79539fb877d6.json) |
+
+### JA · P2 · FP32
+
+| Model | Parameters | Checkpoint | Dataset | Split | Language | Retrieval variant | Images / captions | Requested / image / text batch | T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | OOM retries | Raw result |
+|---|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| OpenCLIP Multilingual ViT-B/32 | 366.1 M | 1.36 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | all_captions | 3,600 / 7,185 | 16 / 16 / 16 | 59.19% | 84.05% | 91.20% | 71.56% | 92.83% | 96.56% | 389.3 | 167.7 | 94.53 | 1.64 / 1.91 | 0 | [028043fb5a078d1e-214521ad](raw/028043fb5a078d1e-214521ad.json) |
+| rinna Japanese CLIP ViT-B/16 | 196.6 M | 0.73 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | all_captions | 3,600 / 7,185 | 16 / 16 / 16 | 50.33% | 77.27% | 85.21% | 58.00% | 84.83% | 91.61% | 319.7 | 751.4 | 21.42 | 0.86 / 0.97 | 0 | [221fdf4bab042e89](raw/221fdf4bab042e89.json) |
+| SigLIP 2 Base/16 224 | 375.2 M | 1.40 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | all_captions | 3,600 / 7,185 | 16 / 16 / 16 | 37.51% | 62.85% | 72.12% | 52.58% | 79.11% | 86.83% | 307.9 | 1024.2 | 15.82 | 1.52 / 1.65 | 0 | [405472b594821180-783ab865](raw/405472b594821180-783ab865.json) |
+| EmbeddingGemma 2 | 744.4 M | 1.39 GiB | Crossmodal-3600 (XM3600) | all 3,600 images | ja | all_captions | 3,600 / 7,185 | 16 / 11 / 16 | 76.23% | 92.86% | 96.10% | 84.25% | 96.78% | 98.64% | 7.5 | 205.5 | 80.98 | 4.29 / 6.31 | 0 | [5a7dc3bfc3d618c1](raw/5a7dc3bfc3d618c1.json) |
 
 ## Matched English/Japanese retrieval
 
-### Crossmodal-3600 (XM3600) · P2 · FP32
+No unique, condition-matched English/Japanese result pairs are available.
 
-| Model | Split | Images | Captions (EN / JA) | T→I R@1 (EN → JA; Δ pp) | T→I R@5 (EN → JA; Δ pp) | T→I R@10 (EN → JA; Δ pp) | I→T R@1 (EN → JA; Δ pp) | I→T R@5 (EN → JA; Δ pp) | I→T R@10 (EN → JA; Δ pp) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| EmbeddingGemma 2 | all 3,600 images | 3,600 | 7,200 / 7,185 | 61.79% → 76.23% (+14.44 pp) | 83.76% → 92.86% (+9.10 pp) | 90.08% → 96.10% (+6.02 pp) | 70.36% → 84.25% (+13.89 pp) | 90.81% → 96.78% (+5.97 pp) | 95.69% → 98.64% (+2.94 pp) |
-| OpenCLIP Multilingual ViT-B/32 | all 3,600 images | 3,600 | 7,200 / 7,185 | 48.72% → 59.19% (+10.47 pp) | 76.18% → 84.05% (+7.87 pp) | 84.35% → 91.20% (+6.86 pp) | 57.75% → 71.56% (+13.81 pp) | 83.50% → 92.83% (+9.33 pp) | 91.06% → 96.56% (+5.50 pp) |
-| SigLIP 2 Base/16 224 | all 3,600 images | 3,600 | 7,200 / 7,185 | 52.44% → 37.51% (-14.94 pp) | 76.92% → 62.85% (-14.06 pp) | 84.08% → 72.12% (-11.96 pp) | 60.67% → 52.58% (-8.08 pp) | 83.89% → 79.11% (-4.78 pp) | 89.72% → 86.83% (-2.89 pp) |
+## Model throughput and VRAM
+
+Throughput is computed from model inference only; model downloads, initialization, dataset preparation, and report generation are excluded.
+
+| Model | Dataset | Task | Language | Protocol | Retrieval variant | Precision | Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | Raw result |
+|---|---|---|---|---|---|---|---:|---:|---:|---:|---|
+| OpenAI CLIP ViT-B/32 | CIFAR-10 | classification | en | p0 | — | fp32 | 745.5 | 947.9 | 20.62 | 0.62 / 0.68 | [35cef7e32f8afb13](raw/35cef7e32f8afb13.json) |
+| SigLIP 2 Base/16 224 | CIFAR-10 | classification | en | p0 | — | fp32 | 338.3 | 947.7 | 48.06 | 1.52 / 1.67 | [38b1a8be68ae509c](raw/38b1a8be68ae509c.json) |
+| OpenCLIP ViT-B/32 LAION-2B | CIFAR-10 | classification | en | p0 | — | fp32 | 749.6 | 1084.0 | 20.78 | 0.61 / 0.68 | [649c7b44763ebc72](raw/649c7b44763ebc72.json) |
+| OpenCLIP Multilingual ViT-B/32 | CIFAR-10 | classification | en | p0 | — | fp32 | 702.0 | 163.2 | 22.65 | 1.64 / 1.90 | [931adb237a72e7b9](raw/931adb237a72e7b9.json) |
+| EmbeddingGemma 2 | CIFAR-10 | classification | en | p0 | — | fp32 | 10.2 | 230.9 | 1573.28 | 4.97 / 5.90 | [ab5d599956168b86](raw/ab5d599956168b86.json) |
+| OpenCLIP ViT-L/14 LAION-2B | CIFAR-10 | classification | en | p0 | — | fp32 | 106.6 | 773.1 | 150.49 | 1.80 / 1.95 | [c8faef3bbd4c2779](raw/c8faef3bbd4c2779.json) |
+| OpenCLIP Multilingual ViT-B/32 | CIFAR-10 | classification | en | p1 | — | fp32 | 739.2 | 148.7 | 21.03 | 1.54 / 1.71 | [013541e887452604](raw/013541e887452604.json) |
+| OpenCLIP ViT-L/14 LAION-2B | CIFAR-10 | classification | en | p1 | — | fp32 | 106.8 | 582.6 | 149.89 | 1.80 / 1.90 | [9c075a8286dd1604](raw/9c075a8286dd1604.json) |
+| EmbeddingGemma 2 | CIFAR-10 | classification | en | p1 | — | fp32 | 10.2 | 181.6 | 1571.21 | 4.97 / 5.88 | [beac7b7ac03ee242](raw/beac7b7ac03ee242.json) |
+| OpenCLIP ViT-B/32 LAION-2B | CIFAR-10 | classification | en | p1 | — | fp32 | 717.7 | 738.8 | 22.66 | 0.61 / 0.66 | [c3350bf4370a58b8](raw/c3350bf4370a58b8.json) |
+| OpenAI CLIP ViT-B/32 | CIFAR-10 | classification | en | p1 | — | fp32 | 688.7 | 673.6 | 22.46 | 0.62 / 0.68 | [c542f4a0ea8ac9a8](raw/c542f4a0ea8ac9a8.json) |
+| SigLIP 2 Base/16 224 | CIFAR-10 | classification | en | p1 | — | fp32 | 336.9 | 770.1 | 48.36 | 1.52 / 1.65 | [ddcae56da141ed7f](raw/ddcae56da141ed7f.json) |
+| OpenCLIP ViT-L/14 LAION-2B | CIFAR-100 | classification | en | p0 | — | fp32 | 107.0 | 792.5 | 148.12 | 1.80 / 1.94 | [1de2d2b7854b5e80-30c3f626](raw/1de2d2b7854b5e80-30c3f626.json) |
+| OpenCLIP ViT-B/32 LAION-2B | CIFAR-100 | classification | en | p0 | — | fp32 | 701.1 | 1151.4 | 21.64 | 0.61 / 0.68 | [35dfb13b0aa46c57-54e65389](raw/35dfb13b0aa46c57-54e65389.json) |
+| EmbeddingGemma 2 | CIFAR-100 | classification | en | p0 | — | fp32 | 10.2 | 218.4 | 1566.77 | 4.97 / 5.94 | [4bf47c3e534537b0-fb1914c0](raw/4bf47c3e534537b0-fb1914c0.json) |
+| OpenAI CLIP ViT-B/32 | CIFAR-100 | classification | en | p0 | — | fp32 | 668.8 | 1111.2 | 22.67 | 0.62 / 0.68 | [5a8886b0fab54729-30d1b401](raw/5a8886b0fab54729-30d1b401.json) |
+| SigLIP 2 Base/16 224 | CIFAR-100 | classification | en | p0 | — | fp32 | 342.3 | 1018.5 | 44.61 | 1.52 / 1.66 | [d59181f45a441ab9-1a33071f](raw/d59181f45a441ab9-1a33071f.json) |
+| OpenCLIP Multilingual ViT-B/32 | CIFAR-100 | classification | en | p0 | — | fp32 | 750.9 | 166.3 | 21.08 | 1.64 / 1.90 | [e4c4922a8b419fc2-ac4a43b4](raw/e4c4922a8b419fc2-ac4a43b4.json) |
+| EmbeddingGemma 2 | CIFAR-100 | classification | en | p1 | — | fp32 | 10.2 | 254.1 | 1564.45 | 4.97 / 5.90 | [0c75f5095220051c-f8285c69](raw/0c75f5095220051c-f8285c69.json) |
+| SigLIP 2 Base/16 224 | CIFAR-100 | classification | en | p1 | — | fp32 | 338.3 | 933.1 | 48.13 | 1.52 / 1.67 | [38a8be7d4b997457-8dbcaf34](raw/38a8be7d4b997457-8dbcaf34.json) |
+| OpenCLIP ViT-L/14 LAION-2B | CIFAR-100 | classification | en | p1 | — | fp32 | 106.1 | 720.2 | 150.43 | 1.80 / 1.95 | [5cd03bacdf1e5b06-43791242](raw/5cd03bacdf1e5b06-43791242.json) |
+| OpenCLIP ViT-B/32 LAION-2B | CIFAR-100 | classification | en | p1 | — | fp32 | 773.6 | 982.9 | 20.11 | 0.61 / 0.68 | [a54f8b8dfb17227b-8e3ad59c](raw/a54f8b8dfb17227b-8e3ad59c.json) |
+| OpenAI CLIP ViT-B/32 | CIFAR-100 | classification | en | p1 | — | fp32 | 723.2 | 966.4 | 21.77 | 0.62 / 0.68 | [c08f92332ebe01a4-2815d62c](raw/c08f92332ebe01a4-2815d62c.json) |
+| OpenCLIP Multilingual ViT-B/32 | CIFAR-100 | classification | en | p1 | — | fp32 | 748.0 | 163.2 | 20.87 | 1.64 / 1.90 | [d4721f7c31f9d23c-e083b306](raw/d4721f7c31f9d23c-e083b306.json) |
+| EmbeddingGemma 2 | Crossmodal-3600 (XM3600) | retrieval | en | p2 | all_captions | fp32 | 7.4 | 207.4 | 84.24 | 4.29 / 6.31 | [3284f6a2ba1863cc](raw/3284f6a2ba1863cc.json) |
+| SigLIP 2 Base/16 224 | Crossmodal-3600 (XM3600) | retrieval | en | p2 | all_captions | fp32 | 315.4 | 1023.8 | 15.70 | 1.52 / 1.65 | [36baa9edd5e9fa9a-53dd822c](raw/36baa9edd5e9fa9a-53dd822c.json) |
+| OpenCLIP Multilingual ViT-B/32 | Crossmodal-3600 (XM3600) | retrieval | en | p2 | all_captions | fp32 | 349.5 | 165.8 | 95.16 | 1.64 / 1.91 | [8f9f79539fb877d6](raw/8f9f79539fb877d6.json) |
+| OpenCLIP Multilingual ViT-B/32 | Crossmodal-3600 (XM3600) | retrieval | ja | p2 | all_captions | fp32 | 389.3 | 167.7 | 94.53 | 1.64 / 1.91 | [028043fb5a078d1e-214521ad](raw/028043fb5a078d1e-214521ad.json) |
+| rinna Japanese CLIP ViT-B/16 | Crossmodal-3600 (XM3600) | retrieval | ja | p2 | all_captions | fp32 | 319.7 | 751.4 | 21.42 | 0.86 / 0.97 | [221fdf4bab042e89](raw/221fdf4bab042e89.json) |
+| SigLIP 2 Base/16 224 | Crossmodal-3600 (XM3600) | retrieval | ja | p2 | all_captions | fp32 | 307.9 | 1024.2 | 15.82 | 1.52 / 1.65 | [405472b594821180-783ab865](raw/405472b594821180-783ab865.json) |
+| EmbeddingGemma 2 | Crossmodal-3600 (XM3600) | retrieval | ja | p2 | all_captions | fp32 | 7.5 | 205.5 | 80.98 | 4.29 / 6.31 | [5a7dc3bfc3d618c1](raw/5a7dc3bfc3d618c1.json) |
 
 ## Non-successful runs
 
@@ -112,7 +146,6 @@ To reproduce a measurement, use the exact model revision, dataset checksum, spli
 
 - Classification Accuracy: [PNG](plots/classification_accuracy.png) · [SVG](plots/classification_accuracy.svg)
 - Classification Accuracy P1: [PNG](plots/classification_accuracy_p1.png) · [SVG](plots/classification_accuracy_p1.svg)
-- Multilingual Comparison: [PNG](plots/multilingual_comparison.png) · [SVG](plots/multilingual_comparison.svg)
 - Performance Comparison: [PNG](plots/performance_comparison.png) · [SVG](plots/performance_comparison.svg)
 - Performance Comparison P1: [PNG](plots/performance_comparison_p1.png) · [SVG](plots/performance_comparison_p1.svg)
-- Retrieval Recall: [PNG](plots/retrieval_recall.png) · [SVG](plots/retrieval_recall.svg)
+- Xm3600 All Captions Retrieval: [PNG](plots/xm3600_all_captions_retrieval.png) · [SVG](plots/xm3600_all_captions_retrieval.svg)

@@ -18,8 +18,12 @@ def test_dry_run_displays_pinned_model_size_and_verified_access_without_download
             "openclip_multilingual_b32",
             "--dataset",
             "crossmodal3600",
+            "--protocol",
+            "p2",
             "--language",
             "ja",
+            "--retrieval-variant",
+            "official_first_caption",
             "--device",
             "cpu",
             "--output",
@@ -39,6 +43,8 @@ def test_dry_run_displays_pinned_model_size_and_verified_access_without_download
         "en": 7_200,
         "ja": 7_185,
     }
+    assert report["dataset"]["expected_text_candidates"] == 3_600
+    assert report["evaluation"]["retrieval_variant"] == "official_first_caption"
     assert not output_path.exists()
 
 
@@ -50,6 +56,8 @@ def test_data_terms_confirmation_does_not_override_verified_access(capsys, tmp_p
             "embeddinggemma2",
             "--dataset",
             "crossmodal3600",
+            "--protocol",
+            "p2",
             "--language",
             "ja",
             "--device",
@@ -65,3 +73,4 @@ def test_data_terms_confirmation_does_not_override_verified_access(capsys, tmp_p
     assert exit_code == 0
     assert report["dataset"]["access"] == "available"
     assert report["dataset"]["license_status"] == "verified_attribution_required"
+    assert report["evaluation"]["retrieval_variant"] == "all_captions"

@@ -102,6 +102,16 @@ class Adapter(TorchAdapter):
                         f"OpenCLIP pretrained tag {spec.pretrained_tag!r} is unavailable "
                         f"for {spec.model_id!r}."
                     )
+                image_mean = pretrained_config["mean"]
+                image_std = pretrained_config["std"]
+                image_interpolation = pretrained_config["interpolation"]
+                image_resize_mode = pretrained_config["resize_mode"]
+                self.preprocessing_config = _image_preprocessing_config(
+                    image_mean,
+                    image_std,
+                    image_interpolation,
+                    image_resize_mode,
+                )
                 checkpoint_path = snapshot / spec.checkpoint_filename
                 self.model, _, self.preprocess = self.open_clip.create_model_and_transforms(
                     spec.model_id,
@@ -110,10 +120,10 @@ class Adapter(TorchAdapter):
                     device=self.device_object,
                     cache_dir=str(self.cache_dir),
                     force_quick_gelu=bool(pretrained_config.get("quick_gelu", False)),
-                    image_mean=pretrained_config["mean"],
-                    image_std=pretrained_config["std"],
-                    image_interpolation=pretrained_config["interpolation"],
-                    image_resize_mode=pretrained_config["resize_mode"],
+                    image_mean=image_mean,
+                    image_std=image_std,
+                    image_interpolation=image_interpolation,
+                    image_resize_mode=image_resize_mode,
                     **model_config,
                 )
             else:
@@ -152,6 +162,22 @@ class Adapter(TorchAdapter):
                         f"OpenCLIP pretrained tag {spec.pretrained_tag!r} is unavailable "
                         f"for {spec.model_id!r}."
                     )
+                image_mean = preprocess_config.get("mean", pretrained_config["mean"])
+                image_std = preprocess_config.get("std", pretrained_config["std"])
+                image_interpolation = preprocess_config.get(
+                    "interpolation",
+                    pretrained_config["interpolation"],
+                )
+                image_resize_mode = preprocess_config.get(
+                    "resize_mode",
+                    pretrained_config["resize_mode"],
+                )
+                self.preprocessing_config = _image_preprocessing_config(
+                    image_mean,
+                    image_std,
+                    image_interpolation,
+                    image_resize_mode,
+                )
                 checkpoint_path = snapshot / spec.checkpoint_filename
                 self.model, _, self.preprocess = self.open_clip.create_model_and_transforms(
                     spec.model_id,
@@ -165,16 +191,10 @@ class Adapter(TorchAdapter):
                             pretrained_config.get("quick_gelu", False),
                         )
                     ),
-                    image_mean=preprocess_config.get("mean", pretrained_config["mean"]),
-                    image_std=preprocess_config.get("std", pretrained_config["std"]),
-                    image_interpolation=preprocess_config.get(
-                        "interpolation",
-                        pretrained_config["interpolation"],
-                    ),
-                    image_resize_mode=preprocess_config.get(
-                        "resize_mode",
-                        pretrained_config["resize_mode"],
-                    ),
+                    image_mean=image_mean,
+                    image_std=image_std,
+                    image_interpolation=image_interpolation,
+                    image_resize_mode=image_resize_mode,
                     **model_config,
                 )
             self.model_download_seconds = time.perf_counter() - download_started
@@ -188,6 +208,17 @@ class Adapter(TorchAdapter):
             pretrained_config = self.open_clip.get_pretrained_cfg(
                 spec.model_id,
                 spec.pretrained_tag,
+            )
+            if not isinstance(pretrained_config, dict):
+                raise DataIntegrityError(
+                    f"OpenCLIP pretrained tag {spec.pretrained_tag!r} is unavailable "
+                    f"for {spec.model_id!r}."
+                )
+            self.preprocessing_config = _image_preprocessing_config(
+                pretrained_config["mean"],
+                pretrained_config["std"],
+                pretrained_config["interpolation"],
+                pretrained_config["resize_mode"],
             )
             checkpoint_path = Path(
                 self.open_clip.download_pretrained(
@@ -261,6 +292,17 @@ class Adapter(TorchAdapter):
         return {
             "adapter_name": "open_clip",
             "implementation_version": package_version("open-clip-torch"),
+            "preprocessing_version": package_version("open-clip-torch"),
+            "preprocessing_config": {
+                "transform": "open_clip.create_model_and_transforms",
+                "input_resolution": image_size,
+                **self.preprocessing_config,
+            },
+            "tokenizer_implementation_version": (
+                package_version("transformers")
+                if self.spec.tokenizer_repository
+                else package_version("open-clip-torch")
+            ),
             "architecture": self.spec.architecture or self.spec.model_id,
             "checkpoint_sha256": self.checkpoint_sha256,
             "checkpoint_files": self.checkpoint_files,
@@ -274,3 +316,17 @@ class Adapter(TorchAdapter):
             "tokenizer_revision": self.spec.tokenizer_revision,
             "tokenizer_license": self.spec.tokenizer_license,
         }
+
+
+def _image_preprocessing_config(
+    mean: Sequence[float],
+    std: Sequence[float],
+    interpolation: Any,
+    resize_mode: Any,
+) -> dict[str, Any]:
+    return {
+        "mean": [float(value) for value in mean],
+        "std": [float(value) for value in std],
+        "interpolation": getattr(interpolation, "name", str(interpolation)),
+        "resize_mode": str(resize_mode),
+    }

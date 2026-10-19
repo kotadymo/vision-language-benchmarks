@@ -5,21 +5,23 @@ classification and bilingual image-text retrieval.
 
 ## Verified v0.1.0 results
 
-The release includes 31 full-dataset CUDA FP32 measurements on an NVIDIA GeForce RTX 4070 Ti
-SUPER: 24 CIFAR classification runs and seven XM3600 retrieval runs. Seven pretrained model
-adapters also passed real image/text CUDA smoke tests. The smoke tests are distinct from the
-full evaluations.
+The existing release contains 31 full-dataset CUDA FP32 measurements on an NVIDIA GeForce RTX
+4070 Ti SUPER: 24 CIFAR classification runs and seven historical XM3600
+`all_captions` retrieval runs. The separate `official_first_caption` XM3600 protocol is
+implemented and tested; its full-dataset CUDA measurements are not included until completed
+and validated. Seven pretrained model adapters also passed real image/text CUDA smoke tests.
+The smoke tests are distinct from the full evaluations.
 
 - [Full report](results/v0.1.0/report.md) · [CSV summary](results/v0.1.0/summary.csv) ·
   [metadata](results/v0.1.0/metadata.json)
 - [Validated per-run JSON results](results/v0.1.0/raw/) ·
   [machine-readable run status](results/v0.1.0/run-status.json)
+- [Historical raw-result audit and preservation hashes](results/v0.1.0/validation/historical-results-audit.json)
 - [Real CUDA model smoke-test evidence](results/v0.1.0/validation/model-smoke-tests.json)
 - [Official CLIP Benchmark parity record](results/v0.1.0/validation/official-cifar10-parity.json)
 - Charts: [classification P0](results/v0.1.0/plots/classification_accuracy.png),
   [classification P1](results/v0.1.0/plots/classification_accuracy_p1.png),
-  [retrieval](results/v0.1.0/plots/retrieval_recall.png),
-  [English/Japanese comparison](results/v0.1.0/plots/multilingual_comparison.png),
+  [historical all-caption XM3600 retrieval](results/v0.1.0/plots/xm3600_all_captions_retrieval.png),
   [performance P0](results/v0.1.0/plots/performance_comparison.png), and
   [performance P1](results/v0.1.0/plots/performance_comparison_p1.png).
   Corresponding SVG files are in the same plots folder.
@@ -53,12 +55,20 @@ and must not be combined into one ranking.**
 | SigLIP 2 Base/16 224 | 93.85% / 99.88% | 73.25% / 91.71% |
 | Multilingual OpenCLIP ViT-B/32 | 93.54% / 99.86% | 76.46% / 95.02% |
 
-### XM3600 retrieval
+EmbeddingGemma 2 uses its `Classification` task prefix in both classification protocols.
+The raw audit confirms that P0 encodes 18 templates per class (180 CIFAR-10 prompts and 1,800
+CIFAR-100 prompts), while P1 encodes one model-native prompt per class (10 and 100 prompts).
+The substantial P0/P1 accuracy differences are therefore consistent with the implemented
+prompt protocols; no prompt-path defect was found and no historical accuracy was rewritten.
 
-Every run uses all 3,600 images and the same image-ID ordering. English uses 7,200 captions;
-Japanese uses 7,185. `T→I` is text-to-image and `I→T` is image-to-text. Values are Recall@1 /
-Recall@5 / Recall@10 percentages. Japanese and English scores are reported independently;
-only models supporting both languages are paired for language comparisons.
+### XM3600 retrieval — historical `all_captions`
+
+These seven original runs use all 3,600 images and the same image-ID ordering. English uses
+7,200 captions; Japanese uses 7,185. The pinned CLIP Benchmark XM3600 loader selects only the
+first caption per image, so these `all_captions` scores must not be described as directly
+comparable to its XM3600 retrieval scores. `T→I` is text-to-image and `I→T` is image-to-text.
+Values are Recall@1 / Recall@5 / Recall@10 percentages. The pinned metric keys are
+`image_retrieval_recall@k` for T→I and `text_retrieval_recall@k` for I→T.
 
 | Model | Language | Captions | T→I R@1 / R@5 / R@10 | I→T R@1 / R@5 / R@10 |
 |---|---|---:|---:|---:|
@@ -70,9 +80,19 @@ only models supporting both languages are paired for language comparisons.
 | SigLIP 2 Base/16 224 | Japanese | 7,185 | 37.51% / 62.85% / 72.12% | 52.58% / 79.11% / 86.83% |
 | rinna Japanese CLIP ViT-B/16 | Japanese | 7,185 | 50.33% / 77.27% / 85.21% | 58.00% / 84.83% / 91.61% |
 
-The English/Japanese pairs share dataset checksum and image-ID ordering, and each pair was
-run from the same source commit on the same GPU. Per-run source SHAs, checkpoint revisions,
-checksums, prompts, timings, and memory measurements are in the raw JSON.
+All historical runs use the same dataset checksum and image-ID ordering, and each
+English/Japanese model pair was run from the same source commit on the same GPU. However, the
+language candidate counts differ (7,200 versus 7,185); these legacy runs are not a
+matched-candidate language comparison and no English/Japanese deltas should be inferred from
+them. Per-run source SHAs, checkpoint revisions, checksums, prompts, timings, and memory
+measurements are in the raw JSON. The seven raw files remain byte-for-byte unchanged; the
+audit records their hashes and identifies the legacy variant assignment.
+
+The new `official_first_caption` variant selects one caption per image using the pinned
+reference's dataset behavior, yielding 3,600 candidates in each language with identical
+ordered image IDs. P2 remains the language-comparison protocol; caption selection is an
+additional, hash- and resume-aware result dimension. Its full CUDA evaluation and publication
+status is tracked in [implementation status](docs/implementation-status.md).
 
 ### CLIP Benchmark numerical parity
 
@@ -124,6 +144,7 @@ uv run --locked --extra cuda --extra openclip vlbench run `
 
 uv run --locked --extra cuda --extra gemma vlbench run `
   --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language ja `
+  --retrieval-variant official_first_caption `
   --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
   --output results/v0.1.0 --force --yes
 

@@ -151,8 +151,12 @@ def test_huggingface_openclip_models_use_pinned_files_and_configs(
         raise AssertionError(f"Unexpected optional dependency import: {name}")
 
     def fake_package_version(name: str) -> str:
-        assert name == "open-clip-torch"
-        return "3.3.0"
+        versions = {
+            "open-clip-torch": "3.3.0",
+            "transformers": "4.45.0",
+        }
+        assert name in versions
+        return versions[name]
 
     def fake_torch_adapter_init(
         adapter: Any,
@@ -200,6 +204,9 @@ def test_huggingface_openclip_models_use_pinned_files_and_configs(
     )
     assert metadata["checkpoint_files"][0]["path"] == spec.checkpoint_filename
     assert metadata["checkpoint_sha256"]
+    assert metadata["tokenizer_implementation_version"] == (
+        "4.45.0" if spec.tokenizer_repository else "3.3.0"
+    )
 
     if spec.uses_openclip_builtin_config:
         assert len(downloads) == 2

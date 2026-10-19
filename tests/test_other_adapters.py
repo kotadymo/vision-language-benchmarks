@@ -121,8 +121,12 @@ def test_embeddinggemma_adapter_uses_pinned_factory_and_task_tokenizers(
         raise AssertionError(f"Unexpected dependency import: {name}")
 
     def fake_package_version(name: str) -> str:
-        assert name == "openclip-gemma"
-        return "0.3.0"
+        versions = {
+            "openclip-gemma": "0.3.0",
+            "transformers": "4.45.0",
+        }
+        assert name in versions
+        return versions[name]
 
     def download_snapshot(
         repository: str,
@@ -177,6 +181,7 @@ def test_embeddinggemma_adapter_uses_pinned_factory_and_task_tokenizers(
     assert search_tokens.device == adapter.device_object
     assert [call[1] for call in tokenizer_calls] == ["Classification", "SearchQuery"]
     assert metadata["implementation_version"] == "0.3.0"
+    assert metadata["tokenizer_implementation_version"] == "4.45.0"
     assert metadata["tokenizer_repository"] == spec.hf_repository
     assert metadata["tokenizer_revision"] == spec.checkpoint_revision
 
@@ -284,8 +289,12 @@ def test_embeddinggemma_batches_images_by_preprocessed_shape(
         return fake_gemma
 
     def package_version(name: str) -> str:
-        assert name == "openclip-gemma"
-        return "0.3.0"
+        versions = {
+            "openclip-gemma": "0.3.0",
+            "transformers": "4.45.0",
+        }
+        assert name in versions
+        return versions[name]
 
     monkeypatch.setattr(
         openclip_gemma,
@@ -448,8 +457,12 @@ def test_japanese_clip_adapter_uses_pinned_model_and_tokenizer(
         return tokenizer_snapshot
 
     def fake_package_version(name: str) -> str:
-        assert name == "japanese-clip"
-        return "0.2.0"
+        versions = {
+            "japanese-clip": "0.2.0",
+            "transformers": "4.45.0",
+        }
+        assert name in versions
+        return versions[name]
 
     monkeypatch.setattr(
         japanese_clip,
@@ -486,6 +499,7 @@ def test_japanese_clip_adapter_uses_pinned_model_and_tokenizer(
     assert tokens == {"input_ids": ["猫"]}
     assert tokenization_calls[0]["max_seq_len"] == 77
     assert tokenization_calls[0]["device"] == "cpu"
+    assert metadata["tokenizer_implementation_version"] == "4.45.0"
     assert metadata["tokenizer_license"] == spec.tokenizer_license
 
 

@@ -69,6 +69,9 @@ By default it writes its schema-validated result and run manifest into pytest's 
 directory. Setting `VLBENCH_REAL_BENCHMARK_OUTPUT` instead stores the completed run under that
 result root, where the raw JSON can be validated and considered for publication. Verify the
 recorded source commit, dataset integrity, and run status before publishing.
+This existing opt-in test follows the backwards-compatible `all_captions` default. To exercise
+the official first-caption selection, use `--retrieval-variant official_first_caption` in a
+`vlbench run` command; do not infer one variant from the other.
 
 ## Inspect plans before acquisition
 
@@ -120,17 +123,28 @@ documented in [implementation status](implementation-status.md) and
 
 ## Reproduce the published measurements
 
-The published v0.1.0 raw JSON contains 24 full CIFAR classification runs (CIFAR-10 and
-CIFAR-100, six English-compatible models, P0 and P1) and seven full XM3600 retrieval runs.
-All use the complete registered split, CUDA FP32, seed 0, and requested batch size 16. Each
-JSON records the requested and actual image/text batch sizes, OOM retry history, source commit,
-checkpoint revision and hash, dataset checksum, prompt policy, runtime, throughput, and GPU
-memory. EmbeddingGemma's dynamic-resolution XM3600 image groups have actual batch size 11;
-its text batch size is 16. No selected run needed an OOM retry. The XM3600 English/Japanese
-pairs share dataset checksum and image-ID ordering; source commits are matched within each
-model pair. Within each language, all compared models also share the same ordered caption
-candidate IDs and positive-pair count; the two languages intentionally use distinct caption
-pools.
+The 31 original v0.1.0 raw JSON records contain 24 full CIFAR classification runs
+(CIFAR-10 and CIFAR-100, six English-compatible models, P0 and P1) and seven historical
+XM3600 retrieval runs. The seven historical runs use `all_captions`: 3,600 images and 7,200
+English or 7,185 Japanese caption candidates. Their raw files predate the variant field and
+are assigned to `all_captions` from those counts; SHA-256 hashes and validation evidence are
+in [`historical-results-audit.json`](../results/v0.1.0/validation/historical-results-audit.json).
+Do not modify or silently relabel those measurements.
+
+For XM3600, pass `--retrieval-variant` explicitly. The CLI keeps `all_captions` as the
+backwards-compatible default, but explicit selection records the variant in the run
+configuration, configuration hash, run ID, raw metadata, and resume identity. `P2` remains
+the multilingual comparison protocol; it is distinct from the caption-selection variant.
+
+The pinned CLIP Benchmark loader selects `captions[0]` in source order and excludes only
+records whose image files are missing. Local validation found 3,600 images, zero exclusions,
+one caption per image, and identical ordered image IDs in English and Japanese. Thus
+`official_first_caption` has 3,600 candidates in each language. Pair language results only
+when variant, candidate count and ordered IDs, dataset/checkpoint/source revisions, precision,
+preprocessing, tokenizer, prompts, and runtime conditions match. Equal candidate counts do
+not equalize caption content, difficulty, translation quality, or dataset composition; report
+English/Japanese differences as observed performance under those conditions, not as a causal
+measurement of language understanding.
 
 Representative commands, using the already-reviewed public sources and the existing output
 root, are:
@@ -142,9 +156,17 @@ uv run --locked --extra cuda --extra openclip vlbench run `
   --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
   --output results/v0.1.0 --force --yes
 
-# EmbeddingGemma 2 on all XM3600 Japanese captions.
+# EmbeddingGemma 2 on all XM3600 English captions.
+uv run --locked --extra cuda --extra gemma vlbench run `
+  --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language en `
+  --retrieval-variant all_captions `
+  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
+  --output results/v0.1.0 --force --yes
+
+# EmbeddingGemma 2 on the pinned official first-caption Japanese candidates.
 uv run --locked --extra cuda --extra gemma vlbench run `
   --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language ja `
+  --retrieval-variant official_first_caption `
   --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
   --output results/v0.1.0 --force --yes
 

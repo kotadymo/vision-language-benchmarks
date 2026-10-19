@@ -69,8 +69,11 @@
         }
       ],
       "image_count": 10000,
-      "text_count": 180,
-      "class_count": 10
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 10,
+      "retrieval_variant_evaluations": []
     },
     {
       "dataset_id": "cifar100",
@@ -131,8 +134,11 @@
         }
       ],
       "image_count": 10000,
-      "text_count": 1800,
-      "class_count": 100
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 100,
+      "retrieval_variant_evaluations": []
     },
     {
       "dataset_id": "crossmodal3600",
@@ -173,8 +179,153 @@
         }
       ],
       "image_count": 3600,
-      "text_count": 7200,
-      "class_count": null
+      "expected_text_counts_by_language": {
+        "en": 7200,
+        "ja": 7185
+      },
+      "class_count": null,
+      "retrieval_variant_evaluations": [
+        {
+          "run_id": "3284f6a2ba1863cc",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "en",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7200,
+          "candidate_counts": null,
+          "positive_pair_count": 7200,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "ba4482d7a60c0ace11aa16e7447a104eddeb9ffb758479a6d7b0f6df26451e18",
+          "text_content_sha256": null,
+          "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "36baa9edd5e9fa9a-53dd822c",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "en",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7200,
+          "candidate_counts": null,
+          "positive_pair_count": 7200,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "ba4482d7a60c0ace11aa16e7447a104eddeb9ffb758479a6d7b0f6df26451e18",
+          "text_content_sha256": null,
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "8f9f79539fb877d6",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "en",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7200,
+          "candidate_counts": null,
+          "positive_pair_count": 7200,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "ba4482d7a60c0ace11aa16e7447a104eddeb9ffb758479a6d7b0f6df26451e18",
+          "text_content_sha256": null,
+          "source_commit_sha": "d72e4e462d137e9b77581a507e42897ff427eaf1",
+          "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+          "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "028043fb5a078d1e-214521ad",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7185,
+          "candidate_counts": null,
+          "positive_pair_count": 7185,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "203534aab3626d2a84a2f1b541362d4d6198d003503414c71b383fbc02d73584",
+          "text_content_sha256": null,
+          "source_commit_sha": "d72e4e462d137e9b77581a507e42897ff427eaf1",
+          "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+          "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "221fdf4bab042e89",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7185,
+          "candidate_counts": null,
+          "positive_pair_count": 7185,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "203534aab3626d2a84a2f1b541362d4d6198d003503414c71b383fbc02d73584",
+          "text_content_sha256": null,
+          "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+          "checkpoint_revision": "ce22bc39e6f5dcb449e082954211acfb00c2227b",
+          "checkpoint_sha256": "043cae46a1214011b90081233f50e86c086bf31f40929e57a569bfb334feb4e8",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "405472b594821180-783ab865",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7185,
+          "candidate_counts": null,
+          "positive_pair_count": 7185,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "203534aab3626d2a84a2f1b541362d4d6198d003503414c71b383fbc02d73584",
+          "text_content_sha256": null,
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": null
+        },
+        {
+          "run_id": "5a7dc3bfc3d618c1",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "all_captions",
+          "retrieval_variant_source": "legacy_candidate_counts",
+          "image_count": 3600,
+          "text_count": 7185,
+          "candidate_counts": null,
+          "positive_pair_count": 7185,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "203534aab3626d2a84a2f1b541362d4d6198d003503414c71b383fbc02d73584",
+          "text_content_sha256": null,
+          "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": null
+        }
+      ]
     }
   ],
   "models": [

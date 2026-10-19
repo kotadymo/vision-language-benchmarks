@@ -7,6 +7,11 @@ from typing import Any
 
 import jsonschema
 
+from vision_language_benchmarks.registry import (
+    RETRIEVAL_VARIANTS,
+    get_dataset,
+)
+
 
 @lru_cache(maxsize=1)
 def result_schema() -> dict[str, Any]:
@@ -19,6 +24,20 @@ def validate_result(result: dict[str, Any]) -> None:
     metadata = result["benchmark_metadata"]
     if result["status"] != metadata["status"]:
         raise ValueError("Result and benchmark metadata statuses must match.")
+    retrieval_variant = metadata.get("retrieval_variant")
+    if retrieval_variant is not None:
+        if retrieval_variant not in RETRIEVAL_VARIANTS:
+            raise ValueError(f"Unsupported retrieval variant: {retrieval_variant!r}.")
+        if result["task"] != "retrieval" or result["dataset"] != "crossmodal3600":
+            raise ValueError("Retrieval variants are valid only for XM3600 retrieval results.")
+        configuration = metadata.get("run_configuration")
+        if (
+            not isinstance(configuration, dict)
+            or configuration.get("retrieval_variant") != retrieval_variant
+        ):
+            raise ValueError(
+                "Result metadata and run configuration retrieval variants must match."
+            )
     if result["status"] == "completed":
         metrics = result.get("metrics")
         if not isinstance(metrics, dict) or not metrics:
@@ -40,5 +59,54 @@ def validate_result(result: dict[str, Any]) -> None:
                 f"Completed {result['task']} results are missing metrics: "
                 f"{', '.join(sorted(missing))}."
             )
+        if retrieval_variant is not None:
+            image_count = metadata.get("image_count")
+            text_count = metadata.get("text_count")
+            candidates = metadata.get("candidate_counts")
+            if (
+                not isinstance(image_count, int)
+                or not isinstance(text_count, int)
+                or not isinstance(candidates, dict)
+                or candidates.get("images") != image_count
+                or candidates.get("texts") != text_count
+            ):
+                raise ValueError("Completed XM3600 retrieval candidate counts are inconsistent.")
+            expected_count = get_dataset("crossmodal3600").expected_text_count(
+                result["language"], retrieval_variant
+            )
+            if expected_count is not None and text_count != expected_count:
+                raise ValueError(
+                    f"Completed {retrieval_variant} run has {text_count} text candidates; "
+                    f"expected {expected_count}."
+                )
+            if metadata.get("positive_pair_count") != text_count:
+                raise ValueError(
+                    "Every XM3600 text candidate must have exactly one positive image."
+                )
+            image_ids = metadata.get("image_ids")
+            text_ids = metadata.get("text_ids")
+            if not isinstance(image_ids, list) or len(image_ids) != image_count:
+                raise ValueError("Completed XM3600 results must record ordered image IDs.")
+            if not isinstance(text_ids, list) or len(text_ids) != text_count:
+                raise ValueError("Completed XM3600 results must record ordered text IDs.")
+            if not metadata.get("image_id_order_hash") or not metadata.get(
+                "text_id_order_hash"
+            ):
+                raise ValueError("Completed XM3600 results must record ordered candidate hashes.")
+            if not metadata.get("text_content_sha256"):
+                raise ValueError("Completed XM3600 results must hash the selected caption text.")
+            if retrieval_variant == "official_first_caption":
+                if metadata.get("one_caption_per_image") is not True:
+                    raise ValueError(
+                        "official_first_caption results must contain one caption per image."
+                    )
+                if image_count != text_count:
+                    raise ValueError(
+                        "official_first_caption image and caption candidate counts must match."
+                    )
+                if text_ids != [f"{image_id}#0" for image_id in image_ids]:
+                    raise ValueError(
+                        "official_first_caption text IDs must follow the ordered image IDs."
+                    )
     elif "metrics" in result:
         raise ValueError("Unsuccessful results must not contain measured metrics.")

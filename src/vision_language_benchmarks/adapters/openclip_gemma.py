@@ -137,6 +137,13 @@ class Adapter(TorchAdapter):
         return {
             "adapter_name": "openclip_gemma",
             "implementation_version": package_version("openclip-gemma"),
+            "preprocessing_version": package_version("openclip-gemma"),
+            "preprocessing_config": {
+                "transform": "openclip_gemma.create_model_and_transforms",
+                "input_resolution": getattr(config, "image_size", None),
+                "batching_strategy": "grouped_by_preprocessed_shape",
+            },
+            "tokenizer_implementation_version": package_version("transformers"),
             "checkpoint_sha256": self.checkpoint_sha256,
             "checkpoint_files": self.checkpoint_files,
             "model_download_seconds": self.model_download_seconds,

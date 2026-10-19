@@ -15,6 +15,10 @@ from matplotlib.figure import Figure
 
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
+from vision_language_benchmarks.reporting.retrieval_variant import (
+    retrieval_variant_info,
+    retrieval_variant_label,
+)
 
 matplotlib.rcParams["svg.hashsalt"] = "vision-language-benchmarks-v0.1.0"
 
@@ -59,12 +63,19 @@ def _dataset_label(result: Result) -> str:
 def _condition_label(result: Result) -> str:
     metadata = _metadata(result)
     configuration = _configuration(result)
+    variant, _ = retrieval_variant_info(result)
+    variant_label = (
+        f" · {retrieval_variant_label(variant)}"
+        if result.get("task") == "retrieval"
+        else ""
+    )
     return (
         f"{_model_label(result)} · {_dataset_label(result)} "
         f"({metadata.get('dataset_split', 'split unknown')}) · "
         f"{result.get('language', 'language unknown')} · "
         f"{str(configuration.get('protocol', 'protocol unknown')).upper()} · "
         f"{str(metadata.get('precision', 'precision unknown')).upper()}"
+        f"{variant_label}"
     )
 
 
@@ -145,14 +156,15 @@ def _classification_plots(results: list[Result], output_dir: Path) -> dict[str, 
                 f"classification_accuracy_{_slug(protocol)}_"
                 f"{_slug(precision)}_{_slug(language)}"
             )
+        datasets = [_dataset_label(result) for result in eligible]
+        unique_datasets = list(dict.fromkeys(datasets))
         title = (
             f"Zero-shot classification Top-1 — {protocol.upper()} / "
-            f"{precision.upper()} / {language.upper()}"
+            f"{precision.upper()} / {language.upper()} · "
+            f"datasets: {', '.join(unique_datasets)} · retrieval variant: N/A"
         )
         labels = [_condition_label(result) for result in eligible]
         values = [float(result["metrics"]["acc1"]) * 100 for result in eligible]
-        datasets = [_dataset_label(result) for result in eligible]
-        unique_datasets = list(dict.fromkeys(datasets))
         palette = plt.get_cmap("tab10")
         colors = [palette(unique_datasets.index(dataset) % 10) for dataset in datasets]
         figure_height = max(4.5, 0.42 * len(eligible) + 1.5)
@@ -177,7 +189,7 @@ def _classification_plots(results: list[Result], output_dir: Path) -> dict[str, 
 
 
 def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
-    grouped: dict[tuple[str, str, str], dict[str, list[Result]]] = defaultdict(
+    grouped: dict[tuple[str, str, str, str], dict[str, list[Result]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for result in results:
@@ -194,11 +206,14 @@ def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]
             str(result["dataset"]),
             str(configuration.get("protocol", "")),
             str(_metadata(result).get("precision", "")),
+            retrieval_variant_info(result)[0] or "unspecified",
         )
         grouped[key][str(result.get("language", ""))].append(result)
 
     files: dict[str, Path] = {}
-    for (dataset_key, protocol, precision), language_results in sorted(grouped.items()):
+    for (dataset_key, protocol, precision, variant), language_results in sorted(
+        grouped.items()
+    ):
         languages = [
             (
                 language,
@@ -268,8 +283,9 @@ def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]
         dataset_name = _dataset_label(languages[0][1][0])
         split = _metadata(languages[0][1][0]).get("dataset_split", "split unknown")
         figure.suptitle(
-            f"Bidirectional retrieval recall — {dataset_name} ({split}) · "
-            f"{protocol.upper()} / {precision.upper()}"
+            f"Bidirectional Recall@1/5/10 — {dataset_name} ({split}) · "
+            f"{protocol.upper()} / {precision.upper()} · variant: "
+            f"{retrieval_variant_label(None if variant == 'unspecified' else variant)}"
         )
         handles = [
             plt.Rectangle((0, 0), 1, 1, color=palette(RETRIEVAL_SERIES.index(item)))
@@ -283,31 +299,37 @@ def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]
             loc="lower center",
         )
         figure.tight_layout(rect=(0, 0.1, 1, 0.93))
-        stem = (
-            "retrieval_recall"
-            if dataset_key == "crossmodal3600" and protocol == "p2" and precision == "fp32"
-            else (
-                f"retrieval_recall_{_slug(dataset_key)}_"
-                f"{_slug(protocol)}_{_slug(precision)}"
+        if dataset_key == "crossmodal3600" and protocol == "p2" and precision == "fp32":
+            stem = {
+                "official_first_caption": "xm3600_official_retrieval",
+                "all_captions": "xm3600_all_captions_retrieval",
+            }.get(
+                variant,
+                f"xm3600_retrieval_{_slug(variant)}",
             )
-        )
+        else:
+            stem = (
+                f"retrieval_recall_{_slug(dataset_key)}_{_slug(protocol)}_"
+                f"{_slug(precision)}_{_slug(variant)}"
+            )
         files.update(_save_figure(figure, output_dir, stem))
     return files
 
 
 def _language_comparison_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
-    grouped: dict[tuple[str, str, str], list[tuple[Result, Result]]] = defaultdict(list)
+    grouped: dict[tuple[str, str, str, str], list[tuple[Result, Result]]] = defaultdict(list)
     for english, japanese in paired_language_results(results):
         configuration = _configuration(english)
         key = (
             str(english["dataset"]),
             str(configuration.get("protocol", "")),
             str(_metadata(english).get("precision", "")),
+            retrieval_variant_info(english)[0] or "unspecified",
         )
         grouped[key].append((english, japanese))
 
     files: dict[str, Path] = {}
-    for (dataset_key, protocol, precision), pairs in sorted(grouped.items()):
+    for (dataset_key, protocol, precision, variant), pairs in sorted(grouped.items()):
         metric_keys = [metric_key for metric_key, _ in RETRIEVAL_SERIES]
         figure, axis = plt.subplots(figsize=(max(10, 1.8 * len(pairs) + 6), 7))
         positions = np.arange(len(pairs))
@@ -356,9 +378,12 @@ def _language_comparison_plots(results: list[Result], output_dir: Path) -> dict[
         axis.axhline(0, color="black", linewidth=0.8)
         axis.set_xticks(positions, labels=model_labels, fontsize=8)
         axis.set_ylabel("Japanese − English recall (percentage points)")
+        candidate_count = _metadata(pairs[0][0]).get("text_count")
         axis.set_title(
             f"{dataset_name} — {protocol.upper()} / {precision.upper()} "
-            "(matched image IDs and run conditions)"
+            f"· variant: {retrieval_variant_label(None if variant == 'unspecified' else variant)} "
+            f"· {candidate_count:,} candidates per language "
+            "(Japanese − English; matched image IDs and run conditions)"
         )
         axis.grid(axis="y", alpha=0.25)
         limit = max(2.0, maximum_absolute_delta * 1.25)
@@ -374,14 +399,21 @@ def _language_comparison_plots(results: list[Result], output_dir: Path) -> dict[
             loc="best",
         )
         figure.tight_layout()
-        stem = (
-            "multilingual_comparison"
-            if dataset_key == "crossmodal3600" and protocol == "p2" and precision == "fp32"
-            else (
-                f"multilingual_comparison_{_slug(dataset_key)}_"
-                f"{_slug(protocol)}_{_slug(precision)}"
+        if dataset_key == "crossmodal3600" and protocol == "p2" and precision == "fp32":
+            stem = {
+                "official_first_caption": (
+                    "xm3600_language_comparison_official_first_caption"
+                ),
+                "all_captions": "xm3600_language_comparison_all_captions",
+            }.get(
+                variant,
+                f"xm3600_language_comparison_{_slug(variant)}",
             )
-        )
+        else:
+            stem = (
+                f"multilingual_comparison_{_slug(dataset_key)}_{_slug(protocol)}_"
+                f"{_slug(precision)}_{_slug(variant)}"
+            )
         files.update(_save_figure(figure, output_dir, stem))
     return files
 
@@ -408,9 +440,11 @@ def _throughput_plots(results: list[Result], output_dir: Path) -> dict[str, Path
                 f"performance_comparison_{_slug(protocol)}_"
                 f"{_slug(precision)}_{_slug(language)}"
             )
+        dataset_labels = list(dict.fromkeys(_dataset_label(result) for result in eligible))
         title = (
             f"Zero-shot accuracy versus image throughput — {protocol.upper()} / "
-            f"{precision.upper()} / {language.upper()}"
+            f"{precision.upper()} / {language.upper()} · "
+            f"datasets: {', '.join(dataset_labels)} · retrieval variant: N/A"
         )
         figure, axis = plt.subplots(figsize=(11, 7))
         for result in eligible:

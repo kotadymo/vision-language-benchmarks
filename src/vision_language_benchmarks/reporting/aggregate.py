@@ -16,6 +16,10 @@ from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.plots import write_plots
+from vision_language_benchmarks.reporting.retrieval_variant import (
+    retrieval_variant_info,
+    retrieval_variant_label,
+)
 from vision_language_benchmarks.reporting.schema import validate_result
 
 SUMMARY_FIELDS = (
@@ -34,6 +38,8 @@ SUMMARY_FIELDS = (
     "split",
     "language",
     "protocol",
+    "retrieval_variant",
+    "retrieval_variant_source",
     "precision",
     "device",
     "gpu_name",
@@ -75,6 +81,7 @@ NON_SUCCESS_FIELDS = (
     "dataset",
     "language",
     "protocol",
+    "retrieval_variant",
     "precision",
     "reason",
 )
@@ -154,6 +161,7 @@ def summary_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
         metadata = result["benchmark_metadata"]
         configuration = _configuration(result)
         metrics = result["metrics"]
+        retrieval_variant, retrieval_variant_source = retrieval_variant_info(result)
         row: dict[str, Any] = {
             "run_id": metadata["run_id"],
             "model_key": configuration.get("model_key", ""),
@@ -170,6 +178,8 @@ def summary_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "split": metadata["dataset_split"],
             "language": result["language"],
             "protocol": configuration.get("protocol", ""),
+            "retrieval_variant": retrieval_variant or "",
+            "retrieval_variant_source": retrieval_variant_source or "",
             "precision": metadata["precision"],
             "device": metadata["device"],
             "gpu_name": metadata.get("gpu_name"),
@@ -209,6 +219,7 @@ def _status_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         metadata = result["benchmark_metadata"]
         configuration = _configuration(result)
+        retrieval_variant, _ = retrieval_variant_info(result)
         rows.append(
             {
                 "run_id": metadata["run_id"],
@@ -219,6 +230,7 @@ def _status_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "dataset": _dataset_name(result),
                 "language": result["language"],
                 "protocol": configuration.get("protocol", ""),
+                "retrieval_variant": retrieval_variant or "",
                 "precision": metadata.get("precision", ""),
                 "reason": metadata.get("reason_if_not_success") or "",
             }
@@ -378,12 +390,13 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         return lines
 
     lines = [
-        "| Model | Parameters | Checkpoint | Dataset | Split | Language | Images / captions | "
+        "| Model | Parameters | Checkpoint | Dataset | Split | Language | Retrieval variant | "
+        "Images / captions | "
         "Requested / image / text batch | "
         "T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | "
         "Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | "
         "OOM retries | Raw result |",
-        "|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "|---|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for result in results:
         metadata = result["benchmark_metadata"]
@@ -402,6 +415,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             f"{_sample_count(metadata.get('image_count'))} / "
             f"{_sample_count(metadata.get('text_count'))}"
         )
+        variant, _ = retrieval_variant_info(result)
         values = (
             _model_name(result),
             parameter_size,
@@ -409,6 +423,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             _dataset_name(result),
             metadata["dataset_split"],
             result["language"],
+            variant or "—",
             image_caption_count,
             _batch_sizes(metadata),
             _percentage(metrics, "image_retrieval_recall@1"),
@@ -442,13 +457,17 @@ def _paired_metric_cell(
 
 
 def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
-    grouped: dict[tuple[str, str, str], list[tuple[dict[str, Any], dict[str, Any]]]] = {}
+    grouped: dict[
+        tuple[str, str, str, str],
+        list[tuple[dict[str, Any], dict[str, Any]]],
+    ] = {}
     for english, japanese in paired_language_results(results):
         configuration = _configuration(english)
         key = (
             str(english["dataset"]),
             str(configuration.get("protocol", "")),
             str(english["benchmark_metadata"].get("precision", "")),
+            str(retrieval_variant_info(english)[0]),
         )
         grouped.setdefault(key, []).append((english, japanese))
 
@@ -461,10 +480,11 @@ def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
         ]
 
     lines = ["## Matched English/Japanese retrieval", ""]
-    for (_dataset_key, protocol, precision), pairs in sorted(grouped.items()):
+    for (_, protocol, precision, variant), pairs in sorted(grouped.items()):
         lines.extend(
             [
-                f"### {_dataset_name(pairs[0][0])} · {protocol.upper()} · {precision.upper()}",
+                f"### {_dataset_name(pairs[0][0])} · {protocol.upper()} · "
+                f"{precision.upper()} · {variant}",
                 "",
                 "| Model | Split | Images | Captions (EN / JA) | T→I R@1 (EN → JA; Δ pp) | "
                 "T→I R@5 (EN → JA; Δ pp) | T→I R@10 (EN → JA; Δ pp) | "
@@ -526,6 +546,108 @@ def _render_task_language_section(
         lines.extend([f"### {protocol.upper()} · {precision.upper()}", ""])
         lines.extend(_render_measurement_table(items))
         lines.append("")
+    return lines
+
+
+def _render_retrieval_variant_section(
+    results: list[dict[str, Any]],
+    *,
+    variant: str,
+) -> list[str]:
+    title = (
+        "Japanese/English official-compatible XM3600 retrieval"
+        if variant == "official_first_caption"
+        else "XM3600 all-caption retrieval"
+    )
+    lines = [f"## {title} (`{retrieval_variant_label(variant)}`)", ""]
+    variant_results = [
+        result
+        for result in results
+        if result["task"] == "retrieval"
+        and retrieval_variant_info(result)[0] == variant
+    ]
+    if not variant_results:
+        lines.extend(["No completed measured runs are available.", ""])
+        return lines
+    for language in ("en", "ja"):
+        language_results = [
+            result for result in variant_results if result["language"] == language
+        ]
+        if not language_results:
+            continue
+        grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
+        for result in language_results:
+            configuration = _configuration(result)
+            key = (
+                str(configuration.get("protocol", "")),
+                str(result["benchmark_metadata"].get("precision", "")),
+            )
+            grouped.setdefault(key, []).append(result)
+        for (protocol, precision), items in sorted(grouped.items()):
+            lines.extend(
+                [
+                    f"### {language.upper()} · {protocol.upper()} · {precision.upper()}",
+                    "",
+                ]
+            )
+            lines.extend(_render_measurement_table(items))
+            lines.append("")
+    return lines
+
+
+def _render_performance_section(results: list[dict[str, Any]]) -> list[str]:
+    rows = [
+        result
+        for result in results
+        if result["status"] == "completed"
+        and (
+            isinstance(
+                result["benchmark_metadata"].get("throughput_images_per_sec"),
+                (int, float),
+            )
+            or isinstance(
+                result["benchmark_metadata"].get("throughput_texts_per_sec"),
+                (int, float),
+            )
+        )
+    ]
+    if not rows:
+        return [
+            "## Model throughput and VRAM",
+            "",
+            "No throughput measurements are available.",
+            "",
+        ]
+    lines = [
+        "## Model throughput and VRAM",
+        "",
+        "Throughput is computed from model inference only; model downloads, initialization, "
+        "dataset preparation, and report generation are excluded.",
+        "",
+        "| Model | Dataset | Task | Language | Protocol | Retrieval variant | Precision | "
+        "Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | Raw result |",
+        "|---|---|---|---|---|---|---|---:|---:|---:|---:|---|",
+    ]
+    for result in rows:
+        metadata = result["benchmark_metadata"]
+        configuration = _configuration(result)
+        variant, _ = retrieval_variant_info(result)
+        values = (
+            _model_name(result),
+            _dataset_name(result),
+            result["task"],
+            result["language"],
+            configuration.get("protocol", ""),
+            variant or "—",
+            metadata.get("precision", "—"),
+            _rate(metadata.get("throughput_images_per_sec")),
+            _rate(metadata.get("throughput_texts_per_sec")),
+            _milliseconds(metadata.get("inference_ms_median")),
+            _peak_memory(metadata),
+            _raw_result_link(metadata["run_id"]),
+        )
+        lines.append("| " + " | ".join(_markdown_cell(value) for value in values) + " |")
+    lines.append("")
     return lines
 
 
@@ -591,7 +713,7 @@ def render_report(
         "may add to the download. Peak memory is reported as allocated / reserved GiB.",
         "- Each completed table row links to its schema-validated raw result JSON.",
         "",
-        "## English classification",
+        "## English zero-shot classification",
         "",
     ]
     lines.extend(
@@ -599,15 +721,13 @@ def render_report(
             completed,
             task="classification",
             language="en",
-            title="English classification",
+            title="English zero-shot classification",
         )[2:]
     )
     lines.extend(
-        _render_task_language_section(
+        _render_retrieval_variant_section(
             completed,
-            task="retrieval",
-            language="en",
-            title="English retrieval",
+            variant="official_first_caption",
         )
     )
     lines.extend(
@@ -615,18 +735,17 @@ def render_report(
             completed,
             task="classification",
             language="ja",
-            title="Japanese classification",
+            title="Japanese zero-shot classification",
         )
     )
     lines.extend(
-        _render_task_language_section(
+        _render_retrieval_variant_section(
             completed,
-            task="retrieval",
-            language="ja",
-            title="Japanese retrieval",
+            variant="all_captions",
         )
     )
     lines.extend(_render_paired_language_section(completed))
+    lines.extend(_render_performance_section(completed))
 
     lines.extend(
         [
@@ -643,8 +762,9 @@ def render_report(
                 [
                     f"### {status.capitalize()}",
                     "",
-                    "| Model | Dataset | Language | Protocol | Reason | Run ID |",
-                    "|---|---|---|---|---|---|",
+                    "| Model | Dataset | Language | Protocol | Retrieval variant | "
+                    "Reason | Run ID |",
+                    "|---|---|---|---|---|---|---|",
                 ]
             )
             for row in status_items:
@@ -657,6 +777,7 @@ def render_report(
                             "dataset",
                             "language",
                             "protocol",
+                            "retrieval_variant",
                             "reason",
                             "run_id",
                         )
@@ -733,6 +854,10 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
         configuration = _configuration(result)
         dataset_key = str(result["dataset"])
         model_key = str(configuration.get("model_key", result["model"]))
+        try:
+            dataset_spec = get_dataset(dataset_key)
+        except ValueError:
+            dataset_spec = None
         dataset = dataset_map.setdefault(
             dataset_key,
             {
@@ -744,9 +869,21 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
                 "license": metadata.get("dataset_license"),
                 "license_status": metadata.get("dataset_license_status"),
                 "terms_confirmations": [],
-                "image_count": metadata.get("image_count"),
-                "text_count": metadata.get("text_count"),
+                "image_count": (
+                    dataset_spec.expected_images
+                    if dataset_spec is not None
+                    else metadata.get("image_count")
+                ),
+                "expected_text_counts_by_language": (
+                    {
+                        language: dataset_spec.expected_text_count(language)
+                        for language in dataset_spec.languages
+                    }
+                    if dataset_spec is not None
+                    else {}
+                ),
                 "class_count": metadata.get("class_count"),
+                "retrieval_variant_evaluations": [],
             },
         )
         dataset["terms_confirmations"].append(
@@ -755,6 +892,32 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
                 "confirmed": metadata.get("dataset_terms_confirmed"),
             }
         )
+        if result["task"] == "retrieval":
+            variant, variant_source = retrieval_variant_info(result)
+            dataset["retrieval_variant_evaluations"].append(
+                {
+                    "run_id": metadata["run_id"],
+                    "status": result["status"],
+                    "protocol": configuration.get("protocol"),
+                    "precision": metadata.get("precision"),
+                    "language": result["language"],
+                    "retrieval_variant": variant,
+                    "retrieval_variant_source": variant_source,
+                    "image_count": metadata.get("image_count"),
+                    "text_count": metadata.get("text_count"),
+                    "candidate_counts": metadata.get("candidate_counts"),
+                    "positive_pair_count": metadata.get("positive_pair_count"),
+                    "image_id_order_hash": metadata.get("image_id_order_hash"),
+                    "text_id_order_hash": metadata.get("text_id_order_hash"),
+                    "text_content_sha256": metadata.get("text_content_sha256"),
+                    "source_commit_sha": metadata.get("source_commit_sha"),
+                    "checkpoint_revision": metadata.get("checkpoint_revision"),
+                    "checkpoint_sha256": metadata.get("checkpoint_sha256"),
+                    "preprocessing_config_sha256": metadata.get(
+                        "preprocessing_config_sha256"
+                    ),
+                }
+            )
         model = model_map.setdefault(model_key, {})
         model_values = {
             "name": _model_name(result),
@@ -797,6 +960,14 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
     status_counts = Counter(result["status"] for result in results)
     for dataset in dataset_map.values():
         dataset["terms_confirmations"].sort(key=lambda entry: entry["run_id"])
+        dataset["retrieval_variant_evaluations"].sort(
+            key=lambda entry: (
+                str(entry["retrieval_variant"] or ""),
+                str(entry["language"]),
+                str(entry["precision"] or ""),
+                str(entry["run_id"]),
+            )
+        )
     return {
         "schema_version": "1.0.0",
         "result_file_count": len(results),

@@ -256,6 +256,166 @@
           ],
           "minimum": 0
         },
+        "retrieval_variant": {
+          "enum": [
+            null,
+            "official_first_caption",
+            "all_captions"
+          ]
+        },
+        "retrieval_variant_reference_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retrieval_variant_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "caption_selection": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "one_caption_per_image": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "candidate_counts": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "images": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "texts": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "images",
+            "texts"
+          ],
+          "additionalProperties": false
+        },
+        "official_image_filtering": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "rule": {
+              "type": "string"
+            },
+            "reference_commit": {
+              "type": "string"
+            },
+            "included_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "excluded_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "excluded_image_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "rule",
+            "reference_commit",
+            "included_count",
+            "excluded_count",
+            "excluded_image_ids"
+          ],
+          "additionalProperties": false
+        },
+        "caption_count_per_image_min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "caption_count_per_image_max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "text_content_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "image_id_scheme": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text_id_scheme": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_ids": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "text_ids": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "image_id_order_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "text_id_order_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "positive_pair_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
         "class_count": {
           "type": [
             "integer",

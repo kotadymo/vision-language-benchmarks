@@ -4,6 +4,11 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 ProtocolName = Literal["p0", "p1", "p2"]
+RetrievalVariant = Literal["all_captions", "official_first_caption"]
+RETRIEVAL_VARIANTS: tuple[RetrievalVariant, ...] = (
+    "official_first_caption",
+    "all_captions",
+)
 RunStatus = Literal["pending", "running", "completed", "skipped", "failed", "blocked"]
 
 
@@ -61,7 +66,19 @@ class DatasetSpec:
                 f"available languages: {', '.join(self.languages)}."
             ) from error
 
-    def expected_text_count(self, language: str) -> int | None:
+    def expected_text_count(
+        self,
+        language: str,
+        retrieval_variant: RetrievalVariant | None = None,
+    ) -> int | None:
+        if retrieval_variant is not None and retrieval_variant not in RETRIEVAL_VARIANTS:
+            raise ValueError(f"Unsupported retrieval variant: {retrieval_variant!r}.")
+        if retrieval_variant is not None and self.key != "crossmodal3600":
+            raise ValueError(
+                f"Retrieval variants are defined only for XM3600, not {self.key!r}."
+            )
+        if retrieval_variant == "official_first_caption":
+            return self.expected_images
         counts = dict(self.expected_text_counts_by_language)
         return counts.get(canonical_language(language), self.expected_texts)
 
@@ -262,16 +279,18 @@ DATASETS: dict[str, DatasetSpec] = {
         language_codes=(("en", "en"),),
         license=(
             "Images are from Flickr and subject to Flickr Terms of Use. The caption "
-            "documentation's stated license conflicts with its linked CC BY 3.0 license."
+            "documentation's stated license conflicts with its linked CC BY 3.0 license; "
+            "the current official access process is not verified."
         ),
         source="https://shannon.cs.illinois.edu/DenotationGraph/",
         access_status="blocked",
         license_status="blocked",
         access_reason=(
-            "The official project requires an access request and states that its Flickr "
-            "images are subject to Flickr Terms of Use. Local archives do not establish "
-            "that access was approved. Obtain and verify the official access grant and "
-            "review the applicable terms before evaluation."
+            "The current official project page does not expose an unambiguous Flickr30k "
+            "image-access and reuse process; prior descriptions refer to an access request. "
+            "Images are subject to Flickr Terms of Use. Local archives do not establish that "
+            "access was approved. Obtain current written access/usage terms and review Flickr "
+            "and caption licensing before evaluation."
         ),
     ),
     "mscoco_captions": DatasetSpec(
@@ -285,9 +304,9 @@ DATASETS: dict[str, DatasetSpec] = {
         languages=("en",),
         language_codes=(("en", "en"),),
         license=(
-            "COCO annotations are CC BY 4.0. Images retain their original rights and are "
-            "subject to Flickr Terms; downloading the dataset requires agreeing to the "
-            "official COCO terms."
+            "COCO annotations are CC BY 4.0. Images retain the rights and licenses of their "
+            "original owners; downloading the dataset signifies agreement to the official "
+            "COCO terms."
         ),
         source="https://cocodataset.org/#termsofuse",
         access_status="blocked",
@@ -311,7 +330,7 @@ DATASETS: dict[str, DatasetSpec] = {
         languages=("en",),
         language_codes=(("en", "en"),),
         license="ImageNet access terms and registration required.",
-        source="https://image-net.org/",
+        source="https://image-net.org/download.php",
         access_status="blocked",
         license_status="blocked",
         access_reason=(
@@ -329,7 +348,10 @@ DATASETS: dict[str, DatasetSpec] = {
         expected_classes=None,
         languages=("en", "ja"),
         language_codes=(("en", "en"), ("ja", "jp")),
-        license="Adobe Research License; noncommercial research only.",
+        license=(
+            "Adobe Research License; noncommercial research only. The COCO image files have "
+            "separate COCO access terms."
+        ),
         source="https://github.com/adobe-research/Cross-lingual-Test-Dataset-XTD10",
         access_status="blocked",
         license_status="blocked",
@@ -368,7 +390,10 @@ DATASETS: dict[str, DatasetSpec] = {
         expected_classes=None,
         languages=("en", "ja"),
         language_codes=(("en", "en"), ("ja", "jp")),
-        license="Adobe Research License; same access constraint as XTD10.",
+        license=(
+            "Adobe Research License; same annotation and COCO-image access constraints as "
+            "XTD10."
+        ),
         source="https://github.com/adobe-research/Cross-lingual-Test-Dataset-XTD10",
         access_status="blocked",
         license_status="blocked",
@@ -388,13 +413,17 @@ DATASETS: dict[str, DatasetSpec] = {
         expected_classes=None,
         languages=("en", "ja"),
         language_codes=(("en", "en"), ("ja", "ja")),
-        license="Babel-ImageNet labels and ImageNet image terms must be verified.",
+        license=(
+            "Babel-ImageNet labels are distributed under the BabelNet Non-Commercial "
+            "License; ImageNet image terms and authorization are separate."
+        ),
         source="https://github.com/gregor-ge/Babel-ImageNet",
         access_status="blocked",
         license_status="blocked",
         access_reason=(
-            "Requires authorized ImageNet validation images and verified Japanese "
-            "label coverage; neither is available locally."
+            "Using BabelNet-derived labels requires BabelNet registration and acceptance of "
+            "its non-commercial license, and ImageNet images require separate authorization. "
+            "Neither is available locally; Japanese label coverage is not yet validated."
         ),
     ),
 }
@@ -416,6 +445,22 @@ def get_dataset(key: str) -> DatasetSpec:
         raise ValueError(
             f"Unknown dataset {key!r}; choose from {', '.join(sorted(DATASETS))}."
         ) from error
+
+
+def normalize_retrieval_variant(
+    dataset_key: str,
+    retrieval_variant: RetrievalVariant | None,
+) -> RetrievalVariant | None:
+    dataset = get_dataset(dataset_key)
+    if retrieval_variant is not None and retrieval_variant not in RETRIEVAL_VARIANTS:
+        raise ValueError(f"Unsupported retrieval variant: {retrieval_variant!r}.")
+    if dataset.key != "crossmodal3600":
+        if retrieval_variant is not None:
+            raise ValueError(
+                f"Retrieval variants are defined only for XM3600, not {dataset.key!r}."
+            )
+        return None
+    return retrieval_variant or "all_captions"
 
 
 def model_registry_dict() -> list[dict[str, object]]:

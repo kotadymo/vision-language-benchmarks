@@ -20,11 +20,17 @@ from vision_language_benchmarks.evaluation.metrics import (
     retrieval_metrics,
 )
 from vision_language_benchmarks.prompts import (
+    CLIP_BENCHMARK_COMMIT,
     classification_prompt_groups,
     classification_prompt_name,
     retrieval_prompt_name,
 )
-from vision_language_benchmarks.registry import ProtocolName
+from vision_language_benchmarks.registry import (
+    ProtocolName,
+    RetrievalVariant,
+    get_dataset,
+    normalize_retrieval_variant,
+)
 
 
 @dataclass(slots=True)
@@ -42,6 +48,16 @@ class EncodedBatches:
 class EvaluationOutput:
     metrics: dict[str, float | None]
     metadata: dict[str, Any]
+
+
+@dataclass(slots=True)
+class RetrievalCandidates:
+    image_ids: list[str]
+    image_paths: list[Path]
+    text_values: list[str]
+    text_ids: list[str]
+    positive_images_per_text: list[int]
+    caption_counts_per_image: list[int]
 
 
 def _batch_sizes(initial: int) -> list[int]:
@@ -299,45 +315,41 @@ def evaluate_retrieval(
     language: str,
     batch_size: int,
     *,
+    retrieval_variant: RetrievalVariant | None = None,
     progress: Callable[[str], None] | None = None,
 ) -> EvaluationOutput:
     dataset_loading_started = time.perf_counter()
     dataset_items = retrieval_items(dataset_key, language)
     dataset_manifest_loading_seconds = time.perf_counter() - dataset_loading_started
-    image_ids = [str(item["image_id"]) for item in dataset_items]
-    if len(set(image_ids)) != len(image_ids):
-        raise DataIntegrityError(f"{dataset_key} retrieval items contain duplicate image IDs.")
-    image_index = {image_id: index for index, image_id in enumerate(image_ids)}
-    image_paths = [Path(item["image_path"]) for item in dataset_items]
-
-    text_values: list[str] = []
-    positive_images_per_text: list[int] = []
-    text_ids: list[str] = []
-    for item in dataset_items:
-        image_id = str(item["image_id"])
-        captions = item.get("captions")
-        if not isinstance(captions, list) or not captions:
-            raise DataIntegrityError(f"Retrieval image {image_id!r} has no captions.")
-        for caption_index, caption in enumerate(captions):
-            text = str(caption).strip()
-            if not text:
-                raise DataIntegrityError(
-                    f"Retrieval image {image_id!r} has an empty caption at index {caption_index}."
-                )
-            text_values.append(text)
-            text_ids.append(f"{image_id}#{caption_index}")
-            positive_images_per_text.append(image_index[image_id])
+    retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
+    candidates = _retrieval_candidates(dataset_key, dataset_items, retrieval_variant)
+    dataset = get_dataset(dataset_key)
+    expected_image_count = dataset.expected_images
+    expected_text_count = dataset.expected_text_count(language, retrieval_variant)
+    if (
+        expected_image_count is not None
+        and len(candidates.image_ids) != expected_image_count
+    ):
+        raise DataIntegrityError(
+            f"{dataset_key} contains {len(candidates.image_ids)} image candidates; "
+            f"expected {expected_image_count}."
+        )
+    if expected_text_count is not None and len(candidates.text_values) != expected_text_count:
+        raise DataIntegrityError(
+            f"{dataset_key} {language} {retrieval_variant or 'retrieval'} contains "
+            f"{len(candidates.text_values)} text candidates; expected {expected_text_count}."
+        )
 
     def load_images(start: int, end: int) -> list[Image.Image]:
         images: list[Image.Image] = []
-        for path in image_paths[start:end]:
+        for path in candidates.image_paths[start:end]:
             with Image.open(path) as image:
                 image.load()
                 images.append(image.convert("RGB"))
         return images
 
     image_encoded = _encode_batched(
-        count=len(image_paths),
+        count=len(candidates.image_paths),
         load_batch=load_images,
         preprocess_batch=adapter.preprocess_images,
         encode_batch=adapter.encode_images,
@@ -351,8 +363,8 @@ def evaluate_retrieval(
         image_encoded.batch_size_actual,
     )
     text_encoded = _encode_batched(
-        count=len(text_values),
-        load_batch=lambda start, end: text_values[start:end],
+        count=len(candidates.text_values),
+        load_batch=lambda start, end: candidates.text_values[start:end],
         preprocess_batch=lambda texts: adapter.preprocess_texts(
             texts,
             "retrieval",
@@ -369,27 +381,68 @@ def evaluate_retrieval(
     metrics = retrieval_metrics(
         image_encoded.features,
         text_encoded.features,
-        positive_images_per_text,
+        candidates.positive_images_per_text,
         ks=(1, 5, 10),
         block_size=256,
     )
     aggregation_seconds = time.perf_counter() - aggregation_started
     metadata = {
-        "image_count": len(image_paths),
-        "text_count": len(text_values),
+        "retrieval_variant": retrieval_variant,
+        "retrieval_variant_reference_commit": (
+            CLIP_BENCHMARK_COMMIT
+            if retrieval_variant == "official_first_caption"
+            else None
+        ),
+        "caption_selection": (
+            "captions[0], matching the pinned CLIP Benchmark XM3600 loader"
+            if retrieval_variant == "official_first_caption"
+            else "all captions in source order; multiple positives retained"
+        ),
+        "one_caption_per_image": (
+            all(count == 1 for count in candidates.caption_counts_per_image)
+            if retrieval_variant == "official_first_caption"
+            else None
+        ),
+        "image_count": len(candidates.image_ids),
+        "text_count": len(candidates.text_values),
+        "candidate_counts": {
+            "images": len(candidates.image_ids),
+            "texts": len(candidates.text_values),
+        },
+        "official_image_filtering": (
+            {
+                "rule": "include an image only when its image file exists",
+                "reference_commit": CLIP_BENCHMARK_COMMIT,
+                "included_count": len(candidates.image_ids),
+                "excluded_count": 0,
+                "excluded_image_ids": [],
+            }
+            if retrieval_variant == "official_first_caption"
+            else None
+        ),
         "class_count": None,
         "dataset_manifest_loading_seconds": dataset_manifest_loading_seconds,
-        "image_ids": image_ids,
-        "text_ids": text_ids,
-        "image_id_order_hash": content_hash(image_ids),
-        "text_id_order_hash": content_hash(text_ids),
-        "positive_pair_count": len(positive_images_per_text),
+        "image_id_scheme": (
+            "XM3600 captions.jsonl source order using image/key"
+            if dataset_key == "crossmodal3600"
+            else "dataset annotation order using image_id"
+        ),
+        "image_ids": candidates.image_ids,
+        "text_ids": candidates.text_ids,
+        "image_id_order_hash": content_hash(candidates.image_ids),
+        "text_id_order_hash": content_hash(candidates.text_ids),
+        "text_content_sha256": content_hash(candidates.text_values),
+        "text_id_scheme": "image_id#caption_index, preserving source order",
+        "caption_count_per_image_min": min(candidates.caption_counts_per_image),
+        "caption_count_per_image_max": max(candidates.caption_counts_per_image),
+        "positive_pair_count": len(candidates.positive_images_per_text),
         "prompt_policy": (
             "embeddinggemma_searchquery_task"
             if retrieval_prompt_name(adapter.spec.key)
             else "model_native_caption_text"
         ),
         "prompt_name": retrieval_prompt_name(adapter.spec.key),
+        "task_prompt": retrieval_prompt_name(adapter.spec.key),
         "template_hash": None,
         "classnames_hash": None,
         "batch_size_actual": min(image_batch_size_actual, text_encoded.batch_size_actual),
@@ -411,3 +464,57 @@ def evaluate_retrieval(
         "retrieval_aggregation_seconds": aggregation_seconds,
     }
     return EvaluationOutput(metrics=metrics, metadata=metadata)
+
+
+def _retrieval_candidates(
+    dataset_key: str,
+    dataset_items: Sequence[dict[str, Any]],
+    retrieval_variant: RetrievalVariant | None,
+) -> RetrievalCandidates:
+    if not dataset_items:
+        raise DataIntegrityError(f"{dataset_key} contains no retrieval items.")
+    image_ids = [str(item["image_id"]) for item in dataset_items]
+    if len(set(image_ids)) != len(image_ids):
+        raise DataIntegrityError(f"{dataset_key} retrieval items contain duplicate image IDs.")
+    image_index = {image_id: index for index, image_id in enumerate(image_ids)}
+    image_paths = [Path(item["image_path"]) for item in dataset_items]
+    text_values: list[str] = []
+    text_ids: list[str] = []
+    positive_images_per_text: list[int] = []
+    caption_counts_per_image: list[int] = []
+    for item in dataset_items:
+        image_id = str(item["image_id"])
+        captions = item.get("captions")
+        if not isinstance(captions, list) or not captions:
+            raise DataIntegrityError(f"Retrieval image {image_id!r} has no captions.")
+        selected_captions = (
+            captions[:1]
+            if retrieval_variant == "official_first_caption"
+            else captions
+        )
+        caption_counts_per_image.append(len(selected_captions))
+        for caption_index, caption in enumerate(selected_captions):
+            text = str(caption).strip()
+            if not text:
+                raise DataIntegrityError(
+                    f"Retrieval image {image_id!r} has an empty caption at index "
+                    f"{caption_index}."
+                )
+            text_values.append(text)
+            text_ids.append(f"{image_id}#{caption_index}")
+            positive_images_per_text.append(image_index[image_id])
+    if retrieval_variant == "official_first_caption" and any(
+        count != 1 for count in caption_counts_per_image
+    ):
+        raise DataIntegrityError(
+            "The official_first_caption XM3600 variant must select exactly one caption "
+            "for every included image."
+        )
+    return RetrievalCandidates(
+        image_ids=image_ids,
+        image_paths=image_paths,
+        text_values=text_values,
+        text_ids=text_ids,
+        positive_images_per_text=positive_images_per_text,
+        caption_counts_per_image=caption_counts_per_image,
+    )

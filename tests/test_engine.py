@@ -6,8 +6,14 @@ from typing import Any
 import numpy as np
 import pytest
 
+from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.evaluation import engine
-from vision_language_benchmarks.evaluation.engine import _encode_batched, evaluate_classification
+from vision_language_benchmarks.evaluation.engine import (
+    _encode_batched,
+    _retrieval_candidates,
+    evaluate_classification,
+    evaluate_retrieval,
+)
 from vision_language_benchmarks.registry import get_model
 
 
@@ -125,3 +131,114 @@ def test_classification_normalizes_mean_prompt_features(
     )
 
     assert result.metrics["acc1"] == 1.0
+
+
+def test_xm3600_retrieval_variants_preserve_order_and_positive_mappings(
+    tmp_path,
+) -> None:
+    items = [
+        {
+            "image_id": "image-b",
+            "image_path": str(tmp_path / "b.jpg"),
+            "captions": [" B first caption ", "B second caption"],
+        },
+        {
+            "image_id": "image-a",
+            "image_path": str(tmp_path / "a.jpg"),
+            "captions": ["A first caption"],
+        },
+    ]
+
+    official = _retrieval_candidates(
+        "crossmodal3600",
+        items,
+        "official_first_caption",
+    )
+    all_captions = _retrieval_candidates("crossmodal3600", items, "all_captions")
+
+    assert official.image_ids == ["image-b", "image-a"]
+    assert official.text_ids == ["image-b#0", "image-a#0"]
+    assert official.text_values == ["B first caption", "A first caption"]
+    assert official.positive_images_per_text == [0, 1]
+    assert official.caption_counts_per_image == [1, 1]
+    assert all_captions.image_ids == ["image-b", "image-a"]
+    assert all_captions.text_ids == ["image-b#0", "image-b#1", "image-a#0"]
+    assert all_captions.positive_images_per_text == [0, 0, 1]
+    assert all_captions.caption_counts_per_image == [2, 1]
+
+
+def test_official_caption_candidates_match_order_across_languages(
+    tmp_path,
+) -> None:
+    english_items = [
+        {
+            "image_id": "image-b",
+            "image_path": str(tmp_path / "b.jpg"),
+            "captions": ["B caption"],
+        },
+        {
+            "image_id": "image-a",
+            "image_path": str(tmp_path / "a.jpg"),
+            "captions": ["A caption"],
+        },
+    ]
+    japanese_items = [
+        {
+            "image_id": "image-b",
+            "image_path": str(tmp_path / "b.jpg"),
+            "captions": ["B の説明"],
+        },
+        {
+            "image_id": "image-a",
+            "image_path": str(tmp_path / "a.jpg"),
+            "captions": ["A の説明"],
+        },
+    ]
+
+    english = _retrieval_candidates(
+        "crossmodal3600",
+        english_items,
+        "official_first_caption",
+    )
+    japanese = _retrieval_candidates(
+        "crossmodal3600",
+        japanese_items,
+        "official_first_caption",
+    )
+
+    assert english.image_ids == japanese.image_ids
+    assert english.text_ids == japanese.text_ids
+    assert len(english.text_values) == len(japanese.text_values) == 2
+
+
+def test_official_first_caption_rejects_candidate_count_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        engine,
+        "retrieval_items",
+        lambda _dataset_key, _language: [
+            {
+                "image_id": "image-1",
+                "image_path": "image-1.jpg",
+                "captions": ["caption"],
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        engine,
+        "get_dataset",
+        lambda _dataset_key: SimpleNamespace(
+            expected_images=2,
+            expected_text_count=lambda _language, _retrieval_variant: 2,
+        ),
+    )
+
+    with pytest.raises(DataIntegrityError, match="contains 1 image candidates"):
+        evaluate_retrieval(
+            SimpleNamespace(),
+            "crossmodal3600",
+            "en",
+            16,
+            retrieval_variant="official_first_caption",
+        )

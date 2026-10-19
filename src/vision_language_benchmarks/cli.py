@@ -15,13 +15,16 @@ from vision_language_benchmarks.paths import RESULTS_ROOT
 from vision_language_benchmarks.registry import (
     DATASETS,
     MODELS,
+    RETRIEVAL_VARIANTS,
     ProtocolName,
+    RetrievalVariant,
     canonical_language,
     dataset_registry_dict,
     get_dataset,
     get_model,
     language_is_supported,
     model_registry_dict,
+    normalize_retrieval_variant,
 )
 from vision_language_benchmarks.reporting.aggregate import generate_reports
 
@@ -96,10 +99,14 @@ def _run_plan(
     seed: int,
     output: Path,
     confirm_data_terms: bool = False,
+    retrieval_variant: RetrievalVariant | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
     normalized_language = canonical_language(language)
+    resolved_retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
+    if dataset.key == "crossmodal3600" and protocol != "p2":
+        raise ValueError("XM3600 retrieval variants are an additional dimension of P2.")
     if dataset.access_status == "blocked" or dataset.license_status == "blocked":
         access = "blocked"
         access_reason = dataset.access_reason
@@ -162,6 +169,10 @@ def _run_plan(
             "expected_text_counts_by_language": dict(
                 dataset.expected_text_counts_by_language
             ),
+            "expected_text_candidates": dataset.expected_text_count(
+                normalized_language,
+                resolved_retrieval_variant,
+            ),
             "download_estimate": _dataset_download_estimate(dataset.key),
             "license": dataset.license,
             "license_status": dataset.license_status,
@@ -171,6 +182,7 @@ def _run_plan(
         "evaluation": {
             "protocol": protocol,
             "language": normalized_language,
+            "retrieval_variant": resolved_retrieval_variant,
             "precision": precision,
             "device": device,
             "batch_size": batch_size,
@@ -259,6 +271,7 @@ def _command_run(args: argparse.Namespace) -> int:
         seed=args.seed,
         output=args.output,
         confirm_data_terms=args.confirm_data_terms,
+        retrieval_variant=args.retrieval_variant,
     )
     if args.dry_run:
         _write_json({"dry_run": True, **plan})
@@ -282,6 +295,7 @@ def _command_run(args: argparse.Namespace) -> int:
         force=args.force,
         allow_cpu_fallback=args.allow_cpu_fallback,
         confirm_data_terms=args.confirm_data_terms,
+        retrieval_variant=args.retrieval_variant,
         progress=_progress,
     )
     _write_json(result)
@@ -314,6 +328,7 @@ def _suite_plans(args: argparse.Namespace) -> list[dict[str, Any]]:
                         seed=args.seed,
                         output=args.output,
                         confirm_data_terms=args.confirm_data_terms,
+                        retrieval_variant=args.retrieval_variant,
                     )
                 )
     return plans
@@ -355,6 +370,7 @@ def _command_suite(args: argparse.Namespace) -> int:
             force=args.force,
             allow_cpu_fallback=args.allow_cpu_fallback,
             confirm_data_terms=args.confirm_data_terms,
+            retrieval_variant=args.retrieval_variant,
             progress=_progress,
         )
         for model_key in model_keys
@@ -431,6 +447,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--split", help="Assert the registry's pinned dataset split.")
     run.add_argument("--language", default="en")
     run.add_argument("--protocol", choices=("p0", "p1", "p2"), default="p0")
+    run.add_argument(
+        "--retrieval-variant",
+        choices=RETRIEVAL_VARIANTS,
+        help="XM3600 caption selection; defaults to all_captions for backwards compatibility.",
+    )
     run.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
     run.add_argument("--device", default="cuda")
     run.add_argument("--batch-size", type=int, default=16)
@@ -459,6 +480,11 @@ def build_parser() -> argparse.ArgumentParser:
     suite.add_argument("--datasets", nargs="+", choices=tuple(sorted(DATASETS)))
     suite.add_argument("--languages", nargs="+")
     suite.add_argument("--protocol", choices=("p0", "p1", "p2"))
+    suite.add_argument(
+        "--retrieval-variant",
+        choices=RETRIEVAL_VARIANTS,
+        help="XM3600 caption selection; defaults to all_captions for backwards compatibility.",
+    )
     suite.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
     suite.add_argument("--device", default="cuda")
     suite.add_argument("--batch-size", type=int, default=16)

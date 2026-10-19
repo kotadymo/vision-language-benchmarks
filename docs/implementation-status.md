@@ -1,7 +1,8 @@
 # Implementation and Evaluation Status
 
-Last updated: 2026-10-19
-Current branch source commit: `60a61259c95e7c387e896b23084e3c3d0fc375f5`
+Last updated: 2026-10-20
+Branch: `feature/benchmark-framework-v0.1.0`
+Base branch head before the XM3600 protocol work: `5b512ecb1d0177d88817a4e07d54f86810b7f86f`
 Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 `60a61259c95e7c387e896b23084e3c3d0fc375f5`, and
 `d72e4e462d137e9b77581a507e42897ff427eaf1` (recorded per run).
@@ -10,13 +11,19 @@ Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 
 | Milestone | Status | Evidence |
 | --- | --- | --- |
-| Offline unit suite | completed | `uv run --locked pytest -q`: 40 passed, two opt-in GPU modules skipped by default |
+| Offline unit suite | completed | `uv run --locked pytest -q`: 48 passed, two opt-in CUDA modules skipped |
 | Dependency lock, lint, and patch checks | completed | `uv lock --check`, `uv run --locked ruff check .`, and `git diff --check` passed |
 | Pretrained checkpoints loaded on CUDA | completed | All seven registered adapters passed |
 | Real image and text inference on CUDA | completed | All supported smoke-test languages passed; embeddings were finite and dimension-compatible |
-| Full CIFAR evaluations | completed | 24 runs: CIFAR-10 and CIFAR-100 full 10,000-image test splits, six English-compatible models, P0 and P1 reported separately |
-| Full XM3600 evaluations | completed | Seven P2 runs: EmbeddingGemma, multilingual OpenCLIP, and SigLIP in English/Japanese; rinna Japanese-only; 3,600 images per run |
-| Official CLIP Benchmark parity | completed | Reference commit `ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596`; CIFAR-10 P0 metrics match exactly at tolerance `1e-12` |
+| Full CIFAR evaluations | completed, historical | 24 runs: CIFAR-10 and CIFAR-100 full 10,000-image test splits, six English-compatible models, P0 and P1 reported separately |
+| Historical XM3600 evaluations | completed, `all_captions` | Seven original P2 runs: EmbeddingGemma, multilingual OpenCLIP, and SigLIP in English/Japanese; rinna Japanese-only; 3,600 images per run; raw files hash-audited and unchanged |
+| XM3600 variant implementation | implemented and unit-tested | Explicit `official_first_caption` and `all_captions`; variant-aware run identity, resume, result schema, reporting, and pairing |
+| Official XM3600 loader validation | completed | Pinned loader selects `captions[0]` in annotation order; local annotations contain 3,600 images per language, zero missing-image exclusions, one caption per image, and identical ordered English/Japanese image IDs |
+| Official XM3600 metric differential | completed for synthetic candidates | Both direction keys and R@1/5/10 compared to the pinned metric implementation; this is not a full-model evaluation |
+| Full `official_first_caption` CUDA evaluations | pending | Seven requested FP32 runs remain to be executed and validated |
+| End-to-end official XM3600 evaluation | pending | No actual model/CLI XM3600 comparison against CLIP Benchmark has yet been recorded |
+| Official CLIP Benchmark parity | CIFAR-10 P0 completed; XM3600 end-to-end pending | Reference commit `ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596`; CIFAR-10 P0 metrics match exactly at tolerance `1e-12` |
+| Historical raw-result audit | completed | All 31 original files are schema-valid and byte-identical to baseline commit `5b512ecb1d0177d88817a4e07d54f86810b7f86f`; provenance, metrics, batch sizes, throughput, prompts, and sensitive-payload checks are recorded in the audit JSON |
 
 The smoke tests use one generated image and two text examples per supported language. They
 validate the actual pretrained image and text encoders, feature shape and finiteness, normalized
@@ -51,24 +58,29 @@ tokenizer with the locked Transformers version.
 | --- | --- | --- |
 | CIFAR-10 | completed | Official archive MD5 matched and SHA-256 recorded; full 10,000-image test split; dataset checksum `744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470`. |
 | CIFAR-100 | completed | Official archive MD5 matched and SHA-256 recorded; full 10,000-image test split; dataset checksum `e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f`. |
-| XM3600 | completed | All 3,600 official image IDs match captions and the attribution CSV. English has 7,200 captions; Japanese has 7,185. All 3,600 image entries list CC BY 2.0; annotations are CC BY 4.0. Data is local-only and is not redistributed. |
+| XM3600 | all-caption data complete; official-first selection validated | All 3,600 official image IDs match captions and the attribution CSV. English has 7,200 captions; Japanese has 7,185. The pinned official loader yields 3,600 first-caption candidates in each language, with zero missing-image exclusions and matching image order. All 3,600 image entries list CC BY 2.0; annotations are CC BY 4.0. Data is local-only and is not redistributed. |
 
 The machine-readable run matrix, data checksums, and access blockers are maintained in
 [`results/v0.1.0/run-status.json`](../results/v0.1.0/run-status.json).
 
 ## Completed full evaluations
 
-All measurements use CUDA FP32, seed 0, the complete registered split, and requested batch size
-16. P0 (18 CLIP Benchmark templates) and P1 (model-native prompts) remain separate. Actual
-image/text batch sizes and OOM retry counts are recorded per run; the EmbeddingGemma XM3600
-image sub-batches were 11 images due to dynamic-resolution shape grouping, with text batch size
-16. No published run required an OOM retry.
+The 31 historical measurements use CUDA FP32, seed 0, the complete registered split, and
+requested batch size 16. P0 (18 CLIP Benchmark templates) and P1 (model-native prompts) remain
+separate. Actual image/text batch sizes and OOM retry counts are recorded per run; the
+EmbeddingGemma XM3600 image sub-batches were 11 images due to dynamic-resolution shape
+grouping, with text batch size 16. No published run required an OOM retry. The seven
+historical XM3600 results are `all_captions` (7,200 English and 7,185 Japanese captions); they
+are not directly comparable to official first-caption retrieval and are not an equal-size
+English/Japanese comparison.
 
 The CIFAR matrix contains all six English-compatible models on both test sets under P0 and P1.
-The XM3600 matrix contains matched English/Japanese runs for EmbeddingGemma, multilingual
-OpenCLIP, and SigLIP 2, plus Japanese-only rinna CLIP. English/Japanese pairs use the same
-3,600 images and image-ID order. Within each language, caption candidate-ID order and
-positive-pair counts match across models; comparisons are limited to condition-matched pairs.
+The historical XM3600 matrix contains English/Japanese runs for EmbeddingGemma, multilingual
+OpenCLIP, and SigLIP 2, plus Japanese-only rinna CLIP. All use the same 3,600 images and
+image-ID order. The language candidate counts differ, so the historical runs are not paired
+for language deltas. Within each language, caption candidate-ID order and positive-pair counts
+match across models. Newly completed `official_first_caption` pairs will be reported
+separately and compared only under matching conditions.
 
 The results are published under [`results/v0.1.0`](../results/v0.1.0/): raw metric JSON,
 summary CSV, generated Markdown report, metadata, and non-empty plots. Numerical parity evidence

@@ -103,9 +103,25 @@ class Adapter(TorchAdapter):
     def metadata(self) -> dict[str, Any]:
         image_processor = getattr(self.processor, "image_processor", None)
         input_resolution = getattr(image_processor, "size", None)
+        preprocessing_config = {
+            "image_processor": type(image_processor).__name__,
+            "size": input_resolution,
+            "crop_size": getattr(image_processor, "crop_size", None),
+            "do_resize": getattr(image_processor, "do_resize", None),
+            "do_center_crop": getattr(image_processor, "do_center_crop", None),
+            "do_rescale": getattr(image_processor, "do_rescale", None),
+            "rescale_factor": getattr(image_processor, "rescale_factor", None),
+            "do_normalize": getattr(image_processor, "do_normalize", None),
+            "image_mean": getattr(image_processor, "image_mean", None),
+            "image_std": getattr(image_processor, "image_std", None),
+            "max_text_length": self.max_text_length,
+        }
         return {
             "adapter_name": "transformers_siglip2",
             "implementation_version": package_version("transformers"),
+            "preprocessing_version": package_version("transformers"),
+            "preprocessing_config": preprocessing_config,
+            "tokenizer_implementation_version": package_version("transformers"),
             "checkpoint_sha256": self.checkpoint_sha256,
             "checkpoint_files": self.checkpoint_files,
             "model_download_seconds": self.model_download_seconds,

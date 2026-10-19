@@ -54,14 +54,16 @@ dataset files.
 
 ### Flickr30k and COCO access blockers
 
-The Flickr30k block is based on its acquisition requirements, not on third-party image
-copyright alone. The [official Flickr30k access page](https://shannon.cs.illinois.edu/DenotationGraph/)
-asks users to request access, says the images are from Flickr, and makes their use subject to
-Flickr Terms of Use. Local archive files are not evidence that the request was approved. The
-caption documentation also describes an Attribution-ShareAlike license while linking to
-[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/); this discrepancy must be resolved
-before redistributing or relying on the captions' license. To unblock evaluation, verify an
-approved official access request and review the applicable Flickr and caption terms.
+The Flickr30k block is based on unresolved acquisition and rights evidence, not on third-party
+image copyright alone. The linked [UIUC project page](https://shannon.cs.illinois.edu/DenotationGraph/)
+is the official entry point available in this review; its current response exposes Denotation
+Graph files but no unambiguous current Flickr30k image-access form or reuse terms. Prior access
+descriptions refer to a request process, but no approved request is on record. Local archive
+files are not evidence of authorization. The caption documentation also describes an
+Attribution-ShareAlike license while linking to [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/);
+this discrepancy must be resolved before relying on the captions' license. To unblock
+evaluation, obtain current written access/usage instructions from the dataset maintainers and
+review the applicable Flickr and caption terms.
 
 The [official COCO terms](https://cocodataset.org/#termsofuse) say that downloading the
 dataset signifies agreement to those terms. No such acceptance was provided, so neither the
@@ -71,3 +73,156 @@ registry records that count but remains blocked. Unblocking evaluation requires 
 review and accept the official terms and the preparer to preserve and validate the
 image-specific rights for every selected test image. An existing local copy does not bypass
 either requirement.
+
+### Dataset feasibility audit
+
+The following feasibility review uses the linked project sources and the pinned CLIP
+Benchmark dataset loaders. No new dataset files were downloaded, and no access or legal terms
+were accepted. None of the six datasets below currently has an authorized local copy available
+for this benchmark. A public URL or repository alone is not treated as permission to use the
+underlying data.
+
+#### Flickr30k Karpathy test
+
+- **Source and acquisition:** Start with the
+  [UIUC Flickr30k/Denotation Graph project page](https://shannon.cs.illinois.edu/DenotationGraph/)
+  and obtain the original image/caption materials through an authorized project-maintainer
+  route. The page available during this review exposes Denotation Graph files but does not
+  provide an unambiguous current Flickr30k image download and reuse process. Do not substitute
+  a mirror or assume a public split JSON authorizes image use.
+- **Terms and access:** Images remain subject to the original Flickr uploaders' rights and
+  [Flickr Terms of Use](https://www.flickr.com/help/terms); the Flickr30k caption documentation
+  has a stated-license/link discrepancy (Attribution-ShareAlike description versus a CC BY 3.0
+  link). The current official page does not establish whether a new registration or specific
+  agreement is required. That access process and the applicable caption license remain
+  unresolved, so permission has not been established.
+- **Split and annotations:** The Karpathy community split is not the dataset creators'
+  original split. Its retrieval test is 1,000 images with five captions per image (5,000
+  caption candidates). It requires the split JSON/IDs, caption text, and original image files;
+  validate image IDs, order, and exactly five references per selected image.
+- **Local status and implementation:** No authorized local Karpathy test copy is verified.
+  `vlbench` still needs a loader that maps the split annotations to local images, validates
+  per-image correspondence, and records image-level rights/attribution. The registry and CLI
+  intentionally keep this dataset blocked.
+- **Next action:** The user must obtain current written access/usage instructions from the
+  dataset maintainers, resolve the caption-license discrepancy, and provide a lawful local
+  copy with its source terms and split annotation. Only then can the adapter and full test
+  evaluation proceed.
+
+#### MS COCO Captions Karpathy 5K test
+
+- **Source and acquisition:** The
+  [official COCO download page](https://cocodataset.org/#download) provides the image and
+  annotation archives; the [official terms](https://cocodataset.org/#termsofuse) govern
+  downloading and use. The Karpathy split JSON is a separate community split and must be
+  obtained from an authorized source; it is not the official COCO evaluation split.
+- **Terms and access:** COCO states that downloading signifies agreement to its terms. The
+  annotations (including captions) are CC BY 4.0; image rights remain with their original
+  owners and must be checked per image. The terms page does not establish a separate account
+  requirement, but downloading/use entails the agreement. No one has accepted it for this
+  task.
+- **Split and annotations:** The Karpathy test selection is 5,000 images, conventionally five
+  captions per image (25,000 expected references). The current repository registry records
+  25,010 caption rows for its candidate annotation archive; that discrepancy has not been
+  reconciled against an authorized source and must be resolved before evaluation. Required
+  files are the authorized image archive, COCO caption annotations, Karpathy split JSON, and
+  image IDs/rights metadata sufficient to validate each selected file.
+- **Local status and implementation:** No authorized local COCO image/annotation copy is
+  established. The loader must map Karpathy IDs to COCO image filenames, reject missing or
+  duplicated records, validate caption-to-image positives and per-image rights, and record
+  the exact caption count. The registry and CLI keep this dataset blocked.
+- **Next action:** The user must review and personally accept the official COCO terms, then
+  provide the authorized files and split source. Resolve the 25,000-versus-25,010 count and
+  preserve/check original image rights before implementing or running the adapter.
+
+#### ImageNet-1K validation
+
+- **Source and acquisition:** The
+  [official ImageNet download page](https://image-net.org/download.php) says the
+  ILSVRC 2012–2017 subset contains 1,000 classes, 1,281,167 training images, and 50,000
+  validation images. The validation image archive and the
+  [ILSVRC 2012 challenge page](https://image-net.org/challenges/LSVRC/2012/) are the
+  authoritative acquisition path; the official page also points to the Kaggle challenge.
+- **Terms and access:** Access requires logging in or requesting permission and agreeing to
+  ImageNet's terms. The terms limit use to non-commercial research and education and restrict
+  redistribution. Registration/authorization and explicit acceptance are required; none was
+  performed for this task.
+- **Split and annotations:** The target split is all 50,000 validation images across 1,000
+  classes. Evaluation needs the validation JPEG archive plus the ILSVRC devkit/class synset
+  mapping and the validation ground-truth labels.
+- **Local status and implementation:** No authorized local validation archive or devkit is
+  verified. A loader must read the local validation tree, join labels through the official
+  synset mapping, preserve deterministic order, and expose the complete split to the
+  classification engine.
+- **Next action:** The user must create/request an authorized account, personally accept the
+  applicable ImageNet or Kaggle challenge terms, and provide the validation archive and
+  matching label/devkit files. Do not use an unofficial mirror or a presumed pre-existing
+  local copy.
+
+#### XTD10
+
+- **Source and acquisition:** The
+  [Adobe Research XTD10 repository](https://github.com/adobe-research/Cross-lingual-Test-Dataset-XTD10)
+  provides its index and caption files; its README describes a 1K MS COCO 2014 caption test
+  set in seven additional languages. The pinned CLIP Benchmark loader also supports English,
+  German, French, Italian, Japanese (`jp`), and the XTD10 languages, using MIC and STAIR
+  caption files for some language codes. It selects 1,000 image IDs and one caption per image.
+  The associated images are COCO images and have a separate COCO access/terms requirement.
+- **Terms and access:** The XTD10
+  [Adobe Research License](https://github.com/adobe-research/Cross-lingual-Test-Dataset-XTD10/blob/main/LICENSE.md)
+  grants non-commercial research use and states that it is effective upon acceptance.
+  Viewing the public repository does not require a GitHub account, but using the licensed
+  annotations requires accepting the license. No acceptance was provided. COCO image terms
+  also remain applicable.
+- **Local status and implementation:** No authorized local annotation or image copy is
+  verified. `vlbench` needs a loader for the official image index, language-specific caption
+  file, `jp` source language identifier, and authorized COCO image paths; validate the same
+  1,000 ordered image IDs and exactly one caption per image.
+- **Next action:** The user must review and accept the Adobe Research License and the
+  applicable COCO terms, then provide the authorized local image and annotation files. Do not
+  download/use the data before those decisions.
+
+#### Multilingual MS COCO Captions (CLIP Benchmark wrapper)
+
+- **Source and acquisition:** The pinned CLIP Benchmark
+  [`multilingual_mscoco.py`](https://github.com/LAION-AI/CLIP_benchmark/blob/ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596/clip_benchmark/datasets/multilingual_mscoco.py)
+  reads the same XTD10 repository image index and image archive and the language-specific
+  XTD10/MIC/STAIR caption files. It uses 1,000 test image IDs and one caption per selected
+  image. This is an alias over overlapping XTD10 assets, not an independent 1K evaluation;
+  results and counts must not be added as if they were separate datasets.
+- **Terms and access:** The Adobe Research License applies to the caption materials; COCO
+  terms apply to the image material. The same explicit acceptance requirements and lack of
+  user acceptance as XTD10 apply.
+- **Local status and implementation:** No authorized local files are verified. The same
+  language-aware loader can serve both dataset identifiers while preserving the requested
+  dataset key, original `jp` code, caption source, and duplicate-of relationship.
+- **Next action:** Unblock through the same user decisions and authorized files as XTD10.
+  First document the overlap and use one representative result when reporting shared image
+  IDs and annotations.
+
+#### Babel-ImageNet Japanese classification
+
+- **Source and acquisition:** The
+  [Babel-ImageNet repository](https://github.com/gregor-ge/Babel-ImageNet) publishes
+  multilingual label mappings for the 1,000 ImageNet classes (including Japanese) but no
+  images. Its README says the released labels are derived from BabelNet 5.2 and are made
+  available under the
+  [BabelNet Non-Commercial License](https://babelnet.org/full-license).
+- **Terms and access:** BabelNet's
+  [registration page](https://babelnet.org/register) requires registration and license
+  acceptance for access to its licensed data. The label set is for non-commercial use; the
+  ImageNet images separately require ImageNet authorization and terms acceptance. Neither
+  license has been accepted for this task.
+- **Split and annotations:** The image source would be the 50,000-image ImageNet-1K
+  validation split, filtered to classes with Japanese labels. Label coverage is partial; the
+  retained Japanese class and image counts have not been verified because the licensed label
+  data and authorized images are unavailable. Required annotations are the BabelNet-derived
+  Japanese labels keyed to ImageNet class/synset IDs and the ILSVRC validation ground-truth
+  mapping. English comparisons must use the identical retained classes and image IDs.
+- **Local status and implementation:** No authorized label file, ImageNet archive, or devkit
+  is verified. `vlbench` needs a class-filtering loader that validates Japanese coverage and
+  creates matched English/Japanese class lists on exactly the same validation examples.
+- **Next action:** The user must register with BabelNet and personally accept the
+  non-commercial license, obtain authorized ImageNet access and accept its terms, then
+  provide the label file and validation images/devkit. Compute Japanese label coverage from
+  those authorized files before choosing or reporting an image count.
