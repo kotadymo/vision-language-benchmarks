@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 import tempfile
 from collections import Counter
 from pathlib import Path
@@ -13,6 +14,7 @@ import jsonschema
 from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.registry import get_dataset, get_model
+from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.plots import write_plots
 from vision_language_benchmarks.reporting.schema import validate_result
 
@@ -38,6 +40,11 @@ SUMMARY_FIELDS = (
     "image_count",
     "text_count",
     "class_count",
+    "batch_size_requested",
+    "batch_size_actual",
+    "image_batch_size_actual",
+    "text_batch_size_actual",
+    "oom_retry_count",
     "dataset_checksum",
     "dataset_license_status",
     "dataset_terms_confirmed",
@@ -169,6 +176,11 @@ def summary_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "image_count": metadata.get("image_count"),
             "text_count": metadata.get("text_count"),
             "class_count": metadata.get("class_count"),
+            "batch_size_requested": configuration.get("batch_size_requested"),
+            "batch_size_actual": metadata.get("batch_size_actual"),
+            "image_batch_size_actual": metadata.get("image_batch_size_actual"),
+            "text_batch_size_actual": metadata.get("text_batch_size_actual"),
+            "oom_retry_count": len(metadata.get("oom_history") or []),
             "dataset_checksum": metadata.get("dataset_checksum"),
             "dataset_license_status": metadata.get("dataset_license_status"),
             "dataset_terms_confirmed": metadata.get("dataset_terms_confirmed"),
@@ -282,11 +294,96 @@ def _percentage(metrics: dict[str, Any], key: str) -> str:
     return "—" if value is None else f"{float(value) * 100:.2f}%"
 
 
+def _sample_count(value: Any) -> str:
+    return "—" if not isinstance(value, int) else f"{value:,}"
+
+
+def _rate(value: Any) -> str:
+    return "—" if not isinstance(value, (int, float)) else f"{float(value):.1f}"
+
+
+def _milliseconds(value: Any) -> str:
+    return "—" if not isinstance(value, (int, float)) else f"{float(value):.2f}"
+
+
+def _gibibytes(value: Any) -> str:
+    return "—" if not isinstance(value, (int, float)) else f"{float(value) / 1024**3:.2f}"
+
+
+def _peak_memory(metadata: dict[str, Any]) -> str:
+    allocated = _gibibytes(metadata.get("gpu_peak_allocated_bytes"))
+    reserved = _gibibytes(metadata.get("gpu_peak_reserved_bytes"))
+    return f"{allocated} / {reserved}"
+
+
+def _batch_sizes(metadata: dict[str, Any]) -> str:
+    keys = (
+        "batch_size_requested",
+        "image_batch_size_actual",
+        "text_batch_size_actual",
+    )
+    return " / ".join(_sample_count(metadata.get(key)) for key in keys)
+
+
+def _raw_result_link(run_id: Any) -> str:
+    value = str(run_id)
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", value):
+        return _markdown_cell(value)
+    return f"[{_markdown_cell(value)}](raw/{value}.json)"
+
+
 def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
+    if not results:
+        return []
+
+    task = results[0]["task"]
+    if task == "classification":
+        lines = [
+            "| Model | Parameters | Checkpoint | Dataset | Split | Images | Classes | "
+            "Requested / image / text batch | Top-1 | Top-5 | Images/s | Median (ms) | "
+            "Peak allocated / reserved (GiB) | OOM retries | Raw result |",
+            "|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        ]
+        for result in results:
+            metadata = result["benchmark_metadata"]
+            metrics = result["metrics"]
+            parameter_count = metadata.get("parameter_count")
+            parameter_size = (
+                "—" if parameter_count is None else f"{int(parameter_count) / 1_000_000:.1f} M"
+            )
+            checkpoint_size = metadata.get("model_checkpoint_size_bytes")
+            checkpoint_size_text = (
+                "—"
+                if checkpoint_size is None
+                else f"{int(checkpoint_size) / 1024**3:.2f} GiB"
+            )
+            values = (
+                _model_name(result),
+                parameter_size,
+                checkpoint_size_text,
+                _dataset_name(result),
+                metadata["dataset_split"],
+                _sample_count(metadata.get("image_count")),
+                _sample_count(metadata.get("class_count")),
+                _batch_sizes(metadata),
+                _percentage(metrics, "acc1"),
+                _percentage(metrics, "acc5"),
+                _rate(metadata.get("throughput_images_per_sec")),
+                _milliseconds(metadata.get("inference_ms_median")),
+                _peak_memory(metadata),
+                _sample_count(len(metadata.get("oom_history") or [])),
+                _raw_result_link(metadata["run_id"]),
+            )
+            lines.append("| " + " | ".join(_markdown_cell(value) for value in values) + " |")
+        return lines
+
     lines = [
-        "| Model | Parameters | Checkpoint | Supported languages | Dataset | Split | Language | "
-        "Top-1 / T→I R@1 | I→T R@1 | Images/s | Run ID |",
-        "|---|---:|---:|---|---|---|---|---:|---:|---:|---|",
+        "| Model | Parameters | Checkpoint | Dataset | Split | Language | Images / captions | "
+        "Requested / image / text batch | "
+        "T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | "
+        "Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | "
+        "OOM retries | Raw result |",
+        "|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for result in results:
         metadata = result["benchmark_metadata"]
@@ -301,29 +398,115 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             if checkpoint_size is None
             else f"{int(checkpoint_size) / 1024**3:.2f} GiB"
         )
-        supported_languages = ", ".join(metadata.get("model_languages") or [])
-        acc1 = _percentage(metrics, "acc1")
-        text_to_image = _percentage(metrics, "image_retrieval_recall@1")
-        lines.append(
-            "| "
-            + " | ".join(
-                _markdown_cell(value)
-                for value in (
-                    _model_name(result),
-                    parameter_size,
-                    checkpoint_size_text,
-                    supported_languages,
-                    _dataset_name(result),
-                    metadata["dataset_split"],
-                    result["language"],
-                    acc1 if acc1 != "—" else text_to_image,
-                    _percentage(metrics, "text_retrieval_recall@1"),
-                    metadata.get("throughput_images_per_sec"),
-                    metadata["run_id"],
-                )
-            )
-            + " |"
+        image_caption_count = (
+            f"{_sample_count(metadata.get('image_count'))} / "
+            f"{_sample_count(metadata.get('text_count'))}"
         )
+        values = (
+            _model_name(result),
+            parameter_size,
+            checkpoint_size_text,
+            _dataset_name(result),
+            metadata["dataset_split"],
+            result["language"],
+            image_caption_count,
+            _batch_sizes(metadata),
+            _percentage(metrics, "image_retrieval_recall@1"),
+            _percentage(metrics, "image_retrieval_recall@5"),
+            _percentage(metrics, "image_retrieval_recall@10"),
+            _percentage(metrics, "text_retrieval_recall@1"),
+            _percentage(metrics, "text_retrieval_recall@5"),
+            _percentage(metrics, "text_retrieval_recall@10"),
+            _rate(metadata.get("throughput_images_per_sec")),
+            _rate(metadata.get("throughput_texts_per_sec")),
+            _milliseconds(metadata.get("inference_ms_median")),
+            _peak_memory(metadata),
+            _sample_count(len(metadata.get("oom_history") or [])),
+            _raw_result_link(metadata["run_id"]),
+        )
+        lines.append("| " + " | ".join(_markdown_cell(value) for value in values) + " |")
+    return lines
+
+
+def _paired_metric_cell(
+    english_metrics: dict[str, Any],
+    japanese_metrics: dict[str, Any],
+    metric_key: str,
+) -> str:
+    english = english_metrics.get(metric_key)
+    japanese = japanese_metrics.get(metric_key)
+    if not isinstance(english, (int, float)) or not isinstance(japanese, (int, float)):
+        return "—"
+    delta = (float(japanese) - float(english)) * 100
+    return f"{float(english) * 100:.2f}% → {float(japanese) * 100:.2f}% ({delta:+.2f} pp)"
+
+
+def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
+    grouped: dict[tuple[str, str, str], list[tuple[dict[str, Any], dict[str, Any]]]] = {}
+    for english, japanese in paired_language_results(results):
+        configuration = _configuration(english)
+        key = (
+            str(english["dataset"]),
+            str(configuration.get("protocol", "")),
+            str(english["benchmark_metadata"].get("precision", "")),
+        )
+        grouped.setdefault(key, []).append((english, japanese))
+
+    if not grouped:
+        return [
+            "## Matched English/Japanese retrieval",
+            "",
+            "No unique, condition-matched English/Japanese result pairs are available.",
+            "",
+        ]
+
+    lines = ["## Matched English/Japanese retrieval", ""]
+    for (_dataset_key, protocol, precision), pairs in sorted(grouped.items()):
+        lines.extend(
+            [
+                f"### {_dataset_name(pairs[0][0])} · {protocol.upper()} · {precision.upper()}",
+                "",
+                "| Model | Split | Images | Captions (EN / JA) | T→I R@1 (EN → JA; Δ pp) | "
+                "T→I R@5 (EN → JA; Δ pp) | T→I R@10 (EN → JA; Δ pp) | "
+                "I→T R@1 (EN → JA; Δ pp) | I→T R@5 (EN → JA; Δ pp) | "
+                "I→T R@10 (EN → JA; Δ pp) |",
+                "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for english, japanese in sorted(pairs, key=lambda pair: _model_name(pair[0])):
+            english_metadata = english["benchmark_metadata"]
+            japanese_metadata = japanese["benchmark_metadata"]
+            english_metrics = english["metrics"]
+            japanese_metrics = japanese["metrics"]
+            values = (
+                _model_name(english),
+                english_metadata["dataset_split"],
+                _sample_count(english_metadata.get("image_count")),
+                (
+                    f"{_sample_count(english_metadata.get('text_count'))} / "
+                    f"{_sample_count(japanese_metadata.get('text_count'))}"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "image_retrieval_recall@1"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "image_retrieval_recall@5"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "image_retrieval_recall@10"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "text_retrieval_recall@1"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "text_retrieval_recall@5"
+                ),
+                _paired_metric_cell(
+                    english_metrics, japanese_metrics, "text_retrieval_recall@10"
+                ),
+            )
+            lines.append("| " + " | ".join(_markdown_cell(value) for value in values) + " |")
+        lines.append("")
     return lines
 
 
@@ -346,7 +529,10 @@ def _render_task_language_section(
     return lines
 
 
-def render_report(results: list[dict[str, Any]]) -> str:
+def render_report(
+    results: list[dict[str, Any]],
+    plot_files: dict[str, Path] | None = None,
+) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
     status_counts = Counter(result["status"] for result in results)
@@ -355,6 +541,22 @@ def render_report(results: list[dict[str, Any]]) -> str:
             str(result["benchmark_metadata"]["source_commit_sha"])
             for result in results
             if result["benchmark_metadata"].get("source_commit_sha")
+        }
+    )
+    runtime_profiles = sorted(
+        {
+            tuple(
+                str(result["benchmark_metadata"].get(key) or "")
+                for key in (
+                    "gpu_name",
+                    "gpu_vram_bytes",
+                    "driver_version",
+                    "torch_version",
+                    "torch_cuda_version",
+                    "precision",
+                )
+            )
+            for result in completed
         }
     )
     lines = [
@@ -372,10 +574,22 @@ def render_report(results: list[dict[str, Any]]) -> str:
         f"- Failed runs: {status_counts.get('failed', 0)}",
         f"- Blocked runs: {status_counts.get('blocked', 0)}",
         f"- Source commit(s): {', '.join(source_shas) if source_shas else 'not recorded'}",
+        "- Runtime profile(s): "
+        + (
+            "; ".join(
+                f"{gpu or 'GPU unknown'} ({vram or 'VRAM unknown'} bytes, driver "
+                f"{driver or 'unknown'}, PyTorch {torch or 'unknown'}, CUDA "
+                f"{cuda or 'unknown'}, {precision or 'precision unknown'})"
+                for gpu, vram, driver, torch, cuda, precision in runtime_profiles
+            )
+            if runtime_profiles
+            else "not recorded"
+        ),
         "- Protocols and precisions are kept in separate tables and chart files.",
         "- Accuracy and recall values in JSON are fractions; report tables display percentages.",
         "- Checkpoint sizes are pinned weight-file sizes; tokenizer and configuration files "
-        "may add to the download.",
+        "may add to the download. Peak memory is reported as allocated / reserved GiB.",
+        "- Each completed table row links to its schema-validated raw result JSON.",
         "",
         "## English classification",
         "",
@@ -412,6 +626,7 @@ def render_report(results: list[dict[str, Any]]) -> str:
             title="Japanese retrieval",
         )
     )
+    lines.extend(_render_paired_language_section(completed))
 
     lines.extend(
         [
@@ -450,26 +665,33 @@ def render_report(results: list[dict[str, Any]]) -> str:
                 )
             lines.append("")
     else:
-        lines.extend(["No unsuccessful runs were recorded.", ""])
+        lines.extend(
+            [
+                "No unsuccessful-run JSON records are included in the published raw set. "
+                "See the machine-readable run status for blocked evaluations and access "
+                "constraints.",
+                "",
+            ]
+        )
 
     lines.extend(
         [
             "## Limitations",
             "",
             "- A completed run is not evidence of numerical parity with CLIP Benchmark; "
-            "parity must be tested under identical model, weights, inputs, preprocessing, "
-            "templates, and aggregation.",
+            "exact parity is verified only for OpenAI CLIP ViT-B/32 on CIFAR-10 P0. See "
+            "[the comparison record](validation/official-cifar10-parity.json).",
             "- Training-data contamination cannot be ruled out unless a model's pretraining "
             "corpus is independently verified.",
             "- Dataset and model access restrictions remain in force. See "
-            "[datasets-and-licenses.md](../../docs/datasets-and-licenses.md).",
+            "[model-and-dataset-licenses.md](../../docs/model-and-dataset-licenses.md).",
             "- Missing metrics remain missing. Unsupported languages and unavailable datasets "
             "are not represented as zero scores.",
             "",
             "## Reproduction",
             "",
             "```powershell",
-            "uv sync --locked --all-extras --group dev",
+            "uv sync --locked --group dev",
             "uv run vlbench doctor --device cuda",
             "uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0",
             "```",
@@ -480,13 +702,24 @@ def render_report(results: list[dict[str, Any]]) -> str:
             "",
             "## Figures",
             "",
-            "- [Classification Top-1](plots/)",
-            "- [Bidirectional retrieval recall](plots/)",
-            "- [English/Japanese paired retrieval](plots/)",
-            "- [Accuracy versus throughput](plots/)",
-            "",
         ]
     )
+    if plot_files:
+        stems = sorted(
+            {key.removesuffix("_png") for key in plot_files if key.endswith("_png")}
+        )
+        for stem in stems:
+            png = plot_files.get(f"{stem}_png")
+            svg = plot_files.get(f"{stem}_svg")
+            links = []
+            if png is not None:
+                links.append(f"[PNG](plots/{png.name})")
+            if svg is not None:
+                links.append(f"[SVG](plots/{svg.name})")
+            lines.append(f"- {stem.replace('_', ' ').title()}: {' · '.join(links)}")
+        lines.append("")
+    else:
+        lines.extend(["No meaningful figures are available from completed measurements.", ""])
     return "\n".join(lines)
 
 
@@ -637,8 +870,12 @@ def generate_reports(input_path: Path, output_dir: Path) -> dict[str, Path]:
     _write_csv(summary_path, SUMMARY_FIELDS, completed_rows)
     _write_csv(non_success_path, NON_SUCCESS_FIELDS, status_rows)
     atomic_write_json(metadata_path, _metadata_document(results))
-    report_path.write_text(render_report(results), encoding="utf-8", newline="\n")
     plots = write_plots(results, output_dir / "plots")
+    report_path.write_text(
+        render_report(results, plots),
+        encoding="utf-8",
+        newline="\n",
+    )
     return {
         "summary_csv": summary_path,
         "non_success_csv": non_success_path,

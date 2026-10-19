@@ -1,0 +1,590 @@
+{
+  "schema_version": "1.0.0",
+  "result_file_count": 31,
+  "status_counts": {
+    "completed": 31
+  },
+  "source_commit_shas": [
+    "2993187c2b960e6e6690c97205b22838d18a36a3",
+    "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+    "d72e4e462d137e9b77581a507e42897ff427eaf1"
+  ],
+  "datasets": [
+    {
+      "dataset_id": "cifar10",
+      "name": "CIFAR-10",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "013541e887452604",
+          "confirmed": false
+        },
+        {
+          "run_id": "35cef7e32f8afb13",
+          "confirmed": false
+        },
+        {
+          "run_id": "38b1a8be68ae509c",
+          "confirmed": false
+        },
+        {
+          "run_id": "649c7b44763ebc72",
+          "confirmed": false
+        },
+        {
+          "run_id": "931adb237a72e7b9",
+          "confirmed": false
+        },
+        {
+          "run_id": "9c075a8286dd1604",
+          "confirmed": false
+        },
+        {
+          "run_id": "ab5d599956168b86",
+          "confirmed": false
+        },
+        {
+          "run_id": "beac7b7ac03ee242",
+          "confirmed": false
+        },
+        {
+          "run_id": "c3350bf4370a58b8",
+          "confirmed": false
+        },
+        {
+          "run_id": "c542f4a0ea8ac9a8",
+          "confirmed": false
+        },
+        {
+          "run_id": "c8faef3bbd4c2779",
+          "confirmed": false
+        },
+        {
+          "run_id": "ddcae56da141ed7f",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "text_count": 180,
+      "class_count": 10
+    },
+    {
+      "dataset_id": "cifar100",
+      "name": "CIFAR-100",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "0c75f5095220051c-f8285c69",
+          "confirmed": false
+        },
+        {
+          "run_id": "1de2d2b7854b5e80-30c3f626",
+          "confirmed": false
+        },
+        {
+          "run_id": "35dfb13b0aa46c57-54e65389",
+          "confirmed": false
+        },
+        {
+          "run_id": "38a8be7d4b997457-8dbcaf34",
+          "confirmed": false
+        },
+        {
+          "run_id": "4bf47c3e534537b0-fb1914c0",
+          "confirmed": false
+        },
+        {
+          "run_id": "5a8886b0fab54729-30d1b401",
+          "confirmed": false
+        },
+        {
+          "run_id": "5cd03bacdf1e5b06-43791242",
+          "confirmed": false
+        },
+        {
+          "run_id": "a54f8b8dfb17227b-8e3ad59c",
+          "confirmed": false
+        },
+        {
+          "run_id": "c08f92332ebe01a4-2815d62c",
+          "confirmed": false
+        },
+        {
+          "run_id": "d4721f7c31f9d23c-e083b306",
+          "confirmed": false
+        },
+        {
+          "run_id": "d59181f45a441ab9-1a33071f",
+          "confirmed": false
+        },
+        {
+          "run_id": "e4c4922a8b419fc2-ac4a43b4",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "text_count": 1800,
+      "class_count": 100
+    },
+    {
+      "dataset_id": "crossmodal3600",
+      "name": "Crossmodal-3600 (XM3600)",
+      "split": "all 3,600 images",
+      "revision": "Crossmodal-3600 official web-data release",
+      "checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "license": "Google LLC licenses the XM3600 annotations under CC BY 4.0. The official image-attribution CSV lists all 3,600 images as CC BY 2.0; preserve attribution and do not redistribute the images.",
+      "license_status": "verified_attribution_required",
+      "terms_confirmations": [
+        {
+          "run_id": "028043fb5a078d1e-214521ad",
+          "confirmed": false
+        },
+        {
+          "run_id": "221fdf4bab042e89",
+          "confirmed": false
+        },
+        {
+          "run_id": "3284f6a2ba1863cc",
+          "confirmed": false
+        },
+        {
+          "run_id": "36baa9edd5e9fa9a-53dd822c",
+          "confirmed": false
+        },
+        {
+          "run_id": "405472b594821180-783ab865",
+          "confirmed": false
+        },
+        {
+          "run_id": "5a7dc3bfc3d618c1",
+          "confirmed": false
+        },
+        {
+          "run_id": "8f9f79539fb877d6",
+          "confirmed": false
+        }
+      ],
+      "image_count": 3600,
+      "text_count": 7200,
+      "class_count": null
+    }
+  ],
+  "models": [
+    {
+      "name": "EmbeddingGemma 2",
+      "model_id": "google/embeddinggemma-2",
+      "repository": "google/embeddinggemma-2",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_filename": "model.safetensors",
+      "checkpoint_size_bytes": 1488915288,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "parameter_count": 744371488
+    },
+    {
+      "name": "OpenAI CLIP ViT-B/32",
+      "model_id": "ViT-B-32",
+      "repository": "ViT-B-32",
+      "checkpoint_filename": "ViT-B-32.pt",
+      "checkpoint_size_bytes": 353976522,
+      "supported_languages": [
+        "en"
+      ],
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+      "pretrained_tag": "openai",
+      "license": "MIT",
+      "parameter_count": 151277313
+    },
+    {
+      "name": "OpenCLIP ViT-B/32 LAION-2B",
+      "model_id": "ViT-B-32",
+      "repository": "laion/CLIP-ViT-B-32-laion2B-s34B-b79K",
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_filename": "open_clip_model.safetensors",
+      "checkpoint_size_bytes": 605143316,
+      "supported_languages": [
+        "en"
+      ],
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "license": "MIT",
+      "parameter_count": 151277313
+    },
+    {
+      "name": "OpenCLIP ViT-L/14 LAION-2B",
+      "model_id": "ViT-L-14",
+      "repository": "laion/CLIP-ViT-L-14-laion2B-s32B-b82K",
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_filename": "open_clip_pytorch_model.safetensors",
+      "checkpoint_size_bytes": 1710517748,
+      "supported_languages": [
+        "en"
+      ],
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb",
+      "pretrained_tag": "laion2b_s32b_b82k",
+      "license": "MIT",
+      "parameter_count": 427616513
+    },
+    {
+      "name": "OpenCLIP Multilingual ViT-B/32",
+      "model_id": "xlm-roberta-base-ViT-B-32",
+      "repository": "laion/CLIP-ViT-B-32-xlm-roberta-base-laion5B-s13B-b90k",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_filename": "open_clip_pytorch_model.bin",
+      "checkpoint_size_bytes": 1464635263,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "pretrained_tag": "laion5b_s13b_b90k",
+      "license": "MIT",
+      "tokenizer_license": "MIT",
+      "parameter_count": 366121473
+    },
+    {
+      "name": "rinna Japanese CLIP ViT-B/16",
+      "model_id": "rinna/japanese-clip-vit-b-16",
+      "repository": "rinna/japanese-clip-vit-b-16",
+      "checkpoint_revision": "ce22bc39e6f5dcb449e082954211acfb00c2227b",
+      "checkpoint_filename": "model.safetensors",
+      "checkpoint_size_bytes": 786501124,
+      "supported_languages": [
+        "ja"
+      ],
+      "checkpoint_sha256": "043cae46a1214011b90081233f50e86c086bf31f40929e57a569bfb334feb4e8",
+      "license": "Apache-2.0",
+      "tokenizer_license": "MIT",
+      "parameter_count": 196611841
+    },
+    {
+      "name": "SigLIP 2 Base/16 224",
+      "model_id": "google/siglip2-base-patch16-224",
+      "repository": "google/siglip2-base-patch16-224",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_filename": "model.safetensors",
+      "checkpoint_size_bytes": 1500800904,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "license": "Apache-2.0",
+      "parameter_count": 375187970
+    }
+  ],
+  "environments": [
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    },
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda:0",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "35cef7e32f8afb13",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "38b1a8be68ae509c",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "649c7b44763ebc72",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "931adb237a72e7b9",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "ab5d599956168b86",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "c8faef3bbd4c2779",
+      "status": "completed",
+      "model": "ViT-L-14",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "013541e887452604",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "9c075a8286dd1604",
+      "status": "completed",
+      "model": "ViT-L-14",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "beac7b7ac03ee242",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "c3350bf4370a58b8",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "c542f4a0ea8ac9a8",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "ddcae56da141ed7f",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "1de2d2b7854b5e80-30c3f626",
+      "status": "completed",
+      "model": "ViT-L-14",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "35dfb13b0aa46c57-54e65389",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "4bf47c3e534537b0-fb1914c0",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "5a8886b0fab54729-30d1b401",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "d59181f45a441ab9-1a33071f",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "e4c4922a8b419fc2-ac4a43b4",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "0c75f5095220051c-f8285c69",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "38a8be7d4b997457-8dbcaf34",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "5cd03bacdf1e5b06-43791242",
+      "status": "completed",
+      "model": "ViT-L-14",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "a54f8b8dfb17227b-8e3ad59c",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "c08f92332ebe01a4-2815d62c",
+      "status": "completed",
+      "model": "ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "d4721f7c31f9d23c-e083b306",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "3284f6a2ba1863cc",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "36baa9edd5e9fa9a-53dd822c",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "8f9f79539fb877d6",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "028043fb5a078d1e-214521ad",
+      "status": "completed",
+      "model": "xlm-roberta-base-ViT-B-32",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "221fdf4bab042e89",
+      "status": "completed",
+      "model": "rinna/japanese-clip-vit-b-16",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "405472b594821180-783ab865",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "5a7dc3bfc3d618c1",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32"
+    }
+  ]
+}

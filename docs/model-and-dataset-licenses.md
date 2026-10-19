@@ -32,8 +32,8 @@ addition to the license before using results outside this benchmark.
 | --- | --- | --- |
 | CIFAR-10 / CIFAR-100 | `public_download_citation_required` | The [official University of Toronto page](https://www.cs.toronto.edu/~kriz/cifar.html) publishes the Python archives, defines the test splits, and requests citation of the dataset technical report. It displays no separate acceptance agreement. This benchmark downloads only the official archives for non-redistributive evaluation and cites the report; this is not a claim of a formal open-source license. |
 | Crossmodal-3600 (XM3600) | `verified_attribution_required` | The [official project page](https://google.github.io/crossmodal-3600/) states that Google LLC licenses annotations under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Its [image-attribution CSV](https://google.github.io/crossmodal-3600/web-data/image_attributions.csv) was checked on 2026-10-19: all 3,600 unique image IDs match the caption set, all entries list [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), and author, title, and source fields are present. Preparation repeats these checks before image inference. Images are not redistributed. |
-| Flickr30k | `blocked` | No authorized local Karpathy test copy or permitted image download was established. |
-| MS COCO Captions | `blocked` | The current preparer does not preserve/verify per-image third-party licenses for the selected test images. |
+| Flickr30k | `blocked` | The official project requires an access request and states that images are from Flickr and subject to Flickr Terms of Use. No approved access grant has been verified for the local archives. |
+| MS COCO Captions | `blocked` | The official COCO terms state that downloading signifies agreement; no acceptance was provided. The current preparer also does not preserve/verify per-image image rights for the Karpathy test split. |
 | ImageNet-1K | `blocked` | Requires authorized ImageNet access; the framework will not bypass registration or access controls. |
 | XTD10 | `blocked` | The Adobe Research License requires the user's acceptance of its terms; no acceptance was provided. |
 | Multilingual MS COCO Captions | `blocked` | Reuses XTD10 assets and has the same access constraint; it is not treated as an independent dataset. |
@@ -51,3 +51,23 @@ No dataset terms have been accepted. The authoritative access states are in
 [`registry.py`](../src/vision_language_benchmarks/registry.py); check the original sources
 again before any acquisition or publication. The benchmark code does not redistribute
 dataset files.
+
+### Flickr30k and COCO access blockers
+
+The Flickr30k block is based on its acquisition requirements, not on third-party image
+copyright alone. The [official Flickr30k access page](https://shannon.cs.illinois.edu/DenotationGraph/)
+asks users to request access, says the images are from Flickr, and makes their use subject to
+Flickr Terms of Use. Local archive files are not evidence that the request was approved. The
+caption documentation also describes an Attribution-ShareAlike license while linking to
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/); this discrepancy must be resolved
+before redistributing or relying on the captions' license. To unblock evaluation, verify an
+approved official access request and review the applicable Flickr and caption terms.
+
+The [official COCO terms](https://cocodataset.org/#termsofuse) say that downloading the
+dataset signifies agreement to those terms. No such acceptance was provided, so neither the
+official images nor the local Karpathy split were evaluated. The Karpathy split contains
+5,000 test images and 25,010 caption entries in the available annotation archive; the
+registry records that count but remains blocked. Unblocking evaluation requires the user to
+review and accept the official terms and the preparer to preserve and validate the
+image-specific rights for every selected test image. An existing local copy does not bypass
+either requirement.

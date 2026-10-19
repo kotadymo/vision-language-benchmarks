@@ -48,7 +48,7 @@ def make_result(
         text_count = class_count * 18
     else:
         class_count = None
-        text_count = dataset.expected_texts or image_count
+        text_count = dataset.expected_text_count(language) or image_count
     dataset_record = {
         "version": "synthetic-v1",
         "dataset_checksum": "b" * 64,

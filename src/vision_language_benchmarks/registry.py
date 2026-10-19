@@ -260,13 +260,18 @@ DATASETS: dict[str, DatasetSpec] = {
         expected_classes=None,
         languages=("en",),
         language_codes=(("en", "en"),),
-        license="Access and redistribution terms require confirmation.",
+        license=(
+            "Images are from Flickr and subject to Flickr Terms of Use. The caption "
+            "documentation's stated license conflicts with its linked CC BY 3.0 license."
+        ),
         source="https://shannon.cs.illinois.edu/DenotationGraph/",
         access_status="blocked",
         license_status="blocked",
         access_reason=(
-            "No authorized local copy or clearly permitted official image download "
-            "was established. Provide an authorized Karpathy test copy to enable it."
+            "The official project requires an access request and states that its Flickr "
+            "images are subject to Flickr Terms of Use. Local archives do not establish "
+            "that access was approved. Obtain and verify the official access grant and "
+            "review the applicable terms before evaluation."
         ),
     ),
     "mscoco_captions": DatasetSpec(
@@ -275,21 +280,24 @@ DATASETS: dict[str, DatasetSpec] = {
         task="retrieval",
         split="Karpathy 5K test",
         expected_images=5_000,
-        expected_texts=25_000,
+        expected_texts=25_010,
         expected_classes=None,
         languages=("en",),
         language_codes=(("en", "en"),),
         license=(
-            "COCO images are third-party works with image-specific licenses. The current "
-            "Karpathy-split preparer does not preserve or verify those licenses."
+            "COCO annotations are CC BY 4.0. Images retain their original rights and are "
+            "subject to Flickr Terms; downloading the dataset requires agreeing to the "
+            "official COCO terms."
         ),
-        source="https://images.cocodataset.org/",
+        source="https://cocodataset.org/#termsofuse",
         access_status="blocked",
         license_status="blocked",
         access_reason=(
-            "The image archive includes third-party images with per-image rights, but the "
-            "current preparer does not preserve or validate a license manifest. Do not "
-            "download or evaluate until the exact test-image licenses are audited."
+            "The official COCO terms state that downloading the dataset signifies agreement; "
+            "no user acceptance was provided. The current Karpathy-split preparer also does "
+            "not preserve or validate the selected images' per-image rights. Do not download "
+            "or evaluate until the user reviews and accepts the terms and image rights can be "
+            "validated."
         ),
     ),
     "imagenet1k": DatasetSpec(

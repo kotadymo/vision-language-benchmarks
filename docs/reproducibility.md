@@ -118,6 +118,49 @@ only when they derive from complete, genuine, authorized runs. Current result st
 documented in [implementation status](implementation-status.md) and
 [results/README](../results/README.md).
 
+## Reproduce the published measurements
+
+The published v0.1.0 raw JSON contains 24 full CIFAR classification runs (CIFAR-10 and
+CIFAR-100, six English-compatible models, P0 and P1) and seven full XM3600 retrieval runs.
+All use the complete registered split, CUDA FP32, seed 0, and requested batch size 16. Each
+JSON records the requested and actual image/text batch sizes, OOM retry history, source commit,
+checkpoint revision and hash, dataset checksum, prompt policy, runtime, throughput, and GPU
+memory. EmbeddingGemma's dynamic-resolution XM3600 image groups have actual batch size 11;
+its text batch size is 16. No selected run needed an OOM retry. The XM3600 English/Japanese
+pairs share dataset checksum and image-ID ordering; source commits are matched within each
+model pair. Within each language, all compared models also share the same ordered caption
+candidate IDs and positive-pair count; the two languages intentionally use distinct caption
+pools.
+
+Representative commands, using the already-reviewed public sources and the existing output
+root, are:
+
+```powershell
+# OpenAI CLIP ViT-B/32 on the complete CIFAR-10 test split (P0).
+uv run --locked --extra cuda --extra openclip vlbench run `
+  --model openai_clip_b32 --dataset cifar10 --protocol p0 --language en `
+  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
+  --output results/v0.1.0 --force --yes
+
+# EmbeddingGemma 2 on all XM3600 Japanese captions.
+uv run --locked --extra cuda --extra gemma vlbench run `
+  --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language ja `
+  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
+  --output results/v0.1.0 --force --yes
+
+# Regenerate the published CSV, Markdown, metadata, and non-empty figures.
+uv run --locked vlbench report --input results/v0.1.0/raw --output results/v0.1.0
+```
+
+Repeat the run command for each model, language, and protocol listed in
+[`run-status.json`](../results/v0.1.0/run-status.json), selecting that model's optional
+dependency extra. `--yes` authorizes the reviewed download plan only; it does not accept
+legal terms. Do not run blocked datasets or pass `--confirm-data-terms` without the required
+user decision. To recreate an existing measurement exactly, use the recorded source commit
+and all model/dataset revisions and settings in its raw JSON. The latest verified parity
+comparison is recorded at
+[`official-cifar10-parity.json`](../results/v0.1.0/validation/official-cifar10-parity.json).
+
 ## Data and cache locations
 
 By default, data and caches are stored under the project root and excluded from Git. Set

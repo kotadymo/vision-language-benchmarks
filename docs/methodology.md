@@ -1,7 +1,7 @@
 # Methodology
 
-This document describes the implemented evaluation paths and distinguishes them from
-uncompleted real-model validation. The broader acceptance requirements are in the
+This document describes the implemented evaluation paths and distinguishes full measurements
+from adapter smoke tests. The broader acceptance requirements are in the
 [benchmark specification](benchmark-specification.md).
 
 ## Reference and protocols
@@ -19,9 +19,15 @@ The implementation records this reference in
 - **P1** is a separate model-native classification comparison. EmbeddingGemma uses its
   `Classification` task prefix; SigLIP 2 uses its model-card photo template; other CLIP-family
   adapters use a single photo template. P0 and P1 are not combined.
-- **P2** compares retrieval in English and Japanese on the same dataset. Paired plots are
-  emitted only when dataset, model, protocol, precision, seed, device, source commit, and image
-  ID ordering match.
+- **P2** compares retrieval in English and Japanese on the same dataset. Paired plots and
+  tables are emitted only when dataset checksum, model checkpoint, protocol, precision, seed,
+  effective device, source commit, and ordered image IDs match. An unindexed `cuda` device is
+  normalized to `cuda:0`; the recorded GPU identity and runtime must also match.
+
+For the published XM3600 comparisons, all models share the same dataset checksum and ordered
+image IDs. Within each language, caption candidate-ID order and positive-pair count also match
+across models. English and Japanese use their own language-specific caption pools and are
+reported separately.
 
 The CLIP Benchmark-compatible CIFAR prompt templates are the 18 strings defined in the
 pinned reference. The model-specific prompt policy, task prefix, template hash, class-name
@@ -74,10 +80,17 @@ Raw per-run JSON is validated against
 Reports contain numeric metrics only for completed runs and list blocked, skipped, and failed
 runs separately. CSV, Markdown, metadata JSON, PNG, and SVG files are regenerated from the
 raw JSON. The tests check that regenerating those files from an unchanged input produces
-byte-identical outputs.
+byte-identical outputs and that no empty placeholder plots are emitted.
 
-The prompt aggregation and metric definitions are tested with synthetic features. They have
-not yet been compared numerically with a real OpenAI CLIP evaluation using the pinned
-CLIP Benchmark implementation, identical data, preprocessing, device, and precision. No
-dataset/model weights were downloaded for these tests, and no real accuracy or performance
-measurements are published.
+The published v0.1.0 measurements include full 10,000-image CIFAR-10 and CIFAR-100 test
+evaluations for six English-compatible models under separate P0 and P1 protocols, plus
+full 3,600-image XM3600 retrieval for English and Japanese. Three multilingual-capable models
+have matched English/Japanese XM3600 runs; Japanese-only rinna CLIP is reported for Japanese
+without an English comparison. All published measurements use CUDA FP32 on the RTX 4070 Ti
+SUPER. Adapter smoke tests are reported separately and are not included in benchmark rankings.
+
+The pinned CLIP Benchmark evaluator and `vlbench` produce identical CIFAR-10 P0 Top-1 and
+Top-5 values for OpenAI CLIP ViT-B/32: 89.83% and 99.61%, respectively. The parity record
+documents the matching QuickGELU architecture, checkpoint hash, dataset checksum, prompt
+count, precision, and zero absolute difference. This parity claim applies only to that
+model/dataset/protocol combination; it does not imply parity for other models or datasets.

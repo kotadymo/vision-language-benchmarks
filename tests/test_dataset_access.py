@@ -29,6 +29,25 @@ def test_xm3600_requires_per_image_attribution_validation_not_terms_acceptance()
     prepare._require_dataset_access(spec, confirm_data_terms=False)
 
 
+def test_flickr30k_requires_verified_official_access() -> None:
+    spec = get_dataset("flickr30k")
+
+    assert spec.access_status == "blocked"
+    assert "access request" in spec.access_reason
+    assert "Flickr Terms of Use" in spec.access_reason
+    with pytest.raises(DatasetUnavailableError, match="access was approved"):
+        prepare._require_dataset_access(spec, confirm_data_terms=False)
+
+
+def test_coco_karpathy_split_caption_count_matches_archive() -> None:
+    spec = get_dataset("mscoco_captions")
+
+    assert spec.expected_images == 5_000
+    assert spec.expected_texts == 25_010
+    assert spec.access_status == "blocked"
+    assert "no user acceptance" in spec.access_reason
+
+
 def test_xm3600_records_all_captions_per_image(tmp_path) -> None:
     captions = tmp_path / "captions.jsonl"
     captions.write_text(

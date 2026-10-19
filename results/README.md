@@ -1,19 +1,21 @@
 # Benchmark Results
 
-No full-dataset benchmark measurements have been published yet. Real-model smoke tests validate
-adapter inference only; they are not benchmark results. Track model, dataset, and protocol
-progress in [implementation status](../docs/implementation-status.md).
+The [v0.1.0 report](v0.1.0/report.md) contains 31 schema-validated, full-dataset CUDA FP32
+measurements: 24 CIFAR-10/100 classification runs and seven XM3600 retrieval runs. The
+[CSV summary](v0.1.0/summary.csv), [metadata](v0.1.0/metadata.json),
+[run-status manifest](v0.1.0/run-status.json), and [raw per-run JSON](v0.1.0/raw/) are
+published alongside the report. The [official CIFAR-10 parity record](v0.1.0/validation/official-cifar10-parity.json)
+compares OpenAI CLIP P0 with the pinned CLIP Benchmark implementation.
 
-After an authorized evaluation, raw schema-validated JSON belongs in
-`results/v0.1.0/raw/`. Regenerate the CSV, Markdown, metadata, PNG, and SVG reports from that
-JSON with:
+Regenerate derived artifacts from the raw JSON with:
 
 ```powershell
-uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0
+uv run --locked vlbench report --input results/v0.1.0/raw --output results/v0.1.0
 ```
 
-Validated, sanitized per-run metric JSON under `raw/` may be committed. The private
-`run-manifest.json` remains git-ignored. Do not add datasets, checkpoints, embeddings, caches,
-credentials, or machine-specific paths. Publish only reports derived from genuine completed
-runs and retain unsuccessful runs separately; see
-[reproducibility](../docs/reproducibility.md).
+Only complete and authorized measurements contribute numeric results. Failed attempts and
+unmeasured/access-blocked combinations are not converted into scores; their statuses and
+blockers are recorded in the run-status manifest and implementation status. The private
+`run-manifest.json` remains git-ignored. Dataset images, model weights, embeddings, caches,
+credentials, and machine-specific paths must never be committed. See
+[reproducibility](../docs/reproducibility.md) for exact commands.

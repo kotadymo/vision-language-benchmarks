@@ -7,7 +7,10 @@
 - **Development environment**: Windows 11 / PowerShell / Python 3.12 / uv / VS Code / GitHub Copilot
 - **Primary execution environment**: NVIDIA GeForce RTX 4070 Ti SUPER (16 GB VRAM)
 - **Reference framework**: [LAION-AI/CLIP_benchmark](https://github.com/LAION-AI/CLIP_benchmark)
-- **Status**: Implementation specification. No measured benchmark results have been published.
+- **Status**: Implementation specification; v0.1.0 includes full CIFAR-10/100 and XM3600
+  CUDA FP32 measurements and a verified OpenAI CLIP CIFAR-10 P0 parity comparison. See
+  [`implementation-status.md`](implementation-status.md) and
+  [`results/v0.1.0`](../results/v0.1.0/).
 
 ## 1. Purpose and principles
 
