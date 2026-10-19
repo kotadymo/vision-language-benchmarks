@@ -287,11 +287,16 @@ def test_openai_checkpoint_uses_quick_gelu_from_pretrained_config(
         adapter.precision = precision
         adapter.device_object = SimpleNamespace(type="cpu")
 
+    def fake_package_version(distribution: str) -> str:
+        assert distribution == "open-clip-torch"
+        return "3.3.0"
+
     monkeypatch.setattr(
         openclip_adapter,
         "importlib",
         SimpleNamespace(import_module=fake_import_module),
     )
+    monkeypatch.setattr(openclip_adapter, "package_version", fake_package_version)
     monkeypatch.setattr(openclip_adapter, "CACHE_ROOT", tmp_path / "cache")
     monkeypatch.setattr(
         openclip_adapter.TorchAdapter,
