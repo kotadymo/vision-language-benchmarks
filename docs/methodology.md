@@ -52,6 +52,10 @@ mode and inference contexts; BF16 autocast is a separate opt-in condition and is
 CPU or models/devices not marked as supporting it. Feature normalization is performed in
 FP32 for metric computation.
 
+EmbeddingGemma preserves its aspect-ratio-aware dynamic image resolution. Images are grouped by
+their resulting tensor shape and encoded in same-shaped sub-batches; no extra resize or padding
+is introduced. Its reported image batch size is the largest such sub-batch in the successful run.
+
 On CUDA out-of-memory, the runner retries with a halved batch size down to one. The final
 batch sizes and OOM history are stored in the result. If a batch of one still fails, the run
 is retained as a failure rather than being reported as a measurement.

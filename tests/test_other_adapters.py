@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
 import pytest
+from PIL import Image
 
 from vision_language_benchmarks.adapters import japanese_clip, openclip_gemma, siglip2
 from vision_language_benchmarks.registry import ModelSpec, get_model
@@ -176,6 +179,146 @@ def test_embeddinggemma_adapter_uses_pinned_factory_and_task_tokenizers(
     assert metadata["implementation_version"] == "0.3.0"
     assert metadata["tokenizer_repository"] == spec.hf_repository
     assert metadata["tokenizer_revision"] == spec.checkpoint_revision
+
+
+def test_embeddinggemma_batches_images_by_preprocessed_shape(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    spec = get_model("embeddinggemma2")
+    snapshot = prepare_snapshot(tmp_path / "snapshot")
+    cache_dir = tmp_path / "hf-cache"
+
+    class FakePixelTensor:
+        def __init__(self, shape: tuple[int, int, int], value: int) -> None:
+            self.shape = shape
+            self.value = value
+
+        def to(self, device: object) -> FakePixelTensor:
+            del device
+            return self
+
+    class FakeImageBatch:
+        def __init__(self, images: list[FakePixelTensor]) -> None:
+            self.images = images
+            self.shape = (len(images), *images[0].shape)
+
+        def to(self, device: object) -> FakeImageBatch:
+            del device
+            return self
+
+    class FakeFeatures:
+        def __init__(self, values: np.ndarray) -> None:
+            self.values = values
+
+        def detach(self) -> FakeFeatures:
+            return self
+
+        def float(self) -> FakeFeatures:
+            return self
+
+        def cpu(self) -> FakeFeatures:
+            return self
+
+        def numpy(self) -> np.ndarray:
+            return self.values
+
+    class GroupedFakeModel(FakeModel):
+        def __init__(self) -> None:
+            super().__init__()
+            self.image_batch_shapes: list[tuple[int, ...]] = []
+
+        def encode_image(
+            self,
+            batch: FakeImageBatch,
+            *,
+            normalize: bool,
+        ) -> FakeFeatures:
+            assert not normalize
+            self.image_batch_shapes.append(batch.shape)
+            values = np.asarray(
+                [[image.value, image.value + 1] for image in batch.images],
+                dtype=np.float32,
+            )
+            return FakeFeatures(values)
+
+    model = GroupedFakeModel()
+
+    def preprocess(image: Image.Image) -> FakePixelTensor:
+        width, height = image.size
+        return FakePixelTensor(
+            (3, height, width),
+            image.getpixel((0, 0))[0],
+        )
+
+    def stack(images: list[FakePixelTensor]) -> FakeImageBatch:
+        return FakeImageBatch(images)
+
+    def create_model_and_transforms(**kwargs: Any) -> tuple[GroupedFakeModel, None, Any]:
+        assert kwargs == {
+            "model_name": "embeddinggemma-2",
+            "pretrained": "official",
+            "precision": "fp32",
+            "device": "cpu",
+            "cache_dir": str(cache_dir),
+        }
+        return model, None, preprocess
+
+    def download_snapshot(
+        repository: str,
+        revision: str,
+        *,
+        cache_dir: Path | None = None,
+        allow_patterns: object = None,
+    ) -> Path:
+        assert repository == spec.hf_repository
+        assert revision == spec.checkpoint_revision
+        assert cache_dir == cache_dir_expected
+        assert allow_patterns is None
+        return snapshot
+
+    fake_gemma = SimpleNamespace(create_model_and_transforms=create_model_and_transforms)
+
+    def import_module(name: str) -> object:
+        assert name == "openclip_gemma"
+        return fake_gemma
+
+    def package_version(name: str) -> str:
+        assert name == "openclip-gemma"
+        return "0.3.0"
+
+    monkeypatch.setattr(
+        openclip_gemma,
+        "importlib",
+        SimpleNamespace(import_module=import_module),
+    )
+    monkeypatch.setattr(
+        openclip_gemma,
+        "configure_huggingface_cache",
+        lambda: cache_dir,
+    )
+    monkeypatch.setattr(openclip_gemma, "download_huggingface_snapshot", download_snapshot)
+    monkeypatch.setattr(openclip_gemma, "package_version", package_version)
+    patch_torch_adapter(monkeypatch, openclip_gemma)
+    cache_dir_expected = cache_dir
+
+    adapter = openclip_gemma.Adapter(spec, "cpu", "fp32")
+    adapter.torch.stack = stack
+    adapter.inference_context = nullcontext
+    adapter.autocast_context = nullcontext
+    images = [
+        Image.new("RGB", (4, 2), (11, 0, 0)),
+        Image.new("RGB", (4, 2), (22, 0, 0)),
+        Image.new("RGB", (2, 4), (33, 0, 0)),
+    ]
+
+    prepared = adapter.preprocess_images(images)
+    features = adapter.encode_images(prepared)
+
+    assert model.image_batch_shapes == [(2, 3, 2, 4), (1, 3, 4, 2)]
+    assert features[:, 0].tolist() == [11.0, 22.0, 33.0]
+    assert adapter.image_shape_group_max_batch_size == 2
+    assert adapter.metadata()["image_shape_group_max_batch_size"] == 2
 
 
 def test_siglip_adapter_loads_pinned_local_snapshot(

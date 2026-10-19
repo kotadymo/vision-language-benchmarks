@@ -5,6 +5,7 @@ import time
 from collections.abc import Sequence
 from typing import Any
 
+import numpy as np
 from numpy.typing import NDArray
 from PIL import Image
 
@@ -18,7 +19,7 @@ from vision_language_benchmarks.adapters.base import (
     parameter_count,
     tensor_to_numpy,
 )
-from vision_language_benchmarks.errors import DependencyUnavailableError
+from vision_language_benchmarks.errors import DataIntegrityError, DependencyUnavailableError
 from vision_language_benchmarks.registry import ModelSpec
 
 
@@ -58,17 +59,52 @@ class Adapter(TorchAdapter):
         self.model_download_seconds = model_download_seconds
         self.cache_dir = cache_dir
         self.tokenizers: dict[str, Any] = {}
+        self.image_shape_group_max_batch_size = 0
         self.model.eval()
 
-    def preprocess_images(self, images: Sequence[Image.Image]) -> Any:
-        return self.torch.stack(
-            [self.preprocess(image.convert("RGB")) for image in images]
-        ).to(self.device_object)
+    def preprocess_images(self, images: Sequence[Image.Image]) -> list[Any]:
+        return [self.preprocess(image.convert("RGB")) for image in images]
+
+    def reset_image_batch_stats(self) -> None:
+        self.image_shape_group_max_batch_size = 0
 
     def encode_images(self, batch: Any) -> NDArray:
-        with self.inference_context(), self.autocast_context():
-            features = self.model.encode_image(batch, normalize=False)
-        return tensor_to_numpy(features)
+        if not isinstance(batch, list) or not batch:
+            raise ValueError("EmbeddingGemma expects a non-empty list of preprocessed images.")
+
+        groups: dict[tuple[int, ...], list[tuple[int, Any]]] = {}
+        for index, pixels in enumerate(batch):
+            shape = tuple(pixels.shape)
+            if len(shape) != 3 or shape[0] != 3:
+                raise DataIntegrityError(
+                    "EmbeddingGemma preprocessing must return CHW image tensors; "
+                    f"received shape {shape}."
+                )
+            groups.setdefault(shape, []).append((index, pixels))
+
+        features_by_index: list[NDArray[np.float32] | None] = [None] * len(batch)
+        for group in groups.values():
+            pixel_batch = self.torch.stack([pixels for _, pixels in group]).to(
+                self.device_object
+            )
+            with self.inference_context(), self.autocast_context():
+                features = self.model.encode_image(pixel_batch, normalize=False)
+            encoded = tensor_to_numpy(features)
+            if encoded.shape[0] != len(group):
+                raise DataIntegrityError(
+                    "EmbeddingGemma returned "
+                    f"{encoded.shape[0]} image features for {len(group)} images."
+                )
+            for offset, (index, _) in enumerate(group):
+                features_by_index[index] = encoded[offset]
+            self.image_shape_group_max_batch_size = max(
+                self.image_shape_group_max_batch_size,
+                len(group),
+            )
+
+        if any(features is None for features in features_by_index):
+            raise DataIntegrityError("EmbeddingGemma did not return features for every image.")
+        return np.stack([features for features in features_by_index if features is not None])
 
     def preprocess_texts(
         self,
@@ -105,6 +141,8 @@ class Adapter(TorchAdapter):
             "checkpoint_files": self.checkpoint_files,
             "model_download_seconds": self.model_download_seconds,
             "input_resolution": getattr(config, "image_size", None),
+            "image_batching_strategy": "grouped_by_preprocessed_shape",
+            "image_shape_group_max_batch_size": self.image_shape_group_max_batch_size,
             "max_text_length": getattr(text_config, "max_position_embeddings", None),
             "parameter_count": parameter_count(self.model),
             "tokenizer_repository": self.spec.hf_repository,

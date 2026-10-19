@@ -66,6 +66,13 @@ def _close_images(batch: Sequence[Any]) -> None:
             item.close()
 
 
+def _image_batch_size_actual(adapter: VisionLanguageAdapter, default: int) -> int:
+    shape_group_size = getattr(adapter, "image_shape_group_max_batch_size", None)
+    if isinstance(shape_group_size, int) and shape_group_size > 0:
+        return min(default, shape_group_size)
+    return default
+
+
 def _encode_batched(
     *,
     count: int,
@@ -85,6 +92,9 @@ def _encode_batched(
 
     oom_history: list[dict[str, Any]] = []
     for candidate_size in _batch_sizes(batch_size):
+        reset_image_batch_stats = getattr(adapter, "reset_image_batch_stats", None)
+        if modality == "images" and callable(reset_image_batch_stats):
+            reset_image_batch_stats()
         blocks: list[NDArray[np.float32]] = []
         batch_inference_ms: list[float] = []
         data_loading_seconds = 0.0
@@ -241,6 +251,10 @@ def evaluate_classification(
         modality="images",
         progress=progress,
     )
+    image_batch_size_actual = _image_batch_size_actual(
+        adapter,
+        image_encoded.batch_size_actual,
+    )
     normalized_image_features = normalize_features(image_encoded.features, "image features")
     scores[:] = normalized_image_features @ class_weights.T
     metrics = classification_metrics(scores, labels)
@@ -258,11 +272,8 @@ def evaluate_classification(
         "prompt_name": classification_prompt_name(adapter.spec.key),
         "template_hash": template_hash,
         "classnames_hash": content_hash(classnames),
-        "batch_size_actual": min(
-            text_encoded.batch_size_actual,
-            image_encoded.batch_size_actual,
-        ),
-        "image_batch_size_actual": image_encoded.batch_size_actual,
+        "batch_size_actual": min(text_encoded.batch_size_actual, image_batch_size_actual),
+        "image_batch_size_actual": image_batch_size_actual,
         "text_batch_size_actual": text_encoded.batch_size_actual,
         "oom_history": text_encoded.oom_history + image_encoded.oom_history,
         "data_loading_seconds": image_encoded.data_loading_seconds,
@@ -335,6 +346,10 @@ def evaluate_retrieval(
         modality="images",
         progress=progress,
     )
+    image_batch_size_actual = _image_batch_size_actual(
+        adapter,
+        image_encoded.batch_size_actual,
+    )
     text_encoded = _encode_batched(
         count=len(text_values),
         load_batch=lambda start, end: text_values[start:end],
@@ -377,11 +392,8 @@ def evaluate_retrieval(
         "prompt_name": retrieval_prompt_name(adapter.spec.key),
         "template_hash": None,
         "classnames_hash": None,
-        "batch_size_actual": min(
-            image_encoded.batch_size_actual,
-            text_encoded.batch_size_actual,
-        ),
-        "image_batch_size_actual": image_encoded.batch_size_actual,
+        "batch_size_actual": min(image_batch_size_actual, text_encoded.batch_size_actual),
+        "image_batch_size_actual": image_batch_size_actual,
         "text_batch_size_actual": text_encoded.batch_size_actual,
         "oom_history": image_encoded.oom_history + text_encoded.oom_history,
         "data_loading_seconds": image_encoded.data_loading_seconds,
