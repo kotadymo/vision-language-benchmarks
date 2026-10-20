@@ -116,17 +116,33 @@ runs separately. CSV, Markdown, metadata JSON, PNG, and SVG files are regenerate
 raw JSON. The tests check that regenerating those files from an unchanged input produces
 byte-identical outputs and that no empty placeholder plots are emitted.
 
-The historical v0.1.0 measurements include full 10,000-image CIFAR-10 and CIFAR-100 test
-evaluations for six English-compatible models under separate P0 and P1 protocols, plus seven
-full 3,600-image XM3600 `all_captions` retrieval runs. The `official_first_caption` selection,
-validation, result separation, and reporting paths are implemented and unit-tested; report
-status and raw results determine whether full CUDA evaluations have subsequently completed.
-Adapter smoke tests are reported separately and are not included in benchmark rankings.
+The v0.1.0 publication contains 38 completed full-dataset CUDA FP32 measurements: 24
+10,000-image CIFAR-10/CIFAR-100 classification runs for six English-compatible models under
+separate P0 and P1 protocols; seven preserved historical XM3600 `all_captions` runs; and seven
+new full-split XM3600 `official_first_caption` runs. Each first-caption run has 3,600 images
+and 3,600 text candidates. The six English/Japanese pairs are matched for three multilingual
+models. Adapter smoke tests are reported separately and are not included in benchmark rankings.
 
 The pinned CLIP Benchmark evaluator and `vlbench` produce identical CIFAR-10 P0 Top-1 and
 Top-5 values for OpenAI CLIP ViT-B/32: 89.83% and 99.61%, respectively. The parity record
 documents the matching QuickGELU architecture, checkpoint hash, dataset checksum, prompt
-count, precision, and zero absolute difference. This parity claim applies only to that
-model/dataset/protocol combination; it does not imply end-to-end XM3600 parity for other models
-or datasets. The XM3600 loader and metric differential evidence are recorded separately from
-any full-model CLIP Benchmark evaluation.
+count, precision, and zero absolute difference.
+
+An end-to-end official XM3600 retrieval run was also performed for multilingual OpenCLIP
+ViT-B/32 on Japanese `official_first_caption` candidates, using the pinned reference commit
+above. Both implementations used the same 3,600 ordered image IDs and caption IDs, checkpoint
+file SHA-256, tokenizer revision and token IDs, preprocessing configuration, precision, and
+candidate mappings. The official metric keys were verified as text-to-image for
+`image_retrieval_recall@k` and image-to-text for `text_retrieval_recall@k`. All six metrics
+have the same integer hit counts; their maximum absolute numeric difference is
+`2.9404958135081927e-8`, within the recorded `5e-8` tolerance. The difference is due to
+float32 mean aggregation in the official implementation versus higher-precision hit-count
+fractions in `vlbench`. The per-run comparison is recorded in
+[`official-xm3600-parity.json`](../results/v0.1.0/validation/official-xm3600-parity.json),
+and the official CLI output is in
+[`official-xm3600-openclip-ja.json`](../results/v0.1.0/validation/official-xm3600-openclip-ja.json).
+
+These are two narrow parity results, not a universal parity claim. XM3600 end-to-end parity
+has been established only for this OpenCLIP checkpoint, Japanese language, FP32 precision,
+preprocessing, tokenizer, and first-caption candidate set. It does not establish parity for
+other models, languages, datasets, or `all_captions`.

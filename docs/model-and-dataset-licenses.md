@@ -52,6 +52,17 @@ No dataset terms have been accepted. The authoritative access states are in
 again before any acquisition or publication. The benchmark code does not redistribute
 dataset files.
 
+### Published XM3600 evaluations
+
+The 38-run v0.1.0 publication reuses the existing local XM3600 copy after validating the
+official image IDs, captions, and per-image attribution metadata. It includes the seven
+historical `all_captions` runs and seven new `official_first_caption` runs; these variants are
+kept separate in the results. The new runs use one attributed image-caption pair per image.
+No new XM3600 files were downloaded for these evaluations, no dataset terms were accepted,
+and no images or annotations are redistributed by this repository. The
+[run-status manifest](../results/v0.1.0/run-status.json) and per-run raw JSON retain the
+source checksum and attribution provenance.
+
 ### Flickr30k and COCO access blockers
 
 The Flickr30k block is based on unresolved acquisition and rights evidence, not on third-party

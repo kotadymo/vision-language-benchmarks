@@ -142,6 +142,14 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
         )
 
     output_dir = tmp_path / "reports"
+    validation_dir = output_dir / "validation"
+    validation_dir.mkdir(parents=True)
+    for filename in (
+        "historical-results-audit.json",
+        "official-cifar10-parity.json",
+        "official-xm3600-parity.json",
+    ):
+        atomic_write_json(validation_dir / filename, {"status": "completed"})
     files = generate_reports(input_dir, output_dir)
     for path in files.values():
         if path.suffix == ".svg":
@@ -195,6 +203,9 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     assert "T→I R@1 (EN → JA; Δ pp)" in report
     assert "[xm3600-official-en](raw/xm3600-official-en.json)" in report
     assert "[xm3600-en](raw/xm3600-en.json)" in report
+    assert "## Validation and reproducibility" in report
+    assert "[official-xm3600-parity.json](validation/official-xm3600-parity.json)" in report
+    assert "## Known limitations" in report
     assert (output_dir / "plots" / "classification_accuracy.png").is_file()
     assert (output_dir / "plots" / "classification_accuracy_p1.svg").is_file()
     assert (output_dir / "plots" / "xm3600_official_retrieval.png").is_file()
@@ -216,9 +227,13 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
         / "xm3600_language_comparison_official_first_caption.svg"
     ).read_text(encoding="utf-8")
     assert "Bidirectional Recall@1/5/10" in official_chart
+    assert "Crossmodal-3600 (XM3600)" in official_chart
+    assert "P2 / FP32" in official_chart
     assert "variant: official_first_caption" in official_chart
     assert "EN" in official_chart and "JA" in official_chart
     assert "variant: all_captions" in all_captions_chart
+    assert "Crossmodal-3600 (XM3600)" in all_captions_chart
+    assert "P2 / FP32" in all_captions_chart
     assert "Japanese − English recall (percentage points)" in comparison_chart
     assert "official_first_caption" in comparison_chart
     assert "3,600 candidates per language" in comparison_chart

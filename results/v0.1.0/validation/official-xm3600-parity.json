@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0.0",
+  "status": "completed",
+  "parity_scope": "One full-dataset end-to-end comparison: multilingual OpenCLIP ViT-B/32, Japanese, official_first_caption.",
+  "reference": {
+    "repository": "https://github.com/LAION-AI/CLIP_benchmark",
+    "commit": "ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596",
+    "task": "zeroshot_retrieval",
+    "dataset": "crossmodal3600",
+    "model": "xlm-roberta-base-ViT-B-32",
+    "pretrained": "laion5b_s13b_b90k",
+    "language": "ja",
+    "result_file": "official-xm3600-openclip-ja.json"
+  },
+  "vlbench": {
+    "run_id": "6bce751107f3fd39-86ab99c9",
+    "result_file": "../raw/6bce751107f3fd39-86ab99c9.json",
+    "source_commit": "27f2ac614a1e6043fec8f16beceda202bb9272ef",
+    "retrieval_variant": "official_first_caption"
+  },
+  "runtime": {
+    "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "device": "cuda:0",
+    "precision": "fp32",
+    "amp": false,
+    "batch_size": 16,
+    "seed": 0,
+    "official_num_workers": 0,
+    "pytorch": "2.14.1+cu130",
+    "cuda": "13.0",
+    "open_clip_torch": "3.3.0",
+    "transformers": "5.20.1"
+  },
+  "dataset": {
+    "revision": "Crossmodal-3600 official web-data release",
+    "checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+    "split": "all 3,600 images",
+    "images": 3600,
+    "captions": 3600,
+    "positive_pairs": 3600,
+    "missing_images_excluded": 0,
+    "image_id_order_sha256": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+    "text_id_order_sha256": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+    "caption_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+    "validation": {
+      "official_first_caption_selection_matches_source": true,
+      "ordered_image_ids_match_vlbench": true,
+      "ordered_caption_ids_match_vlbench": true,
+      "one_caption_per_image": true,
+      "official_missing_image_filter_matches_vlbench": true
+    }
+  },
+  "model": {
+    "checkpoint_repository": "laion/CLIP-ViT-B-32-xlm-roberta-base-laion5B-s13B-b90k",
+    "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+    "checkpoint_file": "open_clip_pytorch_model.bin",
+    "checkpoint_file_sha256": "a5412f19cca70db8d434f68361f7254bd322a553455a63dbb709bd6a650cf378",
+    "vlbench_checkpoint_fingerprint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+    "tokenizer_repository": "FacebookAI/xlm-roberta-base",
+    "tokenizer_revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+    "tokenizer_context_length": 77,
+    "token_ids_match_for_all_candidates": true,
+    "preprocessing_matches": true,
+    "preprocessing": {
+      "input_resolution": [224, 224],
+      "mean": [0.48145466, 0.4578275, 0.40821073],
+      "std": [0.26862954, 0.26130258, 0.27577711],
+      "interpolation": "bicubic",
+      "resize_mode": "shortest"
+    },
+    "text_prompt_policy": "model_native_caption_text",
+    "text_prompt_added": false
+  },
+  "metric_definition": {
+    "image_retrieval_recall@k": {
+      "direction": "text-to-image",
+      "query": "caption",
+      "candidates": "images"
+    },
+    "text_retrieval_recall@k": {
+      "direction": "image-to-text",
+      "query": "image",
+      "candidates": "captions"
+    },
+    "aggregation": "For each query, count a hit if at least one positive appears in the top K, then average over queries.",
+    "positive_mapping": "One caption-to-image positive per query in official_first_caption."
+  },
+  "comparison": {
+    "absolute_tolerance": 5e-8,
+    "maximum_absolute_difference": 2.9404958135081927e-8,
+    "within_tolerance": true,
+    "same_integer_hit_counts": true,
+    "difference_explanation": "The official implementation averages in float32; vlbench retains the exact hit-count fraction at higher precision. Each official value equals the float32 representation of the same integer hit count divided by 3,600.",
+    "metrics": {
+      "image_retrieval_recall@1": {
+        "direction": "text-to-image",
+        "official": 0.6383333206176758,
+        "vlbench": 0.6383333333333333,
+        "absolute_difference": 1.2715657526918278e-8,
+        "matching_hit_count": 2298
+      },
+      "text_retrieval_recall@1": {
+        "direction": "image-to-text",
+        "official": 0.6791666746139526,
+        "vlbench": 0.6791666666666667,
+        "absolute_difference": 7.947285940446136e-9,
+        "matching_hit_count": 2445
+      },
+      "image_retrieval_recall@5": {
+        "direction": "text-to-image",
+        "official": 0.8686110973358154,
+        "vlbench": 0.8686111111111111,
+        "absolute_difference": 1.3775295681917044e-8,
+        "matching_hit_count": 3127
+      },
+      "text_retrieval_recall@5": {
+        "direction": "image-to-text",
+        "official": 0.9058333039283752,
+        "vlbench": 0.9058333333333334,
+        "absolute_difference": 2.9404958135081927e-8,
+        "matching_hit_count": 3261
+      },
+      "image_retrieval_recall@10": {
+        "direction": "text-to-image",
+        "official": 0.929444432258606,
+        "vlbench": 0.9294444444444444,
+        "absolute_difference": 1.2185838449418895e-8,
+        "matching_hit_count": 3346
+      },
+      "text_retrieval_recall@10": {
+        "direction": "image-to-text",
+        "official": 0.9538888931274414,
+        "vlbench": 0.9538888888888889,
+        "absolute_difference": 4.238552508972759e-9,
+        "matching_hit_count": 3434
+      }
+    }
+  },
+  "conclusion": "End-to-end metric parity is verified within float32 aggregation tolerance for this model, language, checkpoint, preprocessing, tokenizer, and candidate set. This evidence does not establish parity for other models, languages, datasets, precisions, or retrieval variants."
+}

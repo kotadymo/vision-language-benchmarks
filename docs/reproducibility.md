@@ -123,13 +123,21 @@ documented in [implementation status](implementation-status.md) and
 
 ## Reproduce the published measurements
 
-The 31 original v0.1.0 raw JSON records contain 24 full CIFAR classification runs
-(CIFAR-10 and CIFAR-100, six English-compatible models, P0 and P1) and seven historical
-XM3600 retrieval runs. The seven historical runs use `all_captions`: 3,600 images and 7,200
-English or 7,185 Japanese caption candidates. Their raw files predate the variant field and
-are assigned to `all_captions` from those counts; SHA-256 hashes and validation evidence are
-in [`historical-results-audit.json`](../results/v0.1.0/validation/historical-results-audit.json).
-Do not modify or silently relabel those measurements.
+The v0.1.0 publication contains 38 completed full-dataset CUDA FP32 raw JSON records: 24
+CIFAR classification runs (CIFAR-10 and CIFAR-100, six English-compatible models, P0 and P1),
+seven historical XM3600 `all_captions` runs, and seven new `official_first_caption` runs.
+The seven historical files predate the variant field and are identified as `all_captions`
+from their candidate counts; their SHA-256 hashes and audit evidence are in
+[`historical-results-audit.json`](../results/v0.1.0/validation/historical-results-audit.json).
+They remain byte-for-byte unchanged and must not be silently relabeled or replaced.
+
+The seven official-compatible runs evaluated the complete 3,600-image XM3600 split in FP32
+with seed 0 and requested batch size 16: EmbeddingGemma 2, multilingual OpenCLIP ViT-B/32,
+and SigLIP 2 Base in English and Japanese, plus rinna Japanese CLIP ViT-B/16 in Japanese.
+Actual batch sizes, OOM history, throughput, latency, peak memory, source commit, model and
+tokenizer revisions, checkpoint hashes, dataset checksum, ordered candidate hashes, and
+caption-content hashes are stored in each raw result. The
+[generated report](../results/v0.1.0/report.md) links every measured row to its raw JSON.
 
 For XM3600, pass `--retrieval-variant` explicitly. The CLI keeps `all_captions` as the
 backwards-compatible default, but explicit selection records the variant in the run
@@ -174,14 +182,22 @@ uv run --locked --extra cuda --extra gemma vlbench run `
 uv run --locked vlbench report --input results/v0.1.0/raw --output results/v0.1.0
 ```
 
-Repeat the run command for each model, language, and protocol listed in
-[`run-status.json`](../results/v0.1.0/run-status.json), selecting that model's optional
-dependency extra. `--yes` authorizes the reviewed download plan only; it does not accept
-legal terms. Do not run blocked datasets or pass `--confirm-data-terms` without the required
-user decision. To recreate an existing measurement exactly, use the recorded source commit
-and all model/dataset revisions and settings in its raw JSON. The latest verified parity
-comparison is recorded at
-[`official-cifar10-parity.json`](../results/v0.1.0/validation/official-cifar10-parity.json).
+The official-compatible suite is already fully evaluated. To reproduce it, repeat the run
+command for each listed model/language combination, selecting that model's optional
+dependency extra and `--retrieval-variant official_first_caption`. `--yes` authorizes the
+reviewed download plan only; it does not accept legal terms. Do not run blocked datasets or
+pass `--confirm-data-terms` without the required user decision. To recreate an existing
+measurement exactly, use the recorded source commit and all model/dataset revisions and
+settings in its raw JSON.
+
+The official parity evidence is deliberately scoped: OpenAI CLIP ViT-B/32 on CIFAR-10 P0 is
+exact at `1e-12` tolerance, while multilingual OpenCLIP ViT-B/32 on Japanese XM3600
+`official_first_caption` matches all six integer hit counts within `5e-8`. See the
+[CIFAR-10 record](../results/v0.1.0/validation/official-cifar10-parity.json), the
+[XM3600 comparison](../results/v0.1.0/validation/official-xm3600-parity.json), and the
+[pinned official CLI output](../results/v0.1.0/validation/official-xm3600-openclip-ja.json).
+The XM3600 result does not establish end-to-end parity for other model/language/variant
+combinations.
 
 ## Data and cache locations
 

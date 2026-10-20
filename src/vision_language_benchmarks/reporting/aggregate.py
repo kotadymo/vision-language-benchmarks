@@ -654,6 +654,7 @@ def _render_performance_section(results: list[dict[str, Any]]) -> list[str]:
 def render_report(
     results: list[dict[str, Any]],
     plot_files: dict[str, Path] | None = None,
+    validation_dir: Path | None = None,
 ) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
@@ -795,13 +796,42 @@ def render_report(
             ]
         )
 
+    validation_artifacts = (
+        "historical-results-audit.json",
+        "model-smoke-tests.json",
+        "official-cifar10-parity.json",
+        "official-xm3600-openclip-ja.json",
+        "official-xm3600-parity.json",
+    )
+    available_validation_artifacts = [
+        f"[{name}](validation/{name})"
+        for name in validation_artifacts
+        if validation_dir is not None and (validation_dir / name).is_file()
+    ]
     lines.extend(
         [
-            "## Limitations",
+            "## Validation and reproducibility",
             "",
-            "- A completed run is not evidence of numerical parity with CLIP Benchmark; "
-            "exact parity is verified only for OpenAI CLIP ViT-B/32 on CIFAR-10 P0. See "
-            "[the comparison record](validation/official-cifar10-parity.json).",
+            "Each raw result is schema-validated before aggregation. Per-run JSON records retain "
+            "the source commit, model checkpoint fingerprint, dataset checksum, ordered "
+            "candidate IDs and hashes, prompt policy, runtime, and measured metrics.",
+        ]
+    )
+    if available_validation_artifacts:
+        lines.append(
+            "- Validation artifacts: " + ", ".join(available_validation_artifacts) + "."
+        )
+    else:
+        lines.append("No separate validation artifacts are present in this report output.")
+    lines.append("")
+
+    lines.extend(
+        [
+            "## Known limitations",
+            "",
+            "- Official numerical parity applies only to the exact combinations documented "
+            "in the available validation records. It does not establish parity for other "
+            "models, languages, datasets, precisions, or retrieval variants.",
             "- Training-data contamination cannot be ruled out unless a model's pretraining "
             "corpus is independently verified.",
             "- Dataset and model access restrictions remain in force. See "
@@ -1043,7 +1073,7 @@ def generate_reports(input_path: Path, output_dir: Path) -> dict[str, Path]:
     atomic_write_json(metadata_path, _metadata_document(results))
     plots = write_plots(results, output_dir / "plots")
     report_path.write_text(
-        render_report(results, plots),
+        render_report(results, plots, output_dir / "validation"),
         encoding="utf-8",
         newline="\n",
     )
