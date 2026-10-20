@@ -161,15 +161,24 @@ def make_result(
             ),
             "checkpoint_sha256": "1" * 64,
             "checkpoint_files": [],
-            "embedding_dimension_strategy": (
-                EMBEDDING_DIMENSION_STRATEGY if embedding_dimension is not None else None
-            ),
-            "native_embedding_dimension": (
-                NATIVE_EMBEDDING_DIMENSION if embedding_dimension is not None else None
-            ),
-            "embedding_generation_mode": (
-                "native_truncate_dim" if embedding_dimension is not None else None
-            ),
+            "embedding_dimension_strategy": None,
+            "native_embedding_dimension": None,
+            "embedding_generation_mode": None,
+            "preprocessing_config": {
+                "embedding_dimension_strategy": (
+                    EMBEDDING_DIMENSION_STRATEGY
+                    if embedding_dimension is not None
+                    else None
+                ),
+                "native_embedding_dimension": (
+                    NATIVE_EMBEDDING_DIMENSION
+                    if embedding_dimension is not None
+                    else None
+                ),
+                "embedding_generation_mode": (
+                    "native_truncate_dim" if embedding_dimension is not None else None
+                ),
+            },
             "parameter_count": 123_456_789,
             "model_download_seconds": 1.0,
             "tokenizer_repository": model.tokenizer_repository or f"open_clip:{model.model_id}",

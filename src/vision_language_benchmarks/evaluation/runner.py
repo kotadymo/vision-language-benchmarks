@@ -357,15 +357,23 @@ def _make_result(
     }
     if embedding_dimension is not None:
         metadata["embedding_dimension"] = embedding_dimension
-        metadata["embedding_dimension_strategy"] = adapter_metadata.get(
-            "embedding_dimension_strategy",
-            EMBEDDING_DIMENSION_STRATEGY,
-        )
-        metadata["native_embedding_dimension"] = adapter_metadata.get(
-            "native_embedding_dimension",
-            NATIVE_EMBEDDING_DIMENSION,
-        )
+        dimension_strategy = adapter_metadata.get("embedding_dimension_strategy")
+        if dimension_strategy is None:
+            dimension_strategy = preprocessing_config.get(
+                "embedding_dimension_strategy",
+                EMBEDDING_DIMENSION_STRATEGY,
+            )
+        metadata["embedding_dimension_strategy"] = dimension_strategy
+        native_dimension = adapter_metadata.get("native_embedding_dimension")
+        if native_dimension is None:
+            native_dimension = preprocessing_config.get(
+                "native_embedding_dimension",
+                NATIVE_EMBEDDING_DIMENSION,
+            )
+        metadata["native_embedding_dimension"] = native_dimension
         generation_mode = adapter_metadata.get("embedding_generation_mode")
+        if generation_mode is None:
+            generation_mode = preprocessing_config.get("embedding_generation_mode")
         if generation_mode is not None:
             metadata["embedding_generation_mode"] = generation_mode
     if reproducibility_mode is not None:
