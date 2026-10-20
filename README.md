@@ -5,21 +5,33 @@ classification and bilingual image-text retrieval.
 
 ## Verified v0.1.0 results
 
-The v0.1.0 publication contains 38 full-dataset CUDA FP32 measurements on an NVIDIA GeForce
-RTX 4070 Ti SUPER: 24 CIFAR classification runs, the seven preserved historical XM3600
-`all_captions` runs, and seven new XM3600 `official_first_caption` runs. The two retrieval
-variants are reported separately. Seven pretrained model adapters also passed real image/text
-CUDA smoke tests; these smoke tests are distinct from the full evaluations.
+The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 records on an NVIDIA
+GeForce RTX 4070 Ti SUPER: 24 CIFAR classification runs, seven historical XM3600
+`all_captions` runs, seven superseded `official_first_caption` runs, and seven clean
+`official_first_caption` replacements. The primary report contains 38 eligible rows: the 24
+CIFAR runs, seven all-caption runs, and seven active clean replacements. The historical
+first-caption files remain preserved and are excluded from the leaderboard. Seven pretrained
+model adapters also passed real image/text CUDA smoke tests; these are distinct from full
+evaluations.
+
+All seven active XM3600 replacements use frozen source commit
+`9d170b6071eecd75d7100ca70092d44d86650f01` and record `working_tree_dirty: false`. Every
+recall value exactly matches its earlier measurement; those original files and provenance are
+preserved unchanged.
 
 - [Full report](results/v0.1.0/report.md) · [CSV summary](results/v0.1.0/summary.csv) ·
   [metadata](results/v0.1.0/metadata.json)
 - [Validated per-run JSON results](results/v0.1.0/raw/) ·
   [machine-readable run status](results/v0.1.0/run-status.json)
-- [Historical raw-result audit and preservation hashes](results/v0.1.0/validation/historical-results-audit.json)
+- [Publication lifecycle](results/v0.1.0/validation/result-lifecycle.json) ·
+  [clean XM3600 reproducibility audit](results/v0.1.0/validation/clean-xm3600-reproducibility-audit.json)
+- [Historical raw-result audit](results/v0.1.0/validation/historical-results-audit.json) ·
+  [pre-publication hashes for all 38 original raw files](results/v0.1.0/validation/preexisting-raw-results-preservation.json)
 - [Real CUDA model smoke-test evidence](results/v0.1.0/validation/model-smoke-tests.json)
 - Official CLIP Benchmark parity records:
   [CIFAR-10](results/v0.1.0/validation/official-cifar10-parity.json) ·
-  [XM3600 end-to-end](results/v0.1.0/validation/official-xm3600-parity.json) ·
+  [historical XM3600](results/v0.1.0/validation/official-xm3600-parity.json) ·
+  [clean XM3600 replacement](results/v0.1.0/validation/official-xm3600-parity-clean.json) ·
   [pinned reference run](results/v0.1.0/validation/official-xm3600-openclip-ja.json)
 - Charts: [classification P0](results/v0.1.0/plots/classification_accuracy.png),
   [classification P1](results/v0.1.0/plots/classification_accuracy_p1.png),
@@ -107,13 +119,13 @@ image-to-text (I→T). Values are percentages; each row links to its raw JSON re
 
 | Model | Language | Candidates | T→I R@1 / R@5 / R@10 | I→T R@1 / R@5 / R@10 | Raw result |
 |---|---|---:|---:|---:|---|
-| EmbeddingGemma 2 | English | 3,600 | 58.61% / 82.06% / 89.19% | 59.50% / 85.17% / 91.28% | [JSON](results/v0.1.0/raw/d5aaa9c64a02d8a7-f1d55790.json) |
-| EmbeddingGemma 2 | Japanese | 3,600 | 80.14% / 95.03% / 97.50% | 79.61% / 95.28% / 97.61% | [JSON](results/v0.1.0/raw/311d4e3975436530-c5bef931.json) |
-| Multilingual OpenCLIP ViT-B/32 | English | 3,600 | 47.08% / 74.86% / 83.03% | 48.31% / 76.64% / 85.19% | [JSON](results/v0.1.0/raw/3090789513e09ab4-ce9c0347.json) |
-| Multilingual OpenCLIP ViT-B/32 | Japanese | 3,600 | 63.83% / 86.86% / 92.94% | 67.92% / 90.58% / 95.39% | [JSON](results/v0.1.0/raw/6bce751107f3fd39-86ab99c9.json) |
-| SigLIP 2 Base/16 224 | English | 3,600 | 51.47% / 77.03% / 84.72% | 50.67% / 76.67% / 85.00% | [JSON](results/v0.1.0/raw/908af0749569fc22-7d1f73a4.json) |
-| SigLIP 2 Base/16 224 | Japanese | 3,600 | 37.86% / 63.33% / 72.47% | 45.06% / 69.97% / 78.92% | [JSON](results/v0.1.0/raw/5b893cd6e37d6266-85b30816.json) |
-| rinna Japanese CLIP ViT-B/16 | Japanese | 3,600 | 54.00% / 79.86% / 87.22% | 53.94% / 80.67% / 87.69% | [JSON](results/v0.1.0/raw/878e9c60981784ee-79118ade.json) |
+| EmbeddingGemma 2 | English | 3,600 | 58.61% / 82.06% / 89.19% | 59.50% / 85.17% / 91.28% | [JSON](results/v0.1.0/raw/0c2858a71093e3f9.json) |
+| EmbeddingGemma 2 | Japanese | 3,600 | 80.14% / 95.03% / 97.50% | 79.61% / 95.28% / 97.61% | [JSON](results/v0.1.0/raw/2504a9bf362c7ef1.json) |
+| OpenCLIP Multilingual ViT-B/32 | English | 3,600 | 47.08% / 74.86% / 83.03% | 48.31% / 76.64% / 85.19% | [JSON](results/v0.1.0/raw/b5b51e1810e20bc1.json) |
+| OpenCLIP Multilingual ViT-B/32 | Japanese | 3,600 | 63.83% / 86.86% / 92.94% | 67.92% / 90.58% / 95.39% | [JSON](results/v0.1.0/raw/ae4e1863504978e0.json) |
+| SigLIP 2 Base/16 224 | English | 3,600 | 51.47% / 77.03% / 84.72% | 50.67% / 76.67% / 85.00% | [JSON](results/v0.1.0/raw/25b6a90b6a8e0c82.json) |
+| SigLIP 2 Base/16 224 | Japanese | 3,600 | 37.86% / 63.33% / 72.47% | 45.06% / 69.97% / 78.92% | [JSON](results/v0.1.0/raw/f001095d25c36cb3.json) |
+| rinna Japanese CLIP ViT-B/16 | Japanese | 3,600 | 54.00% / 79.86% / 87.22% | 53.94% / 80.67% / 87.69% | [JSON](results/v0.1.0/raw/8bcce7f11a428163.json) |
 
 ### Matched English/Japanese comparison — `official_first_caption`
 
@@ -126,9 +138,9 @@ composition are not controlled to semantic equivalence.
 
 | Model | T→I R@1 (EN → JA; Δ pp) | T→I R@5 (EN → JA; Δ pp) | T→I R@10 (EN → JA; Δ pp) | I→T R@1 (EN → JA; Δ pp) | I→T R@5 (EN → JA; Δ pp) | I→T R@10 (EN → JA; Δ pp) | Raw EN / JA |
 |---|---:|---:|---:|---:|---:|---:|---|
-| EmbeddingGemma 2 | 58.61% → 80.14% (+21.53 pp) | 82.06% → 95.03% (+12.97 pp) | 89.19% → 97.50% (+8.31 pp) | 59.50% → 79.61% (+20.11 pp) | 85.17% → 95.28% (+10.11 pp) | 91.28% → 97.61% (+6.33 pp) | [EN](results/v0.1.0/raw/d5aaa9c64a02d8a7-f1d55790.json) · [JA](results/v0.1.0/raw/311d4e3975436530-c5bef931.json) |
-| Multilingual OpenCLIP ViT-B/32 | 47.08% → 63.83% (+16.75 pp) | 74.86% → 86.86% (+12.00 pp) | 83.03% → 92.94% (+9.92 pp) | 48.31% → 67.92% (+19.61 pp) | 76.64% → 90.58% (+13.94 pp) | 85.19% → 95.39% (+10.19 pp) | [EN](results/v0.1.0/raw/3090789513e09ab4-ce9c0347.json) · [JA](results/v0.1.0/raw/6bce751107f3fd39-86ab99c9.json) |
-| SigLIP 2 Base/16 224 | 51.47% → 37.86% (-13.61 pp) | 77.03% → 63.33% (-13.69 pp) | 84.72% → 72.47% (-12.25 pp) | 50.67% → 45.06% (-5.61 pp) | 76.67% → 69.97% (-6.69 pp) | 85.00% → 78.92% (-6.08 pp) | [EN](results/v0.1.0/raw/908af0749569fc22-7d1f73a4.json) · [JA](results/v0.1.0/raw/5b893cd6e37d6266-85b30816.json) |
+| EmbeddingGemma 2 | 58.61% → 80.14% (+21.53 pp) | 82.06% → 95.03% (+12.97 pp) | 89.19% → 97.50% (+8.31 pp) | 59.50% → 79.61% (+20.11 pp) | 85.17% → 95.28% (+10.11 pp) | 91.28% → 97.61% (+6.33 pp) | [EN](results/v0.1.0/raw/0c2858a71093e3f9.json) · [JA](results/v0.1.0/raw/2504a9bf362c7ef1.json) |
+| OpenCLIP Multilingual ViT-B/32 | 47.08% → 63.83% (+16.75 pp) | 74.86% → 86.86% (+12.00 pp) | 83.03% → 92.94% (+9.92 pp) | 48.31% → 67.92% (+19.61 pp) | 76.64% → 90.58% (+13.94 pp) | 85.19% → 95.39% (+10.19 pp) | [EN](results/v0.1.0/raw/b5b51e1810e20bc1.json) · [JA](results/v0.1.0/raw/ae4e1863504978e0.json) |
+| SigLIP 2 Base/16 224 | 51.47% → 37.86% (-13.61 pp) | 77.03% → 63.33% (-13.69 pp) | 84.72% → 72.47% (-12.25 pp) | 50.67% → 45.06% (-5.61 pp) | 76.67% → 69.97% (-6.69 pp) | 85.00% → 78.92% (-6.08 pp) | [EN](results/v0.1.0/raw/25b6a90b6a8e0c82.json) · [JA](results/v0.1.0/raw/f001095d25c36cb3.json) |
 
 ### CLIP Benchmark numerical parity
 
@@ -139,14 +151,18 @@ OpenAI CLIP ViT-B/32 on CIFAR-10 P0 produced identical Top-1 (**89.83%**) and To
 record documents the official `ViT-B-32-quickgelu` architecture, checkpoint SHA-256, complete
 test split, 18 prompts, FP32, and matching data/labels.
 
-A separate end-to-end XM3600 comparison used multilingual OpenCLIP ViT-B/32 on Japanese
-`official_first_caption` candidates. All six retrieval metrics have matching integer hit
-counts; the maximum absolute numeric difference is `2.9404958135081927e-8`, within the
-recorded `5e-8` tolerance. The official run and `vlbench` used matching candidate order,
-checkpoint, preprocessing, and token IDs. The small numerical difference is due to the
-official implementation's float32 mean aggregation. This evidence applies only to that exact
-model, language, checkpoint, precision, preprocessing, and candidate set; it does not imply
-universal end-to-end parity.
+A clean replacement parity check used multilingual OpenCLIP ViT-B/32 on Japanese
+`official_first_caption` candidates. The clean run (`ae4e1863504978e0`, source
+`9d170b6071eecd75d7100ca70092d44d86650f01`) and pinned official reference used matching
+candidate order, checkpoint, tokenizer, preprocessing, and 3,600 positive pairs. All six
+metrics have matching integer hit counts; the maximum absolute numeric difference is
+`2.9404958135081927e-8`, within the `5e-8` tolerance. The official evaluator was not rerun:
+its saved reference result and candidate fingerprints matched the clean run. The original
+[historical parity record](results/v0.1.0/validation/official-xm3600-parity.json) remains
+unchanged; the clean result is separately recorded in
+[official-xm3600-parity-clean.json](results/v0.1.0/validation/official-xm3600-parity-clean.json).
+This evidence applies only to that exact model, language, checkpoint, precision, preprocessing,
+and candidate set; it does not imply universal end-to-end parity.
 
 ### Hardware and measured performance
 
@@ -178,27 +194,32 @@ uv run vlbench list datasets
 uv run vlbench run --model openai_clip_b32 --dataset cifar10 --device cuda --dry-run
 ```
 
-Example full-data commands:
+Publishable full-data runs must use strict clean-source validation and ignored staging. The
+complete seven-run loop, frozen source commit, lifecycle generation, and publication commands
+are in the [reproducibility guide](docs/reproducibility.md). A single clean-source example is:
 
 ```powershell
-uv run --locked --extra cuda --extra openclip vlbench run `
-  --model openai_clip_b32 --dataset cifar10 --protocol p0 --language en `
-  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
-  --output results/v0.1.0 --force --yes
+$sourceCommit = "9d170b6071eecd75d7100ca70092d44d86650f01"
+$stage = ".cache\benchmark-staging\clean-xm3600"
+uv run --locked --extra cuda --extra gemma vlbench doctor `
+  --reproducibility --model embeddinggemma2 --dataset crossmodal3600 `
+  --protocol p2 --language en --retrieval-variant official_first_caption `
+  --precision fp32 --device cuda --batch-size 16 --seed 0 `
+  --output $stage --expected-source-commit $sourceCommit
 
 uv run --locked --extra cuda --extra gemma vlbench run `
   --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language ja `
   --retrieval-variant official_first_caption `
   --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
-  --output results/v0.1.0 --force --yes
-
-uv run --locked vlbench report --input results/v0.1.0/raw --output results/v0.1.0
+  --output $stage --strict-reproducibility `
+  --expected-source-commit $sourceCommit --yes
 ```
 
 `--yes` authorizes the reviewed network plan; it does not accept dataset or model terms.
 Do not use `--confirm-data-terms` without genuine user authorization. Exact per-run
-reproduction settings and optional real-model test commands are in
-[reproducibility documentation](docs/reproducibility.md).
+reproduction settings and optional real-model test commands are in the
+[reproducibility guide](docs/reproducibility.md). Do not publish from a run that bypasses
+strict checks or writes directly into the tracked results directory.
 
 ## Limitations and blocked datasets
 

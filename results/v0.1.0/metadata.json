@@ -5,10 +5,9 @@
     "completed": 38
   },
   "source_commit_shas": [
-    "27f2ac614a1e6043fec8f16beceda202bb9272ef",
     "2993187c2b960e6e6690c97205b22838d18a36a3",
     "60a61259c95e7c387e896b23084e3c3d0fc375f5",
-    "cec36f68a1523062f44216d4568fe2612208e913",
+    "9d170b6071eecd75d7100ca70092d44d86650f01",
     "d72e4e462d137e9b77581a507e42897ff427eaf1"
   ],
   "datasets": [
@@ -156,15 +155,19 @@
           "confirmed": false
         },
         {
+          "run_id": "0c2858a71093e3f9",
+          "confirmed": false
+        },
+        {
           "run_id": "221fdf4bab042e89",
           "confirmed": false
         },
         {
-          "run_id": "3090789513e09ab4-ce9c0347",
+          "run_id": "2504a9bf362c7ef1",
           "confirmed": false
         },
         {
-          "run_id": "311d4e3975436530-c5bef931",
+          "run_id": "25b6a90b6a8e0c82",
           "confirmed": false
         },
         {
@@ -184,15 +187,7 @@
           "confirmed": false
         },
         {
-          "run_id": "5b893cd6e37d6266-85b30816",
-          "confirmed": false
-        },
-        {
-          "run_id": "6bce751107f3fd39-86ab99c9",
-          "confirmed": false
-        },
-        {
-          "run_id": "878e9c60981784ee-79118ade",
+          "run_id": "8bcce7f11a428163",
           "confirmed": false
         },
         {
@@ -200,11 +195,15 @@
           "confirmed": false
         },
         {
-          "run_id": "908af0749569fc22-7d1f73a4",
+          "run_id": "ae4e1863504978e0",
           "confirmed": false
         },
         {
-          "run_id": "d5aaa9c64a02d8a7-f1d55790",
+          "run_id": "b5b51e1810e20bc1",
+          "confirmed": false
+        },
+        {
+          "run_id": "f001095d25c36cb3",
           "confirmed": false
         }
       ],
@@ -356,7 +355,7 @@
           "preprocessing_config_sha256": null
         },
         {
-          "run_id": "3090789513e09ab4-ce9c0347",
+          "run_id": "0c2858a71093e3f9",
           "status": "completed",
           "protocol": "p2",
           "precision": "fp32",
@@ -373,63 +372,17 @@
           "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
           "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
           "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
-          "source_commit_sha": "27f2ac614a1e6043fec8f16beceda202bb9272ef",
-          "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
-          "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
-          "preprocessing_config_sha256": "bc080d000c3a18a24b9ff40da3e7a45589a5c48443fda230ec8e5400c83dc5ac"
-        },
-        {
-          "run_id": "908af0749569fc22-7d1f73a4",
-          "status": "completed",
-          "protocol": "p2",
-          "precision": "fp32",
-          "language": "en",
-          "retrieval_variant": "official_first_caption",
-          "retrieval_variant_source": "run_configuration",
-          "image_count": 3600,
-          "text_count": 3600,
-          "candidate_counts": {
-            "images": 3600,
-            "texts": 3600
-          },
-          "positive_pair_count": 3600,
-          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
-          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
-          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
-          "source_commit_sha": "cec36f68a1523062f44216d4568fe2612208e913",
-          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
-          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
-          "preprocessing_config_sha256": "023924cbc5151ad27d485c533eafa788fb431bd00361c89e2263ce98d3b83245"
-        },
-        {
-          "run_id": "d5aaa9c64a02d8a7-f1d55790",
-          "status": "completed",
-          "protocol": "p2",
-          "precision": "fp32",
-          "language": "en",
-          "retrieval_variant": "official_first_caption",
-          "retrieval_variant_source": "run_configuration",
-          "image_count": 3600,
-          "text_count": 3600,
-          "candidate_counts": {
-            "images": 3600,
-            "texts": 3600
-          },
-          "positive_pair_count": 3600,
-          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
-          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
-          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
-          "source_commit_sha": "27f2ac614a1e6043fec8f16beceda202bb9272ef",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
           "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
           "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
           "preprocessing_config_sha256": "5852a97ef75e5c6e1520c88196fc3d1012ab393c9686d1c7403e73c47798a330"
         },
         {
-          "run_id": "311d4e3975436530-c5bef931",
+          "run_id": "25b6a90b6a8e0c82",
           "status": "completed",
           "protocol": "p2",
           "precision": "fp32",
-          "language": "ja",
+          "language": "en",
           "retrieval_variant": "official_first_caption",
           "retrieval_variant_source": "run_configuration",
           "image_count": 3600,
@@ -441,41 +394,18 @@
           "positive_pair_count": 3600,
           "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
           "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
-          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
-          "source_commit_sha": "27f2ac614a1e6043fec8f16beceda202bb9272ef",
-          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
-          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
-          "preprocessing_config_sha256": "5852a97ef75e5c6e1520c88196fc3d1012ab393c9686d1c7403e73c47798a330"
-        },
-        {
-          "run_id": "5b893cd6e37d6266-85b30816",
-          "status": "completed",
-          "protocol": "p2",
-          "precision": "fp32",
-          "language": "ja",
-          "retrieval_variant": "official_first_caption",
-          "retrieval_variant_source": "run_configuration",
-          "image_count": 3600,
-          "text_count": 3600,
-          "candidate_counts": {
-            "images": 3600,
-            "texts": 3600
-          },
-          "positive_pair_count": 3600,
-          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
-          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
-          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
-          "source_commit_sha": "cec36f68a1523062f44216d4568fe2612208e913",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
           "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
           "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
           "preprocessing_config_sha256": "023924cbc5151ad27d485c533eafa788fb431bd00361c89e2263ce98d3b83245"
         },
         {
-          "run_id": "6bce751107f3fd39-86ab99c9",
+          "run_id": "b5b51e1810e20bc1",
           "status": "completed",
           "protocol": "p2",
           "precision": "fp32",
-          "language": "ja",
+          "language": "en",
           "retrieval_variant": "official_first_caption",
           "retrieval_variant_source": "run_configuration",
           "image_count": 3600,
@@ -487,14 +417,14 @@
           "positive_pair_count": 3600,
           "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
           "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
-          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
-          "source_commit_sha": "27f2ac614a1e6043fec8f16beceda202bb9272ef",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
           "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
           "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
           "preprocessing_config_sha256": "bc080d000c3a18a24b9ff40da3e7a45589a5c48443fda230ec8e5400c83dc5ac"
         },
         {
-          "run_id": "878e9c60981784ee-79118ade",
+          "run_id": "2504a9bf362c7ef1",
           "status": "completed",
           "protocol": "p2",
           "precision": "fp32",
@@ -511,10 +441,79 @@
           "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
           "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
           "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
-          "source_commit_sha": "cec36f68a1523062f44216d4568fe2612208e913",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "5852a97ef75e5c6e1520c88196fc3d1012ab393c9686d1c7403e73c47798a330"
+        },
+        {
+          "run_id": "8bcce7f11a428163",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
           "checkpoint_revision": "ce22bc39e6f5dcb449e082954211acfb00c2227b",
           "checkpoint_sha256": "043cae46a1214011b90081233f50e86c086bf31f40929e57a569bfb334feb4e8",
           "preprocessing_config_sha256": "41a00b6f436834eb1731ba21b173b08d7c07958eb21c500e0980e87b9f625745"
+        },
+        {
+          "run_id": "ae4e1863504978e0",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
+          "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+          "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+          "preprocessing_config_sha256": "bc080d000c3a18a24b9ff40da3e7a45589a5c48443fda230ec8e5400c83dc5ac"
+        },
+        {
+          "run_id": "f001095d25c36cb3",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": "023924cbc5151ad27d485c533eafa788fb431bd00361c89e2263ce98d3b83245"
         }
       ]
     }
@@ -651,6 +650,8 @@
   "runs": [
     {
       "run_id": "35cef7e32f8afb13",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar10",
@@ -660,6 +661,8 @@
     },
     {
       "run_id": "38b1a8be68ae509c",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "cifar10",
@@ -669,6 +672,8 @@
     },
     {
       "run_id": "649c7b44763ebc72",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar10",
@@ -678,6 +683,8 @@
     },
     {
       "run_id": "931adb237a72e7b9",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "cifar10",
@@ -687,6 +694,8 @@
     },
     {
       "run_id": "ab5d599956168b86",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "cifar10",
@@ -696,6 +705,8 @@
     },
     {
       "run_id": "c8faef3bbd4c2779",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-L-14",
       "dataset": "cifar10",
@@ -705,6 +716,8 @@
     },
     {
       "run_id": "013541e887452604",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "cifar10",
@@ -714,6 +727,8 @@
     },
     {
       "run_id": "9c075a8286dd1604",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-L-14",
       "dataset": "cifar10",
@@ -723,6 +738,8 @@
     },
     {
       "run_id": "beac7b7ac03ee242",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "cifar10",
@@ -732,6 +749,8 @@
     },
     {
       "run_id": "c3350bf4370a58b8",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar10",
@@ -741,6 +760,8 @@
     },
     {
       "run_id": "c542f4a0ea8ac9a8",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar10",
@@ -750,6 +771,8 @@
     },
     {
       "run_id": "ddcae56da141ed7f",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "cifar10",
@@ -759,6 +782,8 @@
     },
     {
       "run_id": "1de2d2b7854b5e80-30c3f626",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-L-14",
       "dataset": "cifar100",
@@ -768,6 +793,8 @@
     },
     {
       "run_id": "35dfb13b0aa46c57-54e65389",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar100",
@@ -777,6 +804,8 @@
     },
     {
       "run_id": "4bf47c3e534537b0-fb1914c0",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "cifar100",
@@ -786,6 +815,8 @@
     },
     {
       "run_id": "5a8886b0fab54729-30d1b401",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar100",
@@ -795,6 +826,8 @@
     },
     {
       "run_id": "d59181f45a441ab9-1a33071f",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "cifar100",
@@ -804,6 +837,8 @@
     },
     {
       "run_id": "e4c4922a8b419fc2-ac4a43b4",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "cifar100",
@@ -813,6 +848,8 @@
     },
     {
       "run_id": "0c75f5095220051c-f8285c69",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "cifar100",
@@ -822,6 +859,8 @@
     },
     {
       "run_id": "38a8be7d4b997457-8dbcaf34",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "cifar100",
@@ -831,6 +870,8 @@
     },
     {
       "run_id": "5cd03bacdf1e5b06-43791242",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-L-14",
       "dataset": "cifar100",
@@ -840,6 +881,8 @@
     },
     {
       "run_id": "a54f8b8dfb17227b-8e3ad59c",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar100",
@@ -849,6 +892,8 @@
     },
     {
       "run_id": "c08f92332ebe01a4-2815d62c",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "ViT-B-32",
       "dataset": "cifar100",
@@ -858,6 +903,8 @@
     },
     {
       "run_id": "d4721f7c31f9d23c-e083b306",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "cifar100",
@@ -866,9 +913,22 @@
       "precision": "fp32"
     },
     {
-      "run_id": "3090789513e09ab4-ce9c0347",
+      "run_id": "0c2858a71093e3f9",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
-      "model": "xlm-roberta-base-ViT-B-32",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "25b6a90b6a8e0c82",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
       "dataset": "crossmodal3600",
       "language": "en",
       "protocol": "p2",
@@ -876,6 +936,8 @@
     },
     {
       "run_id": "3284f6a2ba1863cc",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "crossmodal3600",
@@ -885,6 +947,8 @@
     },
     {
       "run_id": "36baa9edd5e9fa9a-53dd822c",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "crossmodal3600",
@@ -894,6 +958,8 @@
     },
     {
       "run_id": "8f9f79539fb877d6",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "crossmodal3600",
@@ -902,18 +968,11 @@
       "precision": "fp32"
     },
     {
-      "run_id": "908af0749569fc22-7d1f73a4",
+      "run_id": "b5b51e1810e20bc1",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
-      "model": "google/siglip2-base-patch16-224",
-      "dataset": "crossmodal3600",
-      "language": "en",
-      "protocol": "p2",
-      "precision": "fp32"
-    },
-    {
-      "run_id": "d5aaa9c64a02d8a7-f1d55790",
-      "status": "completed",
-      "model": "google/embeddinggemma-2",
+      "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "crossmodal3600",
       "language": "en",
       "protocol": "p2",
@@ -921,6 +980,8 @@
     },
     {
       "run_id": "028043fb5a078d1e-214521ad",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "crossmodal3600",
@@ -930,6 +991,8 @@
     },
     {
       "run_id": "221fdf4bab042e89",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "rinna/japanese-clip-vit-b-16",
       "dataset": "crossmodal3600",
@@ -938,7 +1001,9 @@
       "precision": "fp32"
     },
     {
-      "run_id": "311d4e3975436530-c5bef931",
+      "run_id": "2504a9bf362c7ef1",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "crossmodal3600",
@@ -948,6 +1013,8 @@
     },
     {
       "run_id": "405472b594821180-783ab865",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/siglip2-base-patch16-224",
       "dataset": "crossmodal3600",
@@ -957,6 +1024,8 @@
     },
     {
       "run_id": "5a7dc3bfc3d618c1",
+      "publication_state": "historical",
+      "reproducibility_mode": null,
       "status": "completed",
       "model": "google/embeddinggemma-2",
       "dataset": "crossmodal3600",
@@ -965,16 +1034,20 @@
       "precision": "fp32"
     },
     {
-      "run_id": "5b893cd6e37d6266-85b30816",
+      "run_id": "8bcce7f11a428163",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
-      "model": "google/siglip2-base-patch16-224",
+      "model": "rinna/japanese-clip-vit-b-16",
       "dataset": "crossmodal3600",
       "language": "ja",
       "protocol": "p2",
       "precision": "fp32"
     },
     {
-      "run_id": "6bce751107f3fd39-86ab99c9",
+      "run_id": "ae4e1863504978e0",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
       "model": "xlm-roberta-base-ViT-B-32",
       "dataset": "crossmodal3600",
@@ -983,13 +1056,29 @@
       "precision": "fp32"
     },
     {
-      "run_id": "878e9c60981784ee-79118ade",
+      "run_id": "f001095d25c36cb3",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
       "status": "completed",
-      "model": "rinna/japanese-clip-vit-b-16",
+      "model": "google/siglip2-base-patch16-224",
       "dataset": "crossmodal3600",
       "language": "ja",
       "protocol": "p2",
       "precision": "fp32"
     }
-  ]
+  ],
+  "publication_lifecycle": {
+    "frozen_source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
+    "state_counts": {
+      "active": 7,
+      "blocked": 0,
+      "failed": 0,
+      "historical": 31,
+      "incomplete": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "superseded": 7
+    },
+    "attempt_count": 0
+  }
 }

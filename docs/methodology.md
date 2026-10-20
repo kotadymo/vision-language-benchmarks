@@ -134,17 +134,31 @@ runs separately. CSV, Markdown, metadata JSON, PNG, and SVG files are regenerate
 raw JSON. The tests check that regenerating those files from an unchanged input produces
 byte-identical outputs and that no empty placeholder plots are emitted.
 
-The existing v0.1.0 baseline contains 38 completed full-dataset CUDA FP32 measurements: 24
+The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 measurements: 24
 10,000-image CIFAR-10/CIFAR-100 classification runs for six English-compatible models under
-separate P0 and P1 protocols; seven preserved historical XM3600 `all_captions` runs; and seven
-earlier full-split XM3600 `official_first_caption` runs. Each first-caption run has 3,600 images
-and 3,600 text candidates. The historical audit found one clean first-caption run and six
-records with `working_tree_dirty: true`. The run-status record attributes the observed dirty
-state to generated raw results being untracked during later runs; the exact historical
-uncommitted file set is not recoverable. Those raw records and their provenance must not be
-rewritten. Clean replacements are a separate measurement set; once validated, the lifecycle
-manifest marks the replacements active and the corresponding previous first-caption records
-superseded. Adapter smoke tests are reported separately and are not benchmark measurements.
+separate P0 and P1 protocols; seven historical XM3600 `all_captions` runs; seven earlier
+`official_first_caption` runs; and seven clean replacements. The primary report contains 38
+eligible rows: the 24 CIFAR runs, seven all-caption runs, and seven active replacements. The
+seven earlier first-caption records remain unchanged and are marked superseded in the
+[lifecycle manifest](../results/v0.1.0/validation/result-lifecycle.json), not counted as
+independent observations.
+
+The audit found one clean worktree and six earlier first-caption records with
+`working_tree_dirty: true`. Run-status evidence attributes the observed dirty state to
+generated raw result files being untracked during later runs. The exact historical
+uncommitted file set is not recoverable, so no contents are inferred and the historical raw
+records are not rewritten. A separate preservation manifest records SHA-256 hashes for all
+38 raw JSON files that existed before the replacements were published. Adapter smoke tests
+are reported separately and are not benchmark measurements.
+
+All seven replacements ran from frozen source commit
+`9d170b6071eecd75d7100ca70092d44d86650f01`, with
+`working_tree_dirty: false`, CUDA FP32, seed 0, requested batch size 16, 3,600 images, and
+3,600 first-caption candidates per language. Each old/new pair has identical Recall@1/5/10
+values in both retrieval directions; the maximum absolute difference is zero. Actual
+batch sizes and OOM history are recorded per run. The clean-run comparison, checkpoint and
+dataset identities, candidate ordering, and worktree states are documented in the
+[reproducibility audit](../results/v0.1.0/validation/clean-xm3600-reproducibility-audit.json).
 
 The pinned CLIP Benchmark evaluator and `vlbench` produce identical CIFAR-10 P0 Top-1 and
 Top-5 values for OpenAI CLIP ViT-B/32: 89.83% and 99.61%, respectively. The parity record
@@ -167,7 +181,10 @@ and the official CLI output is in
 
 These are two narrow parity results, not a universal parity claim. XM3600 end-to-end parity
 was established only for this OpenCLIP checkpoint, Japanese language, FP32 precision,
-preprocessing, tokenizer, and first-caption candidate set. A clean replacement parity record
-must refer to the validated replacement run and source commit while preserving the original
-record unchanged. This does not establish parity for other models, languages, datasets, or
-`all_captions`.
+preprocessing, tokenizer, and first-caption candidate set. The separate
+[clean replacement parity record](../results/v0.1.0/validation/official-xm3600-parity-clean.json)
+refers to the validated Japanese multilingual OpenCLIP run and frozen source commit; the
+original historical parity record remains unchanged. The clean comparison has matching
+integer hit counts and a maximum absolute numeric difference of
+`2.9404958135081927e-8`, within the recorded `5e-8` tolerance. This does not establish parity
+for other models, languages, datasets, or `all_captions`.
