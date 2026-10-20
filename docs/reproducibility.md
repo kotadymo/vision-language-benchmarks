@@ -179,7 +179,7 @@ $stage = ".cache\benchmark-staging\clean-xm3600"
 uv run --locked --extra cuda --extra gemma vlbench doctor `
   --reproducibility --model embeddinggemma2 --dataset crossmodal3600 `
   --protocol p2 --language en --retrieval-variant official_first_caption `
-  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
+  --precision fp32 --device cuda --batch-size 16 --seed 0 `
   --output $stage --expected-source-commit $sourceCommit
 if ($LASTEXITCODE -ne 0) { throw "Strict reproducibility preflight failed." }
 ```
