@@ -107,6 +107,24 @@ checkpoint fingerprints, dataset checksum, prompts, run configuration, source co
 lockfile hash. These values are produced by an actual run; the framework does not infer
 performance from checkpoint size or hardware specifications.
 
+## Clean-source execution and publication lifecycle
+
+Publishable measurements use strict reproducibility mode. The preflight verifies that the
+repository is a valid Git checkout, the expected full commit exists and is checked out, no
+tracked or staged changes or unexpected untracked files are present, `uv.lock` is consistent,
+the staging output is ignored, and CUDA plus the requested model/dataset configuration are
+available. Each strict run repeats the source check before inference, requires CUDA without
+CPU fallback, and verifies the same source revision and clean worktree after inference and
+result persistence. `--force` does not bypass these checks.
+
+Strict-run JSON, logs, manifests, and intermediate outputs belong in an ignored or external
+staging directory, not the tracked publication directory. Publication uses a separate
+lifecycle manifest to classify results as active, historical, superseded, invalid, failed,
+incomplete, blocked, or skipped. Only validated active and historical results are leaderboard
+eligible; dirty, superseded, invalid, and unsuccessful records are excluded or rejected. The
+`vlbench lifecycle` command builds this manifest from raw results and optional run manifests,
+without rewriting the raw measurements.
+
 ## Results and validation status
 
 Raw per-run JSON is validated against
@@ -116,19 +134,24 @@ runs separately. CSV, Markdown, metadata JSON, PNG, and SVG files are regenerate
 raw JSON. The tests check that regenerating those files from an unchanged input produces
 byte-identical outputs and that no empty placeholder plots are emitted.
 
-The v0.1.0 publication contains 38 completed full-dataset CUDA FP32 measurements: 24
+The existing v0.1.0 baseline contains 38 completed full-dataset CUDA FP32 measurements: 24
 10,000-image CIFAR-10/CIFAR-100 classification runs for six English-compatible models under
 separate P0 and P1 protocols; seven preserved historical XM3600 `all_captions` runs; and seven
-new full-split XM3600 `official_first_caption` runs. Each first-caption run has 3,600 images
-and 3,600 text candidates. The six English/Japanese pairs are matched for three multilingual
-models. Adapter smoke tests are reported separately and are not included in benchmark rankings.
+earlier full-split XM3600 `official_first_caption` runs. Each first-caption run has 3,600 images
+and 3,600 text candidates. The historical audit found one clean first-caption run and six
+records with `working_tree_dirty: true`. The run-status record attributes the observed dirty
+state to generated raw results being untracked during later runs; the exact historical
+uncommitted file set is not recoverable. Those raw records and their provenance must not be
+rewritten. Clean replacements are a separate measurement set; once validated, the lifecycle
+manifest marks the replacements active and the corresponding previous first-caption records
+superseded. Adapter smoke tests are reported separately and are not benchmark measurements.
 
 The pinned CLIP Benchmark evaluator and `vlbench` produce identical CIFAR-10 P0 Top-1 and
 Top-5 values for OpenAI CLIP ViT-B/32: 89.83% and 99.61%, respectively. The parity record
 documents the matching QuickGELU architecture, checkpoint hash, dataset checksum, prompt
 count, precision, and zero absolute difference.
 
-An end-to-end official XM3600 retrieval run was also performed for multilingual OpenCLIP
+An end-to-end official XM3600 retrieval run was performed for multilingual OpenCLIP
 ViT-B/32 on Japanese `official_first_caption` candidates, using the pinned reference commit
 above. Both implementations used the same 3,600 ordered image IDs and caption IDs, checkpoint
 file SHA-256, tokenizer revision and token IDs, preprocessing configuration, precision, and
@@ -143,6 +166,8 @@ and the official CLI output is in
 [`official-xm3600-openclip-ja.json`](../results/v0.1.0/validation/official-xm3600-openclip-ja.json).
 
 These are two narrow parity results, not a universal parity claim. XM3600 end-to-end parity
-has been established only for this OpenCLIP checkpoint, Japanese language, FP32 precision,
-preprocessing, tokenizer, and first-caption candidate set. It does not establish parity for
-other models, languages, datasets, or `all_captions`.
+was established only for this OpenCLIP checkpoint, Japanese language, FP32 precision,
+preprocessing, tokenizer, and first-caption candidate set. A clean replacement parity record
+must refer to the validated replacement run and source commit while preserving the original
+record unchanged. This does not establish parity for other models, languages, datasets, or
+`all_captions`.

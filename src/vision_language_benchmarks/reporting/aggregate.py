@@ -16,6 +16,10 @@ from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.plots import write_plots
+from vision_language_benchmarks.reporting.reproducibility_audit import (
+    build_clean_official_xm3600_parity,
+    build_clean_xm3600_reproducibility_audit,
+)
 from vision_language_benchmarks.reporting.retrieval_variant import (
     retrieval_variant_info,
     retrieval_variant_label,
@@ -24,6 +28,8 @@ from vision_language_benchmarks.reporting.schema import validate_result
 
 SUMMARY_FIELDS = (
     "run_id",
+    "publication_state",
+    "reproducibility_mode",
     "model_key",
     "model",
     "model_checkpoint_filename",
@@ -72,6 +78,16 @@ SUMMARY_FIELDS = (
     "source_commit_sha",
     "working_tree_dirty",
 )
+_LIFECYCLE_STATES = {
+    "active",
+    "historical",
+    "superseded",
+    "failed",
+    "incomplete",
+    "invalid",
+    "blocked",
+    "skipped",
+}
 NON_SUCCESS_FIELDS = (
     "run_id",
     "status",
@@ -130,6 +146,148 @@ def load_results(input_path: Path) -> list[dict[str, Any]]:
     )
 
 
+def _load_publication_lifecycle(path: Path) -> dict[str, Any]:
+    try:
+        lifecycle = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise DataIntegrityError(
+            f"Cannot read publication lifecycle manifest {path}: {error}"
+        ) from error
+    if not isinstance(lifecycle, dict) or lifecycle.get("schema_version") != "1.0.0":
+        raise DataIntegrityError(
+            f"Publication lifecycle manifest has an unsupported structure: {path}."
+        )
+    frozen_source_commit_sha = lifecycle.get("frozen_source_commit_sha")
+    if (
+        not isinstance(frozen_source_commit_sha, str)
+        or len(frozen_source_commit_sha) != 40
+        or any(character not in "0123456789abcdef" for character in frozen_source_commit_sha)
+    ):
+        raise DataIntegrityError(
+            "Publication lifecycle manifest must identify the frozen full source commit."
+        )
+    entries = lifecycle.get("entries")
+    attempts = lifecycle.get("attempts", [])
+    if not isinstance(entries, list) or not isinstance(attempts, list):
+        raise DataIntegrityError(
+            "Publication lifecycle entries and attempts must be arrays."
+        )
+
+    entry_map: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise DataIntegrityError("Publication lifecycle entries must be objects.")
+        run_id = entry.get("run_id")
+        state = entry.get("state")
+        leaderboard_eligible = entry.get("leaderboard_eligible")
+        if not isinstance(run_id, str) or not run_id:
+            raise DataIntegrityError("Every publication lifecycle entry needs a run ID.")
+        if run_id in entry_map:
+            raise DataIntegrityError(f"Duplicate publication lifecycle run ID: {run_id}.")
+        if (
+            not isinstance(state, str)
+            or state not in _LIFECYCLE_STATES
+            or not isinstance(leaderboard_eligible, bool)
+        ):
+            raise DataIntegrityError(
+                f"Publication lifecycle entry {run_id} has an invalid state."
+            )
+        if leaderboard_eligible != (state in {"active", "historical"}):
+            raise DataIntegrityError(
+                f"Publication lifecycle state and leaderboard eligibility disagree for {run_id}."
+            )
+        entry_map[run_id] = entry
+
+    for attempt in attempts:
+        if (
+            not isinstance(attempt, dict)
+            or not isinstance(attempt.get("state"), str)
+            or attempt.get("state")
+            not in {"failed", "incomplete", "invalid", "blocked", "skipped"}
+        ):
+            raise DataIntegrityError(
+                "Publication lifecycle attempts must have failed, incomplete, invalid, "
+                "blocked, or skipped states."
+            )
+    return {
+        **lifecycle,
+        "entries_by_run_id": entry_map,
+    }
+
+
+def _select_publishable_results(
+    results: list[dict[str, Any]],
+    lifecycle: dict[str, Any],
+    expected_source_commit_sha: str | None,
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    frozen_source_commit_sha = lifecycle["frozen_source_commit_sha"]
+    if (
+        expected_source_commit_sha is not None
+        and expected_source_commit_sha != frozen_source_commit_sha
+    ):
+        raise DataIntegrityError(
+            "The requested publication source commit does not match the lifecycle manifest."
+        )
+    entries = lifecycle["entries_by_run_id"]
+    result_ids = [str(result["benchmark_metadata"]["run_id"]) for result in results]
+    if len(result_ids) != len(set(result_ids)):
+        raise DataIntegrityError("Raw result files contain duplicate run IDs.")
+    missing = sorted(set(result_ids).difference(entries))
+    extra = sorted(set(entries).difference(result_ids))
+    if missing or extra:
+        details = []
+        if missing:
+            details.append(f"missing lifecycle entries for {', '.join(missing)}")
+        if extra:
+            details.append(f"lifecycle entries without raw results for {', '.join(extra)}")
+        raise DataIntegrityError(
+            "Publication lifecycle does not match raw results: " + "; ".join(details)
+        )
+
+    selected: list[dict[str, Any]] = []
+    publication_states: dict[str, str] = {}
+    for result in results:
+        metadata = result["benchmark_metadata"]
+        run_id = str(metadata["run_id"])
+        entry = entries[run_id]
+        state = entry["state"]
+        publication_states[run_id] = state
+        variant, _ = retrieval_variant_info(result)
+        if variant == "official_first_caption" and state not in {
+            "active",
+            "superseded",
+        }:
+            raise DataIntegrityError(
+                "Official-first-caption results must be active or explicitly superseded; "
+                "invalid, failed, or incomplete records cannot be published."
+            )
+        if not entry["leaderboard_eligible"]:
+            continue
+        if result["status"] != "completed":
+            raise DataIntegrityError(
+                f"Leaderboard-eligible run {run_id} is not completed."
+            )
+        if metadata.get("working_tree_dirty") is not False:
+            raise DataIntegrityError(
+                f"Leaderboard-eligible run {run_id} has a dirty or unknown worktree."
+            )
+        if state == "active":
+            if metadata.get("source_commit_sha") != frozen_source_commit_sha:
+                raise DataIntegrityError(
+                    f"Active run {run_id} does not use the frozen source commit."
+                )
+            if (
+                metadata.get("reproducibility_mode") != "strict"
+                or metadata.get("expected_source_commit_sha") != frozen_source_commit_sha
+                or _configuration(result).get("reproducibility_mode") != "strict"
+            ):
+                raise DataIntegrityError(
+                    f"Active run {run_id} lacks strict clean-source provenance."
+                )
+        selected.append(result)
+    return selected, publication_states
+
+
 def _configuration(result: dict[str, Any]) -> dict[str, Any]:
     value = result["benchmark_metadata"].get("run_configuration", {})
     return value if isinstance(value, dict) else {}
@@ -153,7 +311,10 @@ def _dataset_name(result: dict[str, Any]) -> str:
         return dataset_key
 
 
-def summary_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def summary_rows(
+    results: list[dict[str, Any]],
+    publication_states: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for result in results:
         if result["status"] != "completed":
@@ -164,6 +325,8 @@ def summary_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
         retrieval_variant, retrieval_variant_source = retrieval_variant_info(result)
         row: dict[str, Any] = {
             "run_id": metadata["run_id"],
+            "publication_state": (publication_states or {}).get(metadata["run_id"], ""),
+            "reproducibility_mode": metadata.get("reproducibility_mode", ""),
             "model_key": configuration.get("model_key", ""),
             "model": _model_name(result),
             "model_checkpoint_filename": metadata.get("model_checkpoint_filename"),
@@ -655,6 +818,7 @@ def render_report(
     results: list[dict[str, Any]],
     plot_files: dict[str, Path] | None = None,
     validation_dir: Path | None = None,
+    publication_lifecycle: dict[str, Any] | None = None,
 ) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
@@ -714,9 +878,30 @@ def render_report(
         "may add to the download. Peak memory is reported as allocated / reserved GiB.",
         "- Each completed table row links to its schema-validated raw result JSON.",
         "",
-        "## English zero-shot classification",
-        "",
     ]
+    if publication_lifecycle is not None:
+        counts = publication_lifecycle["state_counts"]
+        lines.extend(
+            [
+                "## Measurement lifecycle",
+                "",
+                f"- Frozen benchmark source commit: "
+                f"`{publication_lifecycle['frozen_source_commit_sha']}`",
+                f"- Active validated measurements: {counts.get('active', 0)}",
+                f"- Retained historical measurements: {counts.get('historical', 0)}",
+                f"- Superseded measurements excluded from primary results: "
+                f"{counts.get('superseded', 0)}",
+                f"- Failed attempts: {counts.get('failed', 0)}",
+                f"- Incomplete attempts: {counts.get('incomplete', 0)}",
+                f"- Invalid measurements: {counts.get('invalid', 0)}",
+                f"- Blocked runs: {counts.get('blocked', 0)}",
+                f"- Skipped runs: {counts.get('skipped', 0)}",
+                "- Per-run lifecycle assignments are recorded in "
+                "[result-lifecycle.json](validation/result-lifecycle.json).",
+                "",
+            ]
+        )
+    lines.extend(["## English zero-shot classification", ""])
     lines.extend(
         _render_task_language_section(
             completed,
@@ -802,6 +987,9 @@ def render_report(
         "official-cifar10-parity.json",
         "official-xm3600-openclip-ja.json",
         "official-xm3600-parity.json",
+        "official-xm3600-parity-clean.json",
+        "result-lifecycle.json",
+        "clean-xm3600-reproducibility-audit.json",
     )
     available_validation_artifacts = [
         f"[{name}](validation/{name})"
@@ -874,7 +1062,11 @@ def render_report(
     return "\n".join(lines)
 
 
-def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
+def _metadata_document(
+    results: list[dict[str, Any]],
+    publication_states: dict[str, str] | None = None,
+    publication_lifecycle: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     dataset_map: dict[str, dict[str, Any]] = {}
     model_map: dict[str, dict[str, Any]] = {}
     environments: set[tuple[str, ...]] = set()
@@ -998,7 +1190,7 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
                 str(entry["run_id"]),
             )
         )
-    return {
+    document = {
         "schema_version": "1.0.0",
         "result_file_count": len(results),
         "status_counts": {key: status_counts[key] for key in sorted(status_counts)},
@@ -1027,6 +1219,13 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
         "runs": [
             {
                 "run_id": result["benchmark_metadata"]["run_id"],
+                "publication_state": (publication_states or {}).get(
+                    result["benchmark_metadata"]["run_id"],
+                    "",
+                ),
+                "reproducibility_mode": result["benchmark_metadata"].get(
+                    "reproducibility_mode"
+                ),
                 "status": result["status"],
                 "model": result["model"],
                 "dataset": result["dataset"],
@@ -1037,12 +1236,104 @@ def _metadata_document(results: list[dict[str, Any]]) -> dict[str, Any]:
             for result in results
         ],
     }
+    if publication_lifecycle is not None:
+        document["publication_lifecycle"] = publication_lifecycle
+    return document
 
 
-def generate_reports(input_path: Path, output_dir: Path) -> dict[str, Path]:
-    results = load_results(input_path)
+def generate_reports(
+    input_path: Path,
+    output_dir: Path,
+    *,
+    publishable: bool = False,
+    lifecycle_path: Path | None = None,
+    expected_source_commit_sha: str | None = None,
+) -> dict[str, Path]:
+    all_results = load_results(input_path)
+    results = all_results
+    publication_states: dict[str, str] | None = None
+    publication_lifecycle: dict[str, Any] | None = None
+    validation_documents: dict[str, dict[str, Any]] = {}
+    if publishable:
+        selected_lifecycle_path = lifecycle_path or (
+            output_dir / "validation" / "result-lifecycle.json"
+        )
+        lifecycle = _load_publication_lifecycle(selected_lifecycle_path)
+        results, publication_states = _select_publishable_results(
+            results,
+            lifecycle,
+            expected_source_commit_sha,
+        )
+        active_official_runs = [
+            result
+            for result in results
+            if publication_states.get(result["benchmark_metadata"]["run_id"]) == "active"
+            and retrieval_variant_info(result)[0] == "official_first_caption"
+        ]
+        if active_official_runs:
+            audit = build_clean_xm3600_reproducibility_audit(
+                all_results,
+                publication_states,
+                lifecycle["frozen_source_commit_sha"],
+            )
+            validation_dir = output_dir / "validation"
+            historical_parity_path = validation_dir / "official-xm3600-parity.json"
+            official_reference_path = validation_dir / "official-xm3600-openclip-ja.json"
+            try:
+                historical_parity = json.loads(
+                    historical_parity_path.read_text(encoding="utf-8")
+                )
+                official_reference = json.loads(
+                    official_reference_path.read_text(encoding="utf-8")
+                )
+            except (OSError, UnicodeError, json.JSONDecodeError) as error:
+                raise DataIntegrityError(
+                    f"Cannot read the pinned XM3600 parity reference: {error}"
+                ) from error
+            clean_openclip_japanese = next(
+                result
+                for result in active_official_runs
+                if _configuration(result).get("model_key") == "openclip_multilingual_b32"
+                and result["language"] == "ja"
+            )
+            clean_parity = build_clean_official_xm3600_parity(
+                historical_parity,
+                official_reference,
+                clean_openclip_japanese,
+            )
+            if clean_parity["status"] != "completed":
+                failed_checks = [
+                    name
+                    for name, passed in clean_parity["validation_checks"].items()
+                    if not passed
+                ]
+                raise DataIntegrityError(
+                    "Clean XM3600 parity validation failed: "
+                    + ", ".join(failed_checks)
+                )
+            validation_documents = {
+                "clean-xm3600-reproducibility-audit.json": audit,
+                "official-xm3600-parity-clean.json": clean_parity,
+            }
+        state_counts = Counter(
+            entry["state"] for entry in lifecycle["entries"]
+        )
+        state_counts.update(attempt["state"] for attempt in lifecycle["attempts"])
+        publication_lifecycle = {
+            "frozen_source_commit_sha": lifecycle["frozen_source_commit_sha"],
+            "state_counts": {
+                state: state_counts[state]
+                for state in sorted(_LIFECYCLE_STATES)
+            },
+            "attempt_count": len(lifecycle["attempts"]),
+        }
     output_dir.mkdir(parents=True, exist_ok=True)
-    completed_rows = summary_rows(results)
+    if validation_documents:
+        validation_dir = output_dir / "validation"
+        validation_dir.mkdir(parents=True, exist_ok=True)
+        for filename, document in validation_documents.items():
+            atomic_write_json(validation_dir / filename, document)
+    completed_rows = summary_rows(results, publication_states)
     completed_rows.sort(
         key=lambda row: (
             str(row["dataset_key"]),
@@ -1070,10 +1361,18 @@ def generate_reports(input_path: Path, output_dir: Path) -> dict[str, Path]:
     report_path = output_dir / "report.md"
     _write_csv(summary_path, SUMMARY_FIELDS, completed_rows)
     _write_csv(non_success_path, NON_SUCCESS_FIELDS, status_rows)
-    atomic_write_json(metadata_path, _metadata_document(results))
+    atomic_write_json(
+        metadata_path,
+        _metadata_document(results, publication_states, publication_lifecycle),
+    )
     plots = write_plots(results, output_dir / "plots")
     report_path.write_text(
-        render_report(results, plots, output_dir / "validation"),
+        render_report(
+            results,
+            plots,
+            output_dir / "validation",
+            publication_lifecycle,
+        ),
         encoding="utf-8",
         newline="\n",
     )

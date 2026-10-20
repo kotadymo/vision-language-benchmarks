@@ -11,8 +11,14 @@ import pytest
 
 from tests.helpers import make_result
 from vision_language_benchmarks.atomic import atomic_write_json
+from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.reporting.aggregate import generate_reports
 from vision_language_benchmarks.reporting.comparison import paired_language_results
+from vision_language_benchmarks.reporting.lifecycle import build_result_lifecycle
+from vision_language_benchmarks.reporting.reproducibility_audit import (
+    build_clean_official_xm3600_parity,
+    build_clean_xm3600_reproducibility_audit,
+)
 from vision_language_benchmarks.reporting.schema import validate_result
 
 
@@ -37,6 +43,22 @@ def _mark_official_first_caption(result: dict) -> dict:
             "image_id_order_hash": "a" * 64,
             "text_id_order_hash": "b" * 64,
             "text_content_sha256": ("c" if result["language"] == "en" else "d") * 64,
+        }
+    )
+    return result
+
+
+def _mark_strict_clean_source(result: dict, source_commit_sha: str) -> dict:
+    metadata = result["benchmark_metadata"]
+    metadata["source_commit_sha"] = source_commit_sha
+    metadata["working_tree_dirty"] = False
+    metadata["reproducibility_mode"] = "strict"
+    metadata["expected_source_commit_sha"] = source_commit_sha
+    metadata["staging_directory"] = ".cache/benchmark-staging/test-suite"
+    metadata["run_configuration"].update(
+        {
+            "reproducibility_mode": "strict",
+            "expected_source_commit_sha": source_commit_sha,
         }
     )
     return result
@@ -342,3 +364,312 @@ def test_report_generator_does_not_create_empty_chart_placeholders(tmp_path) -> 
 
     assert not any(key.endswith("_png") or key.endswith("_svg") for key in files)
     assert not (tmp_path / "reports" / "plots").exists()
+
+
+def test_publishable_report_excludes_superseded_results_and_labels_active_runs(
+    tmp_path,
+) -> None:
+    frozen_source_commit = "a" * 40
+    active = _mark_strict_clean_source(
+        make_result(run_id="active-clean"), frozen_source_commit
+    )
+    historical = make_result(run_id="historical")
+    superseded = _mark_official_first_caption(
+        make_result(
+            model_key="openclip_multilingual_b32",
+            dataset_key="crossmodal3600",
+            language="en",
+            protocol="p2",
+            run_id="superseded-dirty",
+        )
+    )
+    superseded["benchmark_metadata"]["working_tree_dirty"] = True
+    input_dir = tmp_path / "raw"
+    input_dir.mkdir()
+    for result in (active, historical, superseded):
+        atomic_write_json(
+            input_dir / f"{result['benchmark_metadata']['run_id']}.json",
+            result,
+        )
+
+    output_dir = tmp_path / "reports"
+    lifecycle_path = output_dir / "validation" / "result-lifecycle.json"
+    atomic_write_json(
+        lifecycle_path,
+        {
+            "schema_version": "1.0.0",
+            "frozen_source_commit_sha": frozen_source_commit,
+            "entries": [
+                {
+                    "run_id": "active-clean",
+                    "state": "active",
+                    "leaderboard_eligible": True,
+                },
+                {
+                    "run_id": "historical",
+                    "state": "historical",
+                    "leaderboard_eligible": True,
+                },
+                {
+                    "run_id": "superseded-dirty",
+                    "state": "superseded",
+                    "leaderboard_eligible": False,
+                },
+            ],
+            "attempts": [],
+        },
+    )
+
+    files = generate_reports(
+        input_dir,
+        output_dir,
+        publishable=True,
+        lifecycle_path=lifecycle_path,
+        expected_source_commit_sha=frozen_source_commit,
+    )
+
+    with files["summary_csv"].open(encoding="utf-8", newline="") as stream:
+        summary = list(csv.DictReader(stream))
+    metadata = json.loads(files["metadata_json"].read_text(encoding="utf-8"))
+    report = files["report_markdown"].read_text(encoding="utf-8")
+
+    assert {row["run_id"]: row["publication_state"] for row in summary} == {
+        "active-clean": "active",
+        "historical": "historical",
+    }
+    assert metadata["result_file_count"] == 2
+    assert metadata["publication_lifecycle"]["state_counts"]["superseded"] == 1
+    assert "Superseded measurements excluded from primary results: 1" in report
+    assert "superseded-dirty" not in report
+
+
+def test_publishable_report_rejects_dirty_leaderboard_result(tmp_path) -> None:
+    result = make_result(run_id="dirty-active")
+    result["benchmark_metadata"]["working_tree_dirty"] = True
+    input_dir = tmp_path / "raw"
+    input_dir.mkdir()
+    atomic_write_json(input_dir / "dirty-active.json", result)
+
+    frozen_source_commit = "a" * 40
+    lifecycle_path = tmp_path / "result-lifecycle.json"
+    atomic_write_json(
+        lifecycle_path,
+        {
+            "schema_version": "1.0.0",
+            "frozen_source_commit_sha": frozen_source_commit,
+            "entries": [
+                {
+                    "run_id": "dirty-active",
+                    "state": "active",
+                    "leaderboard_eligible": True,
+                }
+            ],
+            "attempts": [],
+        },
+    )
+
+    with pytest.raises(DataIntegrityError, match="dirty or unknown worktree"):
+        generate_reports(
+            input_dir,
+            tmp_path / "reports",
+            publishable=True,
+            lifecycle_path=lifecycle_path,
+            expected_source_commit_sha=frozen_source_commit,
+        )
+
+
+def test_result_lifecycle_marks_clean_replacements_and_preserves_old_records(
+    tmp_path,
+) -> None:
+    frozen_source_commit = "a" * 40
+    active = _mark_strict_clean_source(
+        _mark_official_first_caption(
+            make_result(
+                model_key="openclip_multilingual_b32",
+                dataset_key="crossmodal3600",
+                language="en",
+                protocol="p2",
+                run_id="replacement-official",
+            )
+        ),
+        frozen_source_commit,
+    )
+    superseded = _mark_official_first_caption(
+        make_result(
+            model_key="openclip_multilingual_b32",
+            dataset_key="crossmodal3600",
+            language="en",
+            protocol="p2",
+            run_id="previous-official",
+        )
+    )
+    superseded["benchmark_metadata"]["working_tree_dirty"] = True
+    historical = make_result(run_id="historical-cifar")
+    original_superseded = json.loads(json.dumps(superseded))
+
+    lifecycle = build_result_lifecycle(
+        [active, superseded, historical],
+        frozen_source_commit,
+    )
+    states = {entry["run_id"]: entry for entry in lifecycle["entries"]}
+
+    assert states["replacement-official"]["state"] == "active"
+    assert states["replacement-official"]["leaderboard_eligible"] is True
+    assert states["previous-official"]["state"] == "superseded"
+    assert states["previous-official"]["leaderboard_eligible"] is False
+    assert states["historical-cifar"]["state"] == "historical"
+    assert superseded == original_superseded
+
+
+def test_result_lifecycle_keeps_failed_and_incomplete_attempts(tmp_path) -> None:
+    result = make_result(run_id="completed-run")
+    manifest_path = tmp_path / "run-manifest.json"
+    atomic_write_json(
+        manifest_path,
+        {
+            "schema_version": "1.0.0",
+            "runs": {
+                "failed-run": {
+                    "status": "failed",
+                    "reason_if_not_success": "Synthetic failure.",
+                },
+                "running-run": {"status": "running"},
+                "completed-run": {"status": "completed"},
+            },
+        },
+    )
+
+    lifecycle = build_result_lifecycle(
+        [result],
+        "a" * 40,
+        (manifest_path,),
+    )
+
+    attempts = {attempt["run_id"]: attempt for attempt in lifecycle["attempts"]}
+    assert attempts["failed-run"]["state"] == "failed"
+    assert attempts["running-run"]["state"] == "incomplete"
+    assert "completed-run" not in attempts
+    assert lifecycle["state_counts"] == {
+        "failed": 1,
+        "historical": 1,
+        "incomplete": 1,
+    }
+
+
+def test_clean_xm3600_audit_reports_previous_and_replacement_metrics() -> None:
+    frozen_source_commit = "f" * 40
+    expected_runs = (
+        ("embeddinggemma2", "en"),
+        ("embeddinggemma2", "ja"),
+        ("openclip_multilingual_b32", "en"),
+        ("openclip_multilingual_b32", "ja"),
+        ("siglip2_base_224", "en"),
+        ("siglip2_base_224", "ja"),
+        ("rinna_ja_clip_b16", "ja"),
+    )
+    results = []
+    states = {}
+    for index, (model_key, language) in enumerate(expected_runs):
+        previous_id = f"previous-{model_key}-{language}"
+        replacement_id = f"replacement-{model_key}-{language}"
+        previous = _mark_official_first_caption(
+            make_result(
+                model_key=model_key,
+                dataset_key="crossmodal3600",
+                language=language,
+                protocol="p2",
+                run_id=previous_id,
+            )
+        )
+        previous["benchmark_metadata"]["source_commit_sha"] = "b" * 40
+        previous["benchmark_metadata"]["working_tree_dirty"] = index != 0
+        replacement = _mark_strict_clean_source(
+            _mark_official_first_caption(
+                make_result(
+                    model_key=model_key,
+                    dataset_key="crossmodal3600",
+                    language=language,
+                    protocol="p2",
+                    run_id=replacement_id,
+                )
+            ),
+            frozen_source_commit,
+        )
+        results.extend((previous, replacement))
+        states[previous_id] = "superseded"
+        states[replacement_id] = "active"
+
+    audit = build_clean_xm3600_reproducibility_audit(
+        results,
+        states,
+        frozen_source_commit,
+    )
+
+    assert audit["previous_runs"]["count"] == 7
+    assert audit["previous_runs"]["clean_worktree_count"] == 1
+    assert audit["previous_runs"]["dirty_worktree_count"] == 6
+    assert audit["replacement_runs"]["count"] == 7
+    assert audit["replacement_runs"]["clean_worktree_count"] == 7
+    assert audit["replacement_runs"]["source_commit_shas"] == [frozen_source_commit]
+    assert audit["maximum_absolute_recall_difference"] == 0.0
+    assert all(
+        all(pair["checks"].values())
+        and all(
+            metric["absolute_difference"] == 0.0
+            for metric in pair["metrics"].values()
+        )
+        for pair in audit["pairs"]
+    )
+    assert all(
+        all(pair["checks"].values())
+        for pair in audit["language_pairs"].values()
+    )
+
+
+def test_clean_official_parity_record_uses_saved_reference_and_clean_run() -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    validation_dir = repository_root / "results" / "v0.1.0" / "validation"
+    parity = json.loads(
+        (validation_dir / "official-xm3600-parity.json").read_text(encoding="utf-8")
+    )
+    official_reference = json.loads(
+        (validation_dir / "official-xm3600-openclip-ja.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    clean_result = json.loads(
+        (
+            repository_root
+            / "results"
+            / "v0.1.0"
+            / "raw"
+            / f"{parity['vlbench']['run_id']}.json"
+        ).read_text(encoding="utf-8")
+    )
+    frozen_source_commit = "f" * 40
+    metadata = clean_result["benchmark_metadata"]
+    metadata["run_id"] = "synthetic-clean-openclip-ja"
+    metadata["source_commit_sha"] = frozen_source_commit
+    metadata["working_tree_dirty"] = False
+    metadata["reproducibility_mode"] = "strict"
+    metadata["expected_source_commit_sha"] = frozen_source_commit
+    metadata["staging_directory"] = ".cache/benchmark-staging/test-suite"
+    metadata["run_configuration"].update(
+        {
+            "reproducibility_mode": "strict",
+            "expected_source_commit_sha": frozen_source_commit,
+        }
+    )
+
+    clean_parity = build_clean_official_xm3600_parity(
+        parity,
+        official_reference,
+        clean_result,
+    )
+
+    assert clean_parity["status"] == "completed"
+    assert clean_parity["vlbench"]["run_id"] == "synthetic-clean-openclip-ja"
+    assert clean_parity["vlbench"]["source_commit"] == frozen_source_commit
+    assert clean_parity["reference"]["result_reused"] is True
+    assert clean_parity["comparison"]["within_tolerance"] is True
+    assert clean_parity["comparison"]["same_integer_hit_counts"] is True

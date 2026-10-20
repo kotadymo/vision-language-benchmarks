@@ -7,11 +7,12 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.datasets.prepare import prepare_dataset
 from vision_language_benchmarks.errors import BenchmarkError
 from vision_language_benchmarks.evaluation.runner import run_benchmark
 from vision_language_benchmarks.hardware import doctor_report
-from vision_language_benchmarks.paths import RESULTS_ROOT
+from vision_language_benchmarks.paths import PROJECT_ROOT, RESULTS_ROOT
 from vision_language_benchmarks.registry import (
     DATASETS,
     MODELS,
@@ -26,7 +27,12 @@ from vision_language_benchmarks.registry import (
     model_registry_dict,
     normalize_retrieval_variant,
 )
-from vision_language_benchmarks.reporting.aggregate import generate_reports
+from vision_language_benchmarks.reporting.aggregate import generate_reports, load_results
+from vision_language_benchmarks.reporting.lifecycle import build_result_lifecycle
+from vision_language_benchmarks.reproducibility import (
+    reproducibility_report,
+    require_clean_source_preflight,
+)
 
 SUITES: dict[str, dict[str, Any]] = {
     "core-en": {
@@ -207,7 +213,59 @@ def _authorize_downloads(plan: dict[str, Any], yes: bool) -> bool:
 
 
 def _command_doctor(args: argparse.Namespace) -> int:
-    report = doctor_report(args.device)
+    hardware = doctor_report(args.device)
+    if not args.reproducibility:
+        _write_json(hardware)
+        return 0 if hardware["ok"] else 2
+
+    preflight = reproducibility_report(
+        PROJECT_ROOT,
+        args.output,
+        expected_source_commit_sha=args.expected_source_commit,
+        uv_executable=args.uv_executable,
+    )
+    configuration: dict[str, Any] = {
+        "ok": False,
+        "error": "Pass both --model and --dataset to validate a benchmark configuration.",
+    }
+    if args.model is not None and args.dataset is not None:
+        try:
+            plan = _run_plan(
+                args.model,
+                args.dataset,
+                protocol=args.protocol,
+                language=args.language,
+                precision=args.precision,
+                device=args.device,
+                batch_size=args.batch_size,
+                seed=args.seed,
+                output=args.output,
+                confirm_data_terms=args.confirm_data_terms,
+                retrieval_variant=args.retrieval_variant,
+            )
+        except (BenchmarkError, ValueError) as error:
+            configuration = {"ok": False, "error": f"{type(error).__name__}: {error}"}
+        else:
+            configuration = {
+                "ok": plan["dataset"]["access"] == "available",
+                "model": plan["model"],
+                "dataset": plan["dataset"],
+                "evaluation": plan["evaluation"],
+            }
+            if not configuration["ok"]:
+                configuration["error"] = plan["dataset"]["access_reason"]
+
+    cuda_ok = args.device == "cuda" and bool(
+        hardware.get("torch", {}).get("cuda_available")
+    )
+    report = {
+        "ok": bool(preflight["ok"] and configuration["ok"] and cuda_ok),
+        "hardware": hardware,
+        "reproducibility": preflight,
+        "requested_configuration": configuration,
+        "cuda_required": True,
+        "cuda_available": cuda_ok,
+    }
     _write_json(report)
     return 0 if report["ok"] else 2
 
@@ -255,6 +313,11 @@ def _command_prepare(args: argparse.Namespace) -> int:
 
 
 def _command_run(args: argparse.Namespace) -> int:
+    if args.strict_reproducibility:
+        if args.device == "cpu":
+            raise ValueError("Strict reproducibility requires a CUDA device.")
+        if args.allow_cpu_fallback:
+            raise ValueError("Strict reproducibility does not allow CPU fallback.")
     dataset = get_dataset(args.dataset)
     if args.split is not None and args.split != dataset.split:
         raise ValueError(
@@ -273,6 +336,18 @@ def _command_run(args: argparse.Namespace) -> int:
         confirm_data_terms=args.confirm_data_terms,
         retrieval_variant=args.retrieval_variant,
     )
+    if args.strict_reproducibility:
+        if plan["dataset"]["access"] != "available":
+            raise ValueError(
+                "Strict reproducibility requires an available dataset and supported "
+                f"configuration: {plan['dataset']['access_reason']}"
+            )
+        require_clean_source_preflight(
+            PROJECT_ROOT,
+            args.output,
+            args.expected_source_commit,
+            uv_executable=args.uv_executable,
+        )
     if args.dry_run:
         _write_json({"dry_run": True, **plan})
         return 0
@@ -296,6 +371,9 @@ def _command_run(args: argparse.Namespace) -> int:
         allow_cpu_fallback=args.allow_cpu_fallback,
         confirm_data_terms=args.confirm_data_terms,
         retrieval_variant=args.retrieval_variant,
+        strict_reproducibility=args.strict_reproducibility,
+        expected_source_commit_sha=args.expected_source_commit,
+        uv_executable=args.uv_executable,
         progress=_progress,
     )
     _write_json(result)
@@ -335,7 +413,32 @@ def _suite_plans(args: argparse.Namespace) -> list[dict[str, Any]]:
 
 
 def _command_suite(args: argparse.Namespace) -> int:
+    if args.strict_reproducibility:
+        if args.device == "cpu":
+            raise ValueError("Strict reproducibility requires a CUDA device.")
+        if args.allow_cpu_fallback:
+            raise ValueError("Strict reproducibility does not allow CPU fallback.")
     plans = _suite_plans(args)
+    if args.strict_reproducibility:
+        unavailable = [
+            plan
+            for plan in plans
+            if plan["dataset"]["access"] != "available"
+        ]
+        if unavailable:
+            raise ValueError(
+                "Strict reproducibility requires every suite configuration to be "
+                "available; blocked configuration: "
+                f"{unavailable[0]['model']['key']} / {unavailable[0]['dataset']['key']} "
+                f"/ {unavailable[0]['evaluation']['language']} "
+                f"({unavailable[0]['dataset']['access_reason']})."
+            )
+        require_clean_source_preflight(
+            PROJECT_ROOT,
+            args.output,
+            args.expected_source_commit,
+            uv_executable=args.uv_executable,
+        )
     if args.dry_run:
         _write_json({"dry_run": True, "suite": args.name, "plans": plans})
         return 0
@@ -371,6 +474,9 @@ def _command_suite(args: argparse.Namespace) -> int:
             allow_cpu_fallback=args.allow_cpu_fallback,
             confirm_data_terms=args.confirm_data_terms,
             retrieval_variant=args.retrieval_variant,
+            strict_reproducibility=args.strict_reproducibility,
+            expected_source_commit_sha=args.expected_source_commit,
+            uv_executable=args.uv_executable,
             progress=_progress,
         )
         for model_key in model_keys
@@ -405,8 +511,37 @@ def _result_exit_code(result: dict[str, Any]) -> int:
 
 
 def _command_report(args: argparse.Namespace) -> int:
-    files = generate_reports(args.input, args.output)
+    files = generate_reports(
+        args.input,
+        args.output,
+        publishable=args.publishable,
+        lifecycle_path=args.lifecycle,
+        expected_source_commit_sha=args.expected_source_commit,
+    )
     _write_json({name: str(path) for name, path in files.items()})
+    return 0
+
+
+def _command_lifecycle(args: argparse.Namespace) -> int:
+    results = [
+        result
+        for input_path in args.input
+        for result in load_results(input_path)
+    ]
+    lifecycle = build_result_lifecycle(
+        results,
+        args.frozen_source_commit,
+        tuple(args.attempt_manifest or ()),
+    )
+    atomic_write_json(args.output, lifecycle)
+    _write_json(
+        {
+            "output": str(args.output),
+            "result_count": len(lifecycle["entries"]),
+            "attempt_count": len(lifecycle["attempts"]),
+            "state_counts": lifecycle["state_counts"],
+        }
+    )
     return 0
 
 
@@ -419,6 +554,31 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = commands.add_parser("doctor", help="Inspect Python, CUDA, GPU, storage, and auth.")
     doctor.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
+    doctor.add_argument(
+        "--reproducibility",
+        action="store_true",
+        help="Verify a clean committed source, ignored staging, uv.lock, CUDA, and config.",
+    )
+    doctor.add_argument("--model", choices=tuple(sorted(MODELS)))
+    doctor.add_argument("--dataset", choices=tuple(sorted(DATASETS)))
+    doctor.add_argument("--language", default="en")
+    doctor.add_argument("--protocol", choices=("p0", "p1", "p2"), default="p0")
+    doctor.add_argument(
+        "--retrieval-variant",
+        choices=RETRIEVAL_VARIANTS,
+        help="XM3600 caption selection to validate.",
+    )
+    doctor.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
+    doctor.add_argument("--batch-size", type=int, default=16)
+    doctor.add_argument("--seed", type=int, default=0)
+    doctor.add_argument(
+        "--output",
+        type=Path,
+        default=PROJECT_ROOT / ".cache" / "benchmark-staging" / "doctor",
+    )
+    doctor.add_argument("--expected-source-commit")
+    doctor.add_argument("--uv-executable", type=Path)
+    doctor.add_argument("--confirm-data-terms", action="store_true")
     doctor.set_defaults(handler=_command_doctor)
 
     listing = commands.add_parser("list", help="List registered models or datasets.")
@@ -462,6 +622,16 @@ def build_parser() -> argparse.ArgumentParser:
     run_reuse.add_argument("--force", action="store_true")
     run.add_argument("--allow-cpu-fallback", action="store_true")
     run.add_argument(
+        "--strict-reproducibility",
+        action="store_true",
+        help="Require a clean frozen source revision and ignored staging output.",
+    )
+    run.add_argument(
+        "--expected-source-commit",
+        help="Full 40-character Git SHA required by --strict-reproducibility.",
+    )
+    run.add_argument("--uv-executable", type=Path)
+    run.add_argument(
         "--confirm-data-terms",
         action="store_true",
         help="Confirm you reviewed and are authorized to use a dataset with unverified terms.",
@@ -495,6 +665,16 @@ def build_parser() -> argparse.ArgumentParser:
     suite_reuse.add_argument("--force", action="store_true")
     suite.add_argument("--allow-cpu-fallback", action="store_true")
     suite.add_argument(
+        "--strict-reproducibility",
+        action="store_true",
+        help="Require a clean frozen source revision and ignored staging output.",
+    )
+    suite.add_argument(
+        "--expected-source-commit",
+        help="Full 40-character Git SHA required by --strict-reproducibility.",
+    )
+    suite.add_argument("--uv-executable", type=Path)
+    suite.add_argument(
         "--confirm-data-terms",
         action="store_true",
         help="Confirm review and authorization for datasets with unverified terms.",
@@ -510,7 +690,43 @@ def build_parser() -> argparse.ArgumentParser:
     report = commands.add_parser("report", help="Regenerate summaries and plots from raw JSON.")
     report.add_argument("--input", type=Path, default=RESULTS_ROOT / "raw")
     report.add_argument("--output", type=Path, default=RESULTS_ROOT)
+    report.add_argument(
+        "--publishable",
+        action="store_true",
+        help="Exclude superseded results and reject dirty or mismatched active records.",
+    )
+    report.add_argument("--lifecycle", type=Path)
+    report.add_argument("--expected-source-commit")
     report.set_defaults(handler=_command_report)
+
+    lifecycle = commands.add_parser(
+        "lifecycle",
+        help="Classify raw measurements and attempts for publication.",
+    )
+    lifecycle.add_argument(
+        "--input",
+        type=Path,
+        action="append",
+        required=True,
+        help="Raw result file or directory; repeat to combine sources.",
+    )
+    lifecycle.add_argument(
+        "--frozen-source-commit",
+        required=True,
+        help="Full source commit SHA used by clean active measurements.",
+    )
+    lifecycle.add_argument(
+        "--attempt-manifest",
+        type=Path,
+        action="append",
+        help="Ignored run manifest containing failed, blocked, skipped, or incomplete attempts.",
+    )
+    lifecycle.add_argument(
+        "--output",
+        type=Path,
+        default=RESULTS_ROOT / "validation" / "result-lifecycle.json",
+    )
+    lifecycle.set_defaults(handler=_command_lifecycle)
 
     return parser
 

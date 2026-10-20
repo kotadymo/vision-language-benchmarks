@@ -97,10 +97,12 @@ plan. Blocked datasets remain unavailable regardless of flags.
 
 ## Run records and reports
 
-Runs default to `results/v0.1.0/`; use `--output` to select another result root. The runner
-records a schema-validated JSON file per run and a manifest of run status. `--resume` reuses a
-matching completed configuration; `--force` creates a new run. These flags are mutually
-exclusive.
+Exploratory runs default to `results/v0.1.0/`; use `--output` to select another result root.
+The runner records a schema-validated JSON file per run and a manifest of run status. For
+publishable measurements, use strict reproducibility mode and an ignored staging directory;
+never write inference outputs directly into the tracked publication directory. `--resume`
+reuses a matching completed configuration; `--force` creates a new run. These flags are
+mutually exclusive, and neither bypasses strict source checks.
 
 Regenerate all report artifacts from raw JSON:
 
@@ -123,20 +125,23 @@ documented in [implementation status](implementation-status.md) and
 
 ## Reproduce the published measurements
 
-The v0.1.0 publication contains 38 completed full-dataset CUDA FP32 raw JSON records: 24
+The current v0.1.0 baseline contains 38 completed full-dataset CUDA FP32 raw JSON records: 24
 CIFAR classification runs (CIFAR-10 and CIFAR-100, six English-compatible models, P0 and P1),
-seven historical XM3600 `all_captions` runs, and seven new `official_first_caption` runs.
+seven historical XM3600 `all_captions` runs, and seven earlier `official_first_caption` runs.
 The seven historical files predate the variant field and are identified as `all_captions`
 from their candidate counts; their SHA-256 hashes and audit evidence are in
 [`historical-results-audit.json`](../results/v0.1.0/validation/historical-results-audit.json).
 They remain byte-for-byte unchanged and must not be silently relabeled or replaced.
 
-The seven official-compatible runs evaluated the complete 3,600-image XM3600 split in FP32
-with seed 0 and requested batch size 16: EmbeddingGemma 2, multilingual OpenCLIP ViT-B/32,
-and SigLIP 2 Base in English and Japanese, plus rinna Japanese CLIP ViT-B/16 in Japanese.
+The previous seven official-compatible runs evaluated the complete 3,600-image XM3600 split
+in FP32 with seed 0 and requested batch size 16: EmbeddingGemma 2, multilingual OpenCLIP
+ViT-B/32, and SigLIP 2 Base in English and Japanese, plus rinna Japanese CLIP ViT-B/16 in
+Japanese. The audit found one clean worktree and six runs with `working_tree_dirty: true`.
+The run-status record attributes the observed dirty state to generated raw results being
+untracked during later runs; the exact historical uncommitted file set is not recoverable.
 Actual batch sizes, OOM history, throughput, latency, peak memory, source commit, model and
 tokenizer revisions, checkpoint hashes, dataset checksum, ordered candidate hashes, and
-caption-content hashes are stored in each raw result. The
+caption-content hashes remain in each unchanged raw result. The
 [generated report](../results/v0.1.0/report.md) links every measured row to its raw JSON.
 
 For XM3600, pass `--retrieval-variant` explicitly. The CLI keeps `all_captions` as the
@@ -154,50 +159,105 @@ not equalize caption content, difficulty, translation quality, or dataset compos
 English/Japanese differences as observed performance under those conditions, not as a causal
 measurement of language understanding.
 
-Representative commands, using the already-reviewed public sources and the existing output
-root, are:
+## Strict clean-source XM3600 reruns
+
+Publishable measurements require a committed, clean Git revision, CUDA, a matching lockfile,
+and an ignored staging directory. Finish all code and documentation changes, run offline tests,
+and commit them before benchmarking. Capture the full commit SHA and verify that all Git
+status and diff checks are clean:
 
 ```powershell
-# OpenAI CLIP ViT-B/32 on the complete CIFAR-10 test split (P0).
-uv run --locked --extra cuda --extra openclip vlbench run `
-  --model openai_clip_b32 --dataset cifar10 --protocol p0 --language en `
-  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
-  --output results/v0.1.0 --force --yes
+$sourceCommit = (git rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw "Cannot read the source commit." }
+if (git status --porcelain --untracked-files=all) { throw "The Git worktree is not clean." }
+git diff --exit-code
+if ($LASTEXITCODE -ne 0) { throw "Tracked source changes are present." }
+git diff --cached --exit-code
+if ($LASTEXITCODE -ne 0) { throw "Staged changes are present." }
 
-# EmbeddingGemma 2 on all XM3600 English captions.
-uv run --locked --extra cuda --extra gemma vlbench run `
-  --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language en `
-  --retrieval-variant all_captions `
+$stage = ".cache\benchmark-staging\clean-xm3600"
+uv run --locked --extra cuda --extra gemma vlbench doctor `
+  --reproducibility --model embeddinggemma2 --dataset crossmodal3600 `
+  --protocol p2 --language en --retrieval-variant official_first_caption `
   --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
-  --output results/v0.1.0 --force --yes
-
-# EmbeddingGemma 2 on the pinned official first-caption Japanese candidates.
-uv run --locked --extra cuda --extra gemma vlbench run `
-  --model embeddinggemma2 --dataset crossmodal3600 --protocol p2 --language ja `
-  --retrieval-variant official_first_caption `
-  --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
-  --output results/v0.1.0 --force --yes
-
-# Regenerate the published CSV, Markdown, metadata, and non-empty figures.
-uv run --locked vlbench report --input results/v0.1.0/raw --output results/v0.1.0
+  --output $stage --expected-source-commit $sourceCommit
+if ($LASTEXITCODE -ne 0) { throw "Strict reproducibility preflight failed." }
 ```
 
-The official-compatible suite is already fully evaluated. To reproduce it, repeat the run
-command for each listed model/language combination, selecting that model's optional
-dependency extra and `--retrieval-variant official_first_caption`. `--yes` authorizes the
-reviewed download plan only; it does not accept legal terms. Do not run blocked datasets or
-pass `--confirm-data-terms` without the required user decision. To recreate an existing
-measurement exactly, use the recorded source commit and all model/dataset revisions and
-settings in its raw JSON.
+The runner repeats strict Git and staging checks for every measurement, verifies the frozen
+source SHA after inference and persistence, and rejects a dirty or mismatched run. This
+PowerShell loop covers the seven required model/language combinations. Each command writes
+only to the ignored staging area. `--yes` authorizes the reviewed download plan; it does not
+accept legal terms.
+
+```powershell
+$runs = @(
+  @{ model = "embeddinggemma2"; language = "en"; extra = "gemma" },
+  @{ model = "embeddinggemma2"; language = "ja"; extra = "gemma" },
+  @{ model = "openclip_multilingual_b32"; language = "en"; extra = "openclip" },
+  @{ model = "openclip_multilingual_b32"; language = "ja"; extra = "openclip" },
+  @{ model = "siglip2_base_224"; language = "en"; extra = "siglip2" },
+  @{ model = "siglip2_base_224"; language = "ja"; extra = "siglip2" },
+  @{ model = "rinna_ja_clip_b16"; language = "ja"; extra = "japanese-clip" }
+)
+
+foreach ($run in $runs) {
+  uv run --locked --extra cuda --extra $run.extra vlbench run `
+    --model $run.model --dataset crossmodal3600 --protocol p2 `
+    --language $run.language --retrieval-variant official_first_caption `
+    --precision fp32 --device cuda:0 --batch-size 16 --seed 0 `
+    --output $stage --strict-reproducibility `
+    --expected-source-commit $sourceCommit --yes
+  if ($LASTEXITCODE -ne 0) {
+    throw "Strict XM3600 run failed: $($run.model) / $($run.language)."
+  }
+}
+
+if ((git rev-parse HEAD).Trim() -ne $sourceCommit) {
+  throw "The source revision changed during the benchmark suite."
+}
+if (git status --porcelain --untracked-files=all) {
+  throw "The worktree became dirty during the benchmark suite."
+}
+```
+
+After all seven results validate, copy them into the publication raw directory without
+overwriting existing records. Generate a lifecycle manifest that marks matching strict runs
+active, replaced first-caption runs superseded, other completed measurements historical, and
+failed/incomplete attempts separately. Then generate the publishable artifacts from the
+combined raw results:
+
+```powershell
+$destination = "results\v0.1.0\raw"
+Get-ChildItem (Join-Path $stage "raw") -Filter "*.json" | ForEach-Object {
+  $target = Join-Path $destination $_.Name
+  if (Test-Path $target) { throw "Refusing to overwrite historical result: $target" }
+  Copy-Item -LiteralPath $_.FullName -Destination $target
+}
+
+uv run --locked vlbench lifecycle --input $destination `
+  --frozen-source-commit $sourceCommit `
+  --attempt-manifest (Join-Path $stage "run-manifest.json")
+if ($LASTEXITCODE -ne 0) { throw "Result lifecycle generation failed." }
+
+uv run --locked vlbench report --publishable --input $destination `
+  --output results\v0.1.0 `
+  --lifecycle results\v0.1.0\validation\result-lifecycle.json `
+  --expected-source-commit $sourceCommit
+if ($LASTEXITCODE -ne 0) { throw "Publishable report validation failed." }
+```
+
+Do not pass `--confirm-data-terms` without the required user decision, or run blocked datasets.
+For exact reproduction, use the recorded model, tokenizer, dataset, checkpoint, and source
+revisions plus every setting in the raw record. Never alter historical raw metadata to make
+it appear clean; retain it and use the generated lifecycle state to distinguish it from
+validated replacements.
 
 The official parity evidence is deliberately scoped: OpenAI CLIP ViT-B/32 on CIFAR-10 P0 is
-exact at `1e-12` tolerance, while multilingual OpenCLIP ViT-B/32 on Japanese XM3600
-`official_first_caption` matches all six integer hit counts within `5e-8`. See the
-[CIFAR-10 record](../results/v0.1.0/validation/official-cifar10-parity.json), the
-[XM3600 comparison](../results/v0.1.0/validation/official-xm3600-parity.json), and the
-[pinned official CLI output](../results/v0.1.0/validation/official-xm3600-openclip-ja.json).
-The XM3600 result does not establish end-to-end parity for other model/language/variant
-combinations.
+exact at `1e-12` tolerance. The Japanese XM3600 OpenCLIP comparison is tied to the exact
+measurement ID and parity artifact recorded in
+[validation](../results/v0.1.0/validation/). It does not establish end-to-end parity for
+other model/language/variant combinations.
 
 ## Data and cache locations
 

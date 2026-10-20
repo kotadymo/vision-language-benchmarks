@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,8 @@ from vision_language_benchmarks.registry import (
     RETRIEVAL_VARIANTS,
     get_dataset,
 )
+
+_COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 
 @lru_cache(maxsize=1)
@@ -24,6 +27,32 @@ def validate_result(result: dict[str, Any]) -> None:
     metadata = result["benchmark_metadata"]
     if result["status"] != metadata["status"]:
         raise ValueError("Result and benchmark metadata statuses must match.")
+    if metadata.get("reproducibility_mode") == "strict":
+        source_commit_sha = metadata.get("source_commit_sha")
+        expected_source_commit_sha = metadata.get("expected_source_commit_sha")
+        configuration = metadata.get("run_configuration")
+        if metadata.get("working_tree_dirty") is not False:
+            raise ValueError("Strict reproducibility results must have a clean worktree.")
+        if (
+            not isinstance(source_commit_sha, str)
+            or not _COMMIT_PATTERN.fullmatch(source_commit_sha)
+            or expected_source_commit_sha != source_commit_sha
+        ):
+            raise ValueError(
+                "Strict reproducibility results must match the expected full source commit."
+            )
+        if (
+            not isinstance(configuration, dict)
+            or configuration.get("reproducibility_mode") != "strict"
+            or configuration.get("expected_source_commit_sha") != source_commit_sha
+        ):
+            raise ValueError(
+                "Strict reproducibility run configuration must match its source commit."
+            )
+        if not isinstance(metadata.get("staging_directory"), str):
+            raise ValueError(
+                "Strict reproducibility results must identify their staging directory."
+            )
     retrieval_variant = metadata.get("retrieval_variant")
     if retrieval_variant is not None:
         if retrieval_variant not in RETRIEVAL_VARIANTS:

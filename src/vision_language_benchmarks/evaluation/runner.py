@@ -45,6 +45,10 @@ from vision_language_benchmarks.registry import (
     normalize_retrieval_variant,
 )
 from vision_language_benchmarks.reporting.schema import validate_result
+from vision_language_benchmarks.reproducibility import (
+    inspect_git_repository,
+    require_clean_source_preflight,
+)
 
 RUN_SCHEMA_VERSION = "1.0.0"
 KNOWN_RUN_ERRORS = (
@@ -152,6 +156,9 @@ def _make_result(
     run_id: str,
     data_terms_confirmed: bool = False,
     retrieval_variant: RetrievalVariant | None = None,
+    reproducibility_mode: str | None = None,
+    expected_source_commit_sha: str | None = None,
+    staging_directory: str | None = None,
     dataset_record: dict[str, Any] | None = None,
     model_metadata: dict[str, Any] | None = None,
     evaluation_metadata: dict[str, Any] | None = None,
@@ -199,6 +206,9 @@ def _make_result(
     }
     if retrieval_variant is not None:
         run_configuration["retrieval_variant"] = retrieval_variant
+    if reproducibility_mode == "strict":
+        run_configuration["reproducibility_mode"] = reproducibility_mode
+        run_configuration["expected_source_commit_sha"] = expected_source_commit_sha
     metadata = {
         "schema_version": RUN_SCHEMA_VERSION,
         "run_id": run_id,
@@ -337,6 +347,14 @@ def _make_result(
         ),
         "run_configuration": run_configuration,
     }
+    if reproducibility_mode is not None:
+        metadata.update(
+            {
+                "reproducibility_mode": reproducibility_mode,
+                "expected_source_commit_sha": expected_source_commit_sha,
+                "staging_directory": staging_directory,
+            }
+        )
     result: dict[str, Any] = {
         "dataset": dataset.key,
         "model": model.model_id,
@@ -403,6 +421,9 @@ def _write_skipped_or_blocked(
     dataset_record: dict[str, Any] | None = None,
     configuration_hash: str | None = None,
     run_id: str | None = None,
+    reproducibility_mode: str | None = None,
+    expected_source_commit_sha: str | None = None,
+    staging_directory: str | None = None,
 ) -> dict[str, Any]:
     configuration = {
         "model": model_key,
@@ -446,6 +467,9 @@ def _write_skipped_or_blocked(
         run_id=actual_run_id,
         data_terms_confirmed=confirm_data_terms,
         retrieval_variant=retrieval_variant,
+        reproducibility_mode=reproducibility_mode,
+        expected_source_commit_sha=expected_source_commit_sha,
+        staging_directory=staging_directory,
         dataset_record=dataset_record,
     )
     manifest.transition(
@@ -505,6 +529,70 @@ def _reuse_result(run_id: str, results_root: Path) -> dict[str, Any] | None:
     return result
 
 
+def _record_invalid_attempt(
+    result: dict[str, Any],
+    results_root: Path,
+    manifest: RunManifest,
+    configuration_hash: str,
+    reason: str,
+    raw_path: Path | None = None,
+) -> None:
+    metadata = result["benchmark_metadata"]
+    run_id = str(metadata["run_id"])
+    attempts_dir = results_root / "attempts"
+    attempts_dir.mkdir(parents=True, exist_ok=True)
+    git_state = inspect_git_repository(PROJECT_ROOT)
+    worktree_dirty = None
+    if git_state["worktree_status_available"]:
+        worktree_dirty = bool(
+            git_state["staged_changes"]
+            or git_state["unstaged_changes"]
+            or git_state["untracked_files"]
+        )
+    record: dict[str, Any] = {
+        "schema_version": RUN_SCHEMA_VERSION,
+        "run_id": run_id,
+        "status": "invalid",
+        "reason": reason,
+        "source_commit_sha": metadata.get("source_commit_sha"),
+        "expected_source_commit_sha": metadata.get("expected_source_commit_sha"),
+        "working_tree_dirty": worktree_dirty,
+        "source_commit_sha_at_validation": git_state.get("source_commit_sha"),
+        "result_status": result["status"],
+        "metrics": result.get("metrics"),
+    }
+    if raw_path is not None and raw_path.is_file():
+        preserved_path = attempts_dir / f"{run_id}.measurement.json"
+        raw_path.replace(preserved_path)
+        record["measurement_path"] = preserved_path.relative_to(results_root).as_posix()
+    attempt_path = attempts_dir / f"{run_id}.json"
+    atomic_write_json(attempt_path, record)
+
+    entry = manifest.get(run_id)
+    if entry is not None and entry.get("status") in {
+        "completed",
+        "skipped",
+        "failed",
+        "blocked",
+    }:
+        manifest.transition(
+            run_id,
+            "running",
+            {"invalid_for_publication": True},
+            restart=True,
+        )
+    manifest.transition(
+        run_id,
+        "failed",
+        {
+            "configuration_hash": configuration_hash,
+            "invalid_for_publication": True,
+            "reason_if_not_success": reason,
+            "attempt_path": attempt_path.relative_to(results_root).as_posix(),
+        },
+    )
+
+
 def _final_metrics(metadata: dict[str, Any]) -> dict[str, Any]:
     inference_times = metadata.get("batch_inference_ms", [])
     image_times = metadata.get("image_batch_inference_ms", [])
@@ -549,6 +637,9 @@ def run_benchmark(
     allow_cpu_fallback: bool = False,
     confirm_data_terms: bool = False,
     retrieval_variant: RetrievalVariant | None = None,
+    strict_reproducibility: bool = False,
+    expected_source_commit_sha: str | None = None,
+    uv_executable: Path | None = None,
     progress: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
@@ -562,15 +653,41 @@ def run_benchmark(
         raise ValueError("batch_size must be positive.")
     if device != "cpu" and not device.startswith("cuda"):
         raise ValueError("device must be 'cpu', 'cuda', or 'cuda:<index>'.")
+    if strict_reproducibility and device == "cpu":
+        raise ValueError("Strict reproducibility requires a CUDA device.")
+    if strict_reproducibility and allow_cpu_fallback:
+        raise ValueError("Strict reproducibility does not allow CPU fallback.")
     if protocol == "p2" and dataset.task != "retrieval":
         raise ValueError("P2 is reserved for paired-language retrieval datasets.")
     if dataset.key == "crossmodal3600" and protocol != "p2":
         raise ValueError("XM3600 retrieval variants are an additional dimension of P2.")
     normalized_language = canonical_language(language)
-    source_sha = _source_commit_sha()
+    preflight = None
+    reproducibility_metadata = {"reproducibility_mode": "exploratory"}
+    if strict_reproducibility:
+        preflight = require_clean_source_preflight(
+            PROJECT_ROOT,
+            results_root,
+            expected_source_commit_sha,
+            uv_executable=uv_executable,
+        )
+        source_sha = preflight.source_commit_sha
+        reproducibility_metadata = {
+            "reproducibility_mode": "strict",
+            "expected_source_commit_sha": preflight.source_commit_sha,
+            "staging_directory": preflight.staging_directory,
+        }
+    else:
+        source_sha = _source_commit_sha()
     lock_sha = _lock_sha256()
-    dirty = _working_tree_dirty()
+    dirty = False if strict_reproducibility else _working_tree_dirty()
     hardware_report = doctor_report(device="cuda" if device.startswith("cuda") else "cpu")
+    if strict_reproducibility and not hardware_report.get("torch", {}).get(
+        "cuda_available"
+    ):
+        raise DataIntegrityError(
+            "Strict reproducibility requires CUDA, but torch.cuda.is_available() is false."
+        )
     hardware = _hardware_values(hardware_report, device)
 
     if dataset.access_status == "blocked" or dataset.license_status == "blocked":
@@ -592,6 +709,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
     if (
         dataset.license_status == "requires_user_confirmation"
@@ -618,6 +736,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
     if normalized_language not in dataset.languages:
         return _write_skipped_or_blocked(
@@ -641,6 +760,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
     if not language_is_supported(model, normalized_language):
         return _write_skipped_or_blocked(
@@ -661,6 +781,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
     if dataset.task not in model.supported_tasks:
         return _write_skipped_or_blocked(
@@ -681,6 +802,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
 
     if device.startswith("cuda") and not hardware_report.get("torch", {}).get("cuda_available"):
@@ -710,6 +832,7 @@ def run_benchmark(
                 hardware=hardware,
                 confirm_data_terms=confirm_data_terms,
                 retrieval_variant=resolved_retrieval_variant,
+                **reproducibility_metadata,
             )
     else:
         actual_device = device
@@ -740,6 +863,7 @@ def run_benchmark(
             hardware=hardware,
             confirm_data_terms=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
         )
     dataset_preparation_seconds = time.perf_counter() - prepare_started
     configuration = {
@@ -762,6 +886,13 @@ def run_benchmark(
     }
     if resolved_retrieval_variant is not None:
         configuration["retrieval_variant"] = resolved_retrieval_variant
+    if strict_reproducibility:
+        configuration.update(
+            {
+                "reproducibility_mode": "strict",
+                "expected_source_commit_sha": source_sha,
+            }
+        )
     configuration_hash = content_hash(configuration)
     selected_run_id = _run_id(configuration_hash, results_root, resume, force)
     if resume and not force:
@@ -874,6 +1005,15 @@ def run_benchmark(
             run_id=selected_run_id,
             data_terms_confirmed=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            reproducibility_mode=(
+                "strict" if strict_reproducibility else "exploratory"
+            ),
+            expected_source_commit_sha=(
+                source_sha if strict_reproducibility else None
+            ),
+            staging_directory=(
+                preflight.staging_directory if preflight is not None else None
+            ),
             dataset_record=dataset_record,
             model_metadata=model_metadata,
             evaluation_metadata=evaluation_metadata,
@@ -908,6 +1048,15 @@ def run_benchmark(
             run_id=selected_run_id,
             data_terms_confirmed=confirm_data_terms,
             retrieval_variant=resolved_retrieval_variant,
+            reproducibility_mode=(
+                "strict" if strict_reproducibility else "exploratory"
+            ),
+            expected_source_commit_sha=(
+                source_sha if strict_reproducibility else None
+            ),
+            staging_directory=(
+                preflight.staging_directory if preflight is not None else None
+            ),
             dataset_record=dataset_record,
             model_metadata=model_metadata,
             evaluation_metadata=evaluation_metadata,
@@ -919,7 +1068,50 @@ def run_benchmark(
             del adapter
             gc.collect()
 
+    if strict_reproducibility:
+        try:
+            require_clean_source_preflight(
+                PROJECT_ROOT,
+                results_root,
+                source_sha,
+                uv_executable=uv_executable,
+                check_lockfile=False,
+            )
+        except DataIntegrityError as error:
+            validate_result(result)
+            _record_invalid_attempt(
+                result,
+                results_root,
+                manifest,
+                configuration_hash,
+                str(error),
+            )
+            raise DataIntegrityError(
+                f"Run {selected_run_id} is invalid for publication: {error}"
+            ) from error
+
     if progress:
         progress(f"Run {selected_run_id}: {result['status']}.")
-    _persist_result(result, results_root, manifest, configuration_hash)
+    raw_path = _persist_result(result, results_root, manifest, configuration_hash)
+    if strict_reproducibility:
+        try:
+            require_clean_source_preflight(
+                PROJECT_ROOT,
+                results_root,
+                source_sha,
+                uv_executable=uv_executable,
+                check_lockfile=False,
+            )
+        except DataIntegrityError as error:
+            _record_invalid_attempt(
+                result,
+                results_root,
+                manifest,
+                configuration_hash,
+                str(error),
+                raw_path,
+            )
+            raise DataIntegrityError(
+                f"Run {selected_run_id} is invalid for publication: {error}"
+            ) from error
     return result

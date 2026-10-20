@@ -151,6 +151,29 @@
             "null"
           ]
         },
+        "working_tree_dirty": {
+          "type": "boolean"
+        },
+        "reproducibility_mode": {
+          "enum": [
+            "exploratory",
+            "strict"
+          ]
+        },
+        "expected_source_commit_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "staging_directory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
         "framework_name": {
           "const": "vision-language-benchmarks"
         },
@@ -546,6 +569,43 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reproducibility_mode": {
+                "const": "strict"
+              }
+            },
+            "required": [
+              "reproducibility_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "working_tree_dirty",
+              "source_commit_sha",
+              "expected_source_commit_sha",
+              "staging_directory"
+            ],
+            "properties": {
+              "working_tree_dirty": {
+                "const": false
+              },
+              "source_commit_sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "expected_source_commit_sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "staging_directory": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {

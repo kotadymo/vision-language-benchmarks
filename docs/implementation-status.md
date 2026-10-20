@@ -13,7 +13,7 @@ Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 
 | Milestone | Status | Evidence |
 | --- | --- | --- |
-| Offline unit suite | completed | `uv run --locked pytest -q`: 48 passed, two opt-in CUDA modules skipped |
+| Offline unit suite | completed for current implementation | `uv run --locked pytest -q`: 64 passed, two opt-in CUDA modules skipped |
 | Dependency lock, lint, and patch checks | completed | `uv lock --check`, `uv run --locked ruff check .`, and `git diff --check` passed |
 | Pretrained checkpoints loaded on CUDA | completed | All seven registered adapters passed |
 | Real image and text inference on CUDA | completed | All supported smoke-test languages passed; embeddings were finite and dimension-compatible |
@@ -22,11 +22,20 @@ Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 | XM3600 variant implementation | implemented and unit-tested | Explicit `official_first_caption` and `all_captions`; variant-aware run identity, resume, result schema, reporting, and pairing |
 | Official XM3600 loader validation | completed | Pinned loader selects `captions[0]` in annotation order; local annotations contain 3,600 images per language, zero missing-image exclusions, one caption per image, and identical ordered English/Japanese image IDs |
 | Official XM3600 metric differential | completed for synthetic candidates | Both direction keys and R@1/5/10 compared to the pinned metric implementation; this is not a full-model evaluation |
-| Full `official_first_caption` CUDA evaluations | completed | Seven FP32, seed-0, requested-batch-16 runs; 3,600 images and 3,600 captions per language; raw metrics and provenance are published |
-| Paired English/Japanese XM3600 comparison | completed for three multilingual models | Same ordered image IDs, candidate count, checkpoint, precision, preprocessing, tokenizer, source commit, and P2 protocol; observed deltas are in the report |
-| End-to-end official XM3600 evaluation | completed for multilingual OpenCLIP ViT-B/32 Japanese | Pinned official CLI and `vlbench` used the same 3,600 candidates; all six metric hit counts match |
-| Official CLIP Benchmark parity | CIFAR-10 P0 and one XM3600 condition completed | Reference commit `ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596`; CIFAR-10 P0 is exact at `1e-12`; XM3600 maximum absolute metric difference is `2.9404958135081927e-8` at `5e-8` tolerance |
+| Prior `official_first_caption` CUDA evaluations | completed historical set; clean-source replacement pending | Seven FP32, seed-0, requested-batch-16 runs; prior audit found one clean run and six with `working_tree_dirty: true` |
+| Strict clean-source execution | implemented and offline-tested | `doctor --reproducibility`, strict CUDA runs, frozen-SHA and ignored-staging validation, post-run checks, lifecycle-aware publication, and superseded-result exclusion |
+| Clean `official_first_caption` CUDA reruns | pending | Seven complete FP32 runs must use one clean committed source SHA; inference has not started |
+| Paired English/Japanese XM3600 comparison | previously completed for three multilingual models; replacement comparison pending | Prior results used matched image IDs, candidate counts, checkpoints, and P2 protocol; replacement differences will be computed from actual rerun records |
+| End-to-end official XM3600 evaluation | prior historical OpenCLIP ViT-B/32 Japanese comparison completed; replacement parity pending | Prior pinned CLI and `vlbench` results used the same 3,600 candidates; clean-run parity must be revalidated |
+| Official CLIP Benchmark parity | CIFAR-10 P0 and one historical XM3600 condition completed | Reference commit `ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596`; CIFAR-10 P0 is exact at `1e-12`; historical XM3600 maximum absolute metric difference is `2.9404958135081927e-8` at `5e-8` tolerance |
 | Historical raw-result audit | completed | All 31 original files are schema-valid and byte-identical to baseline commit `5b512ecb1d0177d88817a4e07d54f86810b7f86f`; provenance, metrics, batch sizes, throughput, prompts, and sensitive-payload checks are recorded in the audit JSON |
+
+The prior seven-run audit found one clean first-caption run and six runs with
+`working_tree_dirty: true`. The recorded run status attributes the observed dirty state to
+generated raw result files being untracked during later runs. The exact historical uncommitted
+file set cannot be reconstructed; no contents are inferred, and no historical raw metadata has
+been changed. The new strict workflow writes intermediate results to ignored staging and
+rejects dirty source state rather than bypassing it.
 
 The smoke tests use one generated image and two text examples per supported language. They
 validate the actual pretrained image and text encoders, feature shape and finiteness, normalized
@@ -68,14 +77,15 @@ The machine-readable run matrix, data checksums, and access blockers are maintai
 
 ## Completed full evaluations
 
-The 38 complete measurements use CUDA FP32, seed 0, the complete registered split, and
+The existing 38-measurement baseline uses CUDA FP32, seed 0, the complete registered split, and
 requested batch size 16. P0 (18 CLIP Benchmark templates) and P1 (model-native prompts) remain
 separate. Actual image/text batch sizes and OOM retry counts are recorded per run; the
 EmbeddingGemma XM3600 image sub-batches were 11 images due to dynamic-resolution shape
 grouping, with text batch size 16. No published run required an OOM retry. The 24 CIFAR runs
-and seven historical XM3600 `all_captions` runs are unchanged. The seven new
-`official_first_caption` runs use 3,600 candidates per language; they remain separate from the
-all-caption scores.
+and seven historical XM3600 `all_captions` runs are unchanged. The seven earlier
+`official_first_caption` runs use 3,600 candidates per language and remain separate from the
+all-caption scores; the prior audit found one clean run and six dirty-worktree records. Their
+replacement evaluations and numerical comparison are pending.
 
 The CIFAR matrix contains all six English-compatible models on both test sets under P0 and P1.
 Each XM3600 variant contains English/Japanese runs for EmbeddingGemma, multilingual OpenCLIP,
@@ -86,15 +96,17 @@ variant are not used to calculate language deltas. Caption content and translati
 remain uncontrolled, so score differences describe observed performance under the specified
 conditions rather than a causal language-understanding effect.
 
-The results are published under [`results/v0.1.0`](../results/v0.1.0/): raw metric JSON,
-summary CSV, generated Markdown report, metadata, and non-empty plots. Numerical parity evidence
-is in [`official-cifar10-parity.json`](../results/v0.1.0/validation/official-cifar10-parity.json)
-and [`official-xm3600-parity.json`](../results/v0.1.0/validation/official-xm3600-parity.json).
+The existing results are published under [`results/v0.1.0`](../results/v0.1.0/): raw metric
+JSON, summary CSV, generated Markdown report, metadata, and non-empty plots. Numerical parity
+evidence is in
+[`official-cifar10-parity.json`](../results/v0.1.0/validation/official-cifar10-parity.json)
+and the historical
+[`official-xm3600-parity.json`](../results/v0.1.0/validation/official-xm3600-parity.json).
 The official CLI output is retained in
 [`official-xm3600-openclip-ja.json`](../results/v0.1.0/validation/official-xm3600-openclip-ja.json).
-Some official-first raw records preserve `working_tree_dirty: true` because earlier result
-JSONs were untracked during later runs; the recorded source commit and dirty flag remain
-authoritative in each raw file.
+The run-status record links the six dirty flags to generated raw results being untracked during
+later runs. The previous raw JSON and parity records remain untouched; the source and dirty
+metadata are authoritative, while the exact uncommitted historical file set is unrecoverable.
 
 ## Access blockers
 
