@@ -1,7 +1,9 @@
 # Implementation and Evaluation Status
 
-Last updated: 2026-10-20
-Branch: `feature/benchmark-framework-v0.1.0`
+Last updated: 2026-10-21
+v0.1.0 framework branch: `feature/benchmark-framework-v0.1.0`
+MRL extension branch: `feature/embeddinggemma-mrl-benchmarks`
+MRL measurement source commit: `a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`
 Base branch head before the XM3600 protocol work: `5b512ecb1d0177d88817a4e07d54f86810b7f86f`
 Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 `60a61259c95e7c387e896b23084e3c3d0fc375f5`,
@@ -11,11 +13,30 @@ Measurement source commits: `2993187c2b960e6e6690c97205b22838d18a36a3`,
 The seven clean XM3600 replacements use frozen source commit
 `9d170b6071eecd75d7100ca70092d44d86650f01`.
 
+## EmbeddingGemma 2 native Matryoshka evaluation
+
+The separate `openclip-gemma==0.4.0` suite completed 24 full-dataset CUDA FP32 runs from
+frozen source commit `a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`. It covers CIFAR-10/100 P0/P1
+and XM3600 `official_first_caption` in English/Japanese at 768D, 512D, 256D, and 128D. All
+24 are active, schema-valid, and report `working_tree_dirty: false`; there were no OOM retries.
+The results and plots are under
+[`results/mrl-openclip-gemma-v0.4.0/`](../results/mrl-openclip-gemma-v0.4.0/).
+
+The measured 768D scores exactly match all 20 corresponding v0.3.0 metric values. This is not
+full proof of identical historical conditions: preprocessing provenance is absent for the four
+CIFAR baseline records, while both XM3600 baseline comparisons differ because v0.4.0 adds
+native-dimension metadata to the previous transform configuration. Both details are preserved in the
+[baseline comparison](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-baseline-comparison.json).
+One earlier 768D CIFAR-10 P0 inference on commit `737b77848c52987652bcc4ddfbb883dede2ba79b`
+was rejected at persistence because required dimension metadata was missing. No raw score was
+persisted; the attempt is recorded in the [run-status manifest](../results/mrl-openclip-gemma-v0.4.0/run-status.json)
+and excluded from the active 24.
+
 ## Verification milestones
 
 | Milestone | Status | Evidence |
 | --- | --- | --- |
-| Offline unit suite | completed for current implementation | `uv run --locked pytest -q`: 64 passed, two opt-in CUDA modules skipped |
+| Offline unit suite | completed for current implementation | `uv run --locked pytest -q`: 88 passed, three opt-in CUDA modules skipped |
 | Dependency lock, lint, and patch checks | completed | `uv lock --check`, `uv run --locked ruff check .`, and `git diff --check` passed |
 | Pretrained checkpoints loaded on CUDA | completed | All seven registered adapters passed |
 | Real image and text inference on CUDA | completed | All supported smoke-test languages passed; embeddings were finite and dimension-compatible |
@@ -31,6 +52,9 @@ The seven clean XM3600 replacements use frozen source commit
 | End-to-end official XM3600 evaluation | completed for clean OpenCLIP ViT-B/32 Japanese run | Clean run `ae4e1863504978e0` matched the pinned reference candidates, checkpoint, tokenizer, preprocessing, and positive pairs |
 | Official CLIP Benchmark parity | CIFAR-10 P0 and clean XM3600 OpenCLIP Japanese completed | Reference commit `ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596`; CIFAR-10 P0 is exact at `1e-12`; clean XM3600 maximum absolute difference is `2.9404958135081927e-8` at `5e-8` tolerance |
 | Historical raw-result audit and preservation | completed | The 31 original files remain schema-valid and byte-identical to baseline commit `5b512ecb1d0177d88817a4e07d54f86810b7f86f`; SHA-256 hashes for all 38 pre-replacement files are in the preservation manifest |
+| Native Matryoshka inference | completed and tested | `openclip-gemma==0.4.0` uses native `truncate_dim` for independent 768D/512D/256D/128D image and text runs |
+| Full MRL CUDA matrix | completed | 24/24 complete runs, 16 CIFAR conditions and eight XM3600 conditions; all use frozen commit `a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`, clean worktrees, FP32, seed 0, and requested batch 16 |
+| MRL 768D historical comparison | completed with provenance limits recorded | All 20 metric values equal v0.3.0; four CIFAR preprocessing checks are unverified and both XM3600 baseline comparisons differ in added dimension metadata |
 
 The prior seven-run audit found one clean first-caption run and six runs with
 `working_tree_dirty: true`. The recorded run status attributes the observed dirty state to

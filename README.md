@@ -3,6 +3,31 @@
 A reproducible framework for evaluating pretrained vision-language models on zero-shot
 classification and bilingual image-text retrieval.
 
+## EmbeddingGemma 2 Matryoshka results
+
+The separate `openclip-gemma==0.4.0` publication contains 24 full-dataset CUDA FP32 runs at
+768D, 512D, 256D, and 128D: CIFAR-10/100 under P0/P1 and XM3600 `official_first_caption`
+retrieval in English and Japanese. All 24 use the same clean source commit
+`a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`; the earlier v0.1.0 results remain unchanged.
+
+- [Dimension analysis and comparison](results/mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md)
+  · [CSV](results/mrl-openclip-gemma-v0.4.0/embedding-dimension-summary.csv)
+  · [full report](results/mrl-openclip-gemma-v0.4.0/report.md)
+- [Raw results](results/mrl-openclip-gemma-v0.4.0/raw/)
+  · [lifecycle](results/mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json)
+  · [dimension audit](results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json)
+  · [768D baseline comparison](results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-baseline-comparison.json)
+- Dimension charts: [CIFAR-10 P0](results/mrl-openclip-gemma-v0.4.0/plots/embedding_dimension_cifar10_p0_en_classification.png),
+  [CIFAR-100 P0](results/mrl-openclip-gemma-v0.4.0/plots/embedding_dimension_cifar100_p0_en_classification.png),
+  [XM3600 English](results/mrl-openclip-gemma-v0.4.0/plots/embedding_dimension_crossmodal3600_en_official-first-caption.png),
+  [XM3600 Japanese](results/mrl-openclip-gemma-v0.4.0/plots/embedding_dimension_crossmodal3600_ja_official-first-caption.png),
+  and [vector storage](results/mrl-openclip-gemma-v0.4.0/plots/embedding_dimension_storage.png).
+
+All 20 comparable 768D metric values equal the v0.3.0 measurements. The audit does not claim
+full condition identity: historical CIFAR preprocessing provenance is unavailable, and the
+new XM3600 records include native-dimension metadata absent from v0.3.0. See the baseline audit
+for those checks and their measured differences.
+
 ## Verified v0.1.0 results
 
 The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 records on an NVIDIA

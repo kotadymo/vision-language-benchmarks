@@ -102,7 +102,8 @@ directly to both native `encode_image` and `encode_text` calls. The supported di
 vector; the adapter verifies the resulting width, finite values, and unit norm. Each dimension
 is an independent full-dataset inference run, not a slice or reranking of another dimension's
 features. See the [dimension workflow](embedding-dimensions.md) for strict execution and
-validation commands.
+validation commands, and the [verified 24-run report](../results/mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md)
+for the measured dimension/accuracy/storage trade-offs.
 
 On CUDA out-of-memory, the runner retries with a halved batch size down to one. The final
 batch sizes and OOM history are stored in the result. If a batch of one still fails, the run

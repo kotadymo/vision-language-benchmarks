@@ -20,6 +20,33 @@ summary CSV files retain the dimension and inference strategy; historical result
 these fields remain valid and unchanged. Dimension results belong in a separate publication
 directory rather than `results/v0.1.0/`.
 
+## Verified v0.4.0 suite
+
+The [published matrix](../results/mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md)
+contains 24 independent full-dataset runs from frozen source commit
+`a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`: CIFAR-10/100 P0/P1 at all four dimensions, plus
+XM3600 `official_first_caption` in English and Japanese at all four dimensions. The CIFAR
+conditions use all 10,000 official test images; each XM3600 condition uses 3,600 images and
+3,600 first-caption candidates. The exact dataset checksums, candidate-order checks, and run
+provenance are in the [dimension audit](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json).
+
+All runs use EmbeddingGemma revision `914f7f89142e33e77833254d9c9b90c3cef7303b`,
+checkpoint SHA-256 `1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510`,
+FP32, seed 0, requested batch size 16, Python 3.12.10, PyTorch 2.14.1+cu130, CUDA 13.0,
+driver 610.88, and an NVIDIA RTX 4070 Ti SUPER. Each records a clean worktree and the same
+source commit. Actual image/text batches were 16/16 for CIFAR and 11/16 for XM3600: the image
+adapter groups aspect-ratio-aware preprocessed tensors by shape. No run needed an OOM retry.
+The [run-status manifest](../results/mrl-openclip-gemma-v0.4.0/run-status.json) records a
+separate pre-fix schema-invalid pilot; it produced no persisted raw measurement and is excluded
+from the 24 active conditions.
+
+All 20 measured values in the fresh 768D versus v0.3.0 comparison are numerically identical.
+This is not a claim that every old execution condition is fully verified: the historical CIFAR
+records lack preprocessing provenance, and v0.4.0 adds native-dimension metadata to the
+preprocessing configuration while retaining the same XM3600 transform, resolution, and
+shape-grouping fields. See the [baseline audit](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-baseline-comparison.json)
+for the per-condition status.
+
 ## Strict run example
 
 Publishable runs require a clean, committed checkout and an ignored staging directory:
@@ -40,11 +67,60 @@ uv run --locked vlbench run --model embeddinggemma2 --dataset cifar10 `
   --expected-source-commit $sourceCommit --yes
 ```
 
-Run the other dimensions and dataset/protocol/language combinations as separate invocations.
-For XM3600, specify `--dataset crossmodal3600 --protocol p2 --retrieval-variant
-official_first_caption` and run English and Japanese separately. Do not point inference output
-at a tracked results directory. Copy validated raw JSON to the dedicated publication
-directory only after all required runs have completed.
+For the full matrix, start with a fresh ignored staging directory and run each condition
+separately:
+
+```powershell
+$sourceCommit = "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+$staging = ".cache\benchmark-staging\embeddinggemma-mrl-repro"
+
+uv run --locked --extra cuda --extra gemma vlbench doctor `
+  --reproducibility --model embeddinggemma2 --dataset cifar10 `
+  --protocol p0 --language en --embedding-dimension 768 `
+  --precision fp32 --device cuda --batch-size 16 --seed 0 `
+  --output $staging --expected-source-commit $sourceCommit
+if ($LASTEXITCODE -ne 0) { throw "Strict reproducibility preflight failed." }
+
+$conditions = @(
+  @{ dataset = "cifar10"; protocol = "p0"; language = "en"; variant = $null },
+  @{ dataset = "cifar10"; protocol = "p1"; language = "en"; variant = $null },
+  @{ dataset = "cifar100"; protocol = "p0"; language = "en"; variant = $null },
+  @{ dataset = "cifar100"; protocol = "p1"; language = "en"; variant = $null },
+  @{ dataset = "crossmodal3600"; protocol = "p2"; language = "en"; variant = "official_first_caption" },
+  @{ dataset = "crossmodal3600"; protocol = "p2"; language = "ja"; variant = "official_first_caption" }
+)
+
+foreach ($dimension in @(768, 512, 256, 128)) {
+  foreach ($condition in $conditions) {
+    $variantArguments = @()
+    if ($condition.variant) {
+      $variantArguments = @("--retrieval-variant", $condition.variant)
+    }
+    uv run --locked --extra cuda --extra gemma vlbench run `
+      --model embeddinggemma2 --dataset $condition.dataset `
+      --protocol $condition.protocol --language $condition.language `
+      @variantArguments --embedding-dimension $dimension `
+      --precision fp32 --device cuda --batch-size 16 --seed 0 `
+      --output $staging --strict-reproducibility `
+      --expected-source-commit $sourceCommit --yes
+    if ($LASTEXITCODE -ne 0) {
+      throw "Strict MRL run failed: $($condition.dataset) / $($condition.protocol) / $($condition.language) / ${dimension}D."
+    }
+  }
+}
+
+if ((git rev-parse HEAD).Trim() -ne $sourceCommit) {
+  throw "The source revision changed during the benchmark suite."
+}
+if (git status --porcelain --untracked-files=all) {
+  throw "The source worktree became dirty during the benchmark suite."
+}
+```
+
+This runs 24 full-dataset conditions. The strict runner validates the source and staging area
+before and after each run. For publication, copy validated raw JSON into the separate results
+directory only after all conditions complete; never write inference output directly into a
+tracked publication directory.
 
 ## Validation and comparison
 

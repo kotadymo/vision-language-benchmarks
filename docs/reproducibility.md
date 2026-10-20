@@ -320,3 +320,19 @@ combinations.
 By default, data and caches are stored under the project root and excluded from Git. Set
 `VLBENCH_DATA_DIR` or `VLBENCH_CACHE_DIR` before running the CLI to move those locations.
 Output locations are selected with `--output`.
+
+## Published EmbeddingGemma Matryoshka suite
+
+The separate [v0.4.0 MRL publication](../results/mrl-openclip-gemma-v0.4.0/report.md) contains
+24 complete runs at 768D, 512D, 256D, and 128D, all recorded clean from source commit
+`a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`. The model revision, checkpoint hash, dataset
+checksums, full run settings, actual batch sizes, OOM history, and XM3600 candidate-order
+checks are linked from its [dimension audit](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json)
+and [run-status manifest](../results/mrl-openclip-gemma-v0.4.0/run-status.json).
+
+To reproduce it, check out the frozen measurement commit, use the strict staging workflow and
+per-condition commands in [EmbeddingGemma dimension workflow](embedding-dimensions.md), and
+keep output under an ignored directory such as `.cache\benchmark-staging\embeddinggemma-mrl`.
+Do not run from the later publication commit if an exact source revision is required. The
+earlier schema-invalid 768D pilot is recorded as an excluded failed attempt; it has no persisted
+measurement and is not part of the report.

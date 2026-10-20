@@ -1,5 +1,31 @@
 # Benchmark Results
 
+## EmbeddingGemma 2 native Matryoshka dimensions
+
+The separate [v0.4.0 report](mrl-openclip-gemma-v0.4.0/report.md) and
+[dimension analysis](mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md) summarize 24
+completed full-dataset FP32 CUDA evaluations through `openclip-gemma==0.4.0`: four dimensions
+(768/512/256/128) across CIFAR-10/100 P0/P1 and XM3600 `official_first_caption` English/Japanese.
+All use frozen source commit `a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`, the pinned
+EmbeddingGemma 2 checkpoint, seed 0, and requested batch size 16. All runs record
+`working_tree_dirty: false`; there were no OOM retries. CIFAR image/text batches were 16/16.
+XM3600 image/text batches were 11/16 because the aspect-ratio-aware image transform groups
+preprocessed tensors by shape. The [run-status manifest](mrl-openclip-gemma-v0.4.0/run-status.json)
+also records one earlier schema-invalid pilot attempt from commit
+`737b77848c52987652bcc4ddfbb883dede2ba79b`; no raw measurement was persisted and it is excluded
+from the 24 active results.
+
+The [summary CSV](mrl-openclip-gemma-v0.4.0/embedding-dimension-summary.csv),
+[raw JSON records](mrl-openclip-gemma-v0.4.0/raw/), [dimension audit](mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json),
+[baseline comparison](mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-baseline-comparison.json),
+[lifecycle](mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json), and PNG/SVG charts are
+published with the report. Every one of the 20 matched 768D metric values is identical to the
+v0.3.0 baseline. The audit preserves the provenance limitation: the old CIFAR preprocessing
+configuration is unavailable, while the XM3600 v0.4.0 configuration adds native-dimension
+fields to the old shared image-transform settings.
+
+## v0.1.0 benchmark results
+
 The raw archive contains 45 schema-validated, completed full-dataset CUDA FP32 measurements:
 24 CIFAR-10/100 classification runs, seven historical XM3600 `all_captions` runs, seven
 superseded earlier `official_first_caption` runs, and seven clean replacement runs. The
