@@ -96,6 +96,14 @@ EmbeddingGemma preserves its aspect-ratio-aware dynamic image resolution. Images
 their resulting tensor shape and encoded in same-shaped sub-batches; no extra resize or padding
 is introduced. Its reported image batch size is the largest such sub-batch in the successful run.
 
+EmbeddingGemma Matryoshka runs pin `openclip-gemma==0.4.0` and pass the requested dimension
+directly to both native `encode_image` and `encode_text` calls. The supported dimensions are
+768, 512, 256, and 128. The library retains leading coordinates and L2-normalizes the truncated
+vector; the adapter verifies the resulting width, finite values, and unit norm. Each dimension
+is an independent full-dataset inference run, not a slice or reranking of another dimension's
+features. See the [dimension workflow](embedding-dimensions.md) for strict execution and
+validation commands.
+
 On CUDA out-of-memory, the runner retries with a halved batch size down to one. The final
 batch sizes and OOM history are stored in the result. If a batch of one still fails, the run
 is retained as a failure rather than being reported as a measurement.

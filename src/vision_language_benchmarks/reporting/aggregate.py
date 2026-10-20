@@ -15,6 +15,12 @@ from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
+from vision_language_benchmarks.reporting.mrl import (
+    build_embedding_dimension_audit,
+    build_embedding_dimension_baseline_comparison,
+    render_embedding_dimension_section,
+    write_embedding_dimension_analysis,
+)
 from vision_language_benchmarks.reporting.plots import write_plots
 from vision_language_benchmarks.reporting.reproducibility_audit import (
     build_clean_official_xm3600_parity,
@@ -31,6 +37,7 @@ SUMMARY_FIELDS = (
     "publication_state",
     "reproducibility_mode",
     "model_key",
+    "embedding_dimension",
     "model",
     "model_checkpoint_filename",
     "model_checkpoint_size_bytes",
@@ -92,6 +99,7 @@ NON_SUCCESS_FIELDS = (
     "run_id",
     "status",
     "model_key",
+    "embedding_dimension",
     "model",
     "dataset_key",
     "dataset",
@@ -328,6 +336,10 @@ def summary_rows(
             "publication_state": (publication_states or {}).get(metadata["run_id"], ""),
             "reproducibility_mode": metadata.get("reproducibility_mode", ""),
             "model_key": configuration.get("model_key", ""),
+            "embedding_dimension": metadata.get(
+                "embedding_dimension",
+                configuration.get("embedding_dimension"),
+            ),
             "model": _model_name(result),
             "model_checkpoint_filename": metadata.get("model_checkpoint_filename"),
             "model_checkpoint_size_bytes": metadata.get("model_checkpoint_size_bytes"),
@@ -388,6 +400,10 @@ def _status_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "run_id": metadata["run_id"],
                 "status": result["status"],
                 "model_key": configuration.get("model_key", ""),
+                "embedding_dimension": metadata.get(
+                    "embedding_dimension",
+                    configuration.get("embedding_dimension"),
+                ),
                 "model": _model_name(result),
                 "dataset_key": result["dataset"],
                 "dataset": _dataset_name(result),
@@ -514,10 +530,11 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
     task = results[0]["task"]
     if task == "classification":
         lines = [
-            "| Model | Parameters | Checkpoint | Dataset | Split | Images | Classes | "
+            "| Model | Embedding dim | Parameters | Checkpoint | "
+            "Dataset | Split | Images | Classes | "
             "Requested / image / text batch | Top-1 | Top-5 | Images/s | Median (ms) | "
             "Peak allocated / reserved (GiB) | OOM retries | Raw result |",
-            "|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+            "|---|---:|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
         ]
         for result in results:
             metadata = result["benchmark_metadata"]
@@ -534,6 +551,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             )
             values = (
                 _model_name(result),
+                _sample_count(metadata.get("embedding_dimension")),
                 parameter_size,
                 checkpoint_size_text,
                 _dataset_name(result),
@@ -553,13 +571,14 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         return lines
 
     lines = [
-        "| Model | Parameters | Checkpoint | Dataset | Split | Language | Retrieval variant | "
+        "| Model | Embedding dim | Parameters | Checkpoint | Dataset | Split | "
+        "Language | Retrieval variant | "
         "Images / captions | "
         "Requested / image / text batch | "
         "T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | "
         "Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | "
         "OOM retries | Raw result |",
-        "|---|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "|---|---:|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for result in results:
         metadata = result["benchmark_metadata"]
@@ -581,6 +600,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         variant, _ = retrieval_variant_info(result)
         values = (
             _model_name(result),
+            _sample_count(metadata.get("embedding_dimension")),
             parameter_size,
             checkpoint_size_text,
             _dataset_name(result),
@@ -649,11 +669,12 @@ def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
                 f"### {_dataset_name(pairs[0][0])} · {protocol.upper()} · "
                 f"{precision.upper()} · {variant}",
                 "",
-                "| Model | Split | Images | Captions (EN / JA) | T→I R@1 (EN → JA; Δ pp) | "
+                "| Model | Embedding dim | Split | Images | Captions (EN / JA) | "
+                "T→I R@1 (EN → JA; Δ pp) | "
                 "T→I R@5 (EN → JA; Δ pp) | T→I R@10 (EN → JA; Δ pp) | "
                 "I→T R@1 (EN → JA; Δ pp) | I→T R@5 (EN → JA; Δ pp) | "
                 "I→T R@10 (EN → JA; Δ pp) |",
-                "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+                "|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|",
             ]
         )
         for english, japanese in sorted(pairs, key=lambda pair: _model_name(pair[0])):
@@ -663,6 +684,7 @@ def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
             japanese_metrics = japanese["metrics"]
             values = (
                 _model_name(english),
+                _sample_count(english_metadata.get("embedding_dimension")),
                 english_metadata["dataset_split"],
                 _sample_count(english_metadata.get("image_count")),
                 (
@@ -932,6 +954,7 @@ def render_report(
     )
     lines.extend(_render_paired_language_section(completed))
     lines.extend(_render_performance_section(completed))
+    lines.extend(render_embedding_dimension_section(completed))
 
     lines.extend(
         [
@@ -990,6 +1013,7 @@ def render_report(
         "official-xm3600-parity-clean.json",
         "result-lifecycle.json",
         "clean-xm3600-reproducibility-audit.json",
+        "embedding-dimension-audit.json",
     )
     available_validation_artifacts = [
         f"[{name}](validation/{name})"
@@ -1122,6 +1146,10 @@ def _metadata_document(
                     "status": result["status"],
                     "protocol": configuration.get("protocol"),
                     "precision": metadata.get("precision"),
+                    "embedding_dimension": metadata.get(
+                        "embedding_dimension",
+                        configuration.get("embedding_dimension"),
+                    ),
                     "language": result["language"],
                     "retrieval_variant": variant,
                     "retrieval_variant_source": variant_source,
@@ -1232,6 +1260,10 @@ def _metadata_document(
                 "language": result["language"],
                 "protocol": _configuration(result).get("protocol"),
                 "precision": result["benchmark_metadata"].get("precision"),
+                "embedding_dimension": result["benchmark_metadata"].get(
+                    "embedding_dimension",
+                    _configuration(result).get("embedding_dimension"),
+                ),
             }
             for result in results
         ],
@@ -1248,12 +1280,25 @@ def generate_reports(
     publishable: bool = False,
     lifecycle_path: Path | None = None,
     expected_source_commit_sha: str | None = None,
+    baseline_input_path: Path | None = None,
+    baseline_lifecycle_path: Path | None = None,
 ) -> dict[str, Path]:
+    if (baseline_input_path is None) != (baseline_lifecycle_path is None):
+        raise ValueError(
+            "Historical baseline comparison requires both baseline input and lifecycle paths."
+        )
+    if baseline_input_path is not None and not publishable:
+        raise ValueError(
+            "Historical baseline comparison is supported only for publishable reports."
+        )
+
     all_results = load_results(input_path)
     results = all_results
     publication_states: dict[str, str] | None = None
     publication_lifecycle: dict[str, Any] | None = None
     validation_documents: dict[str, dict[str, Any]] = {}
+    dimension_results: list[dict[str, Any]] = []
+    baseline_comparison: dict[str, Any] | None = None
     if publishable:
         selected_lifecycle_path = lifecycle_path or (
             output_dir / "validation" / "result-lifecycle.json"
@@ -1270,10 +1315,46 @@ def generate_reports(
             if publication_states.get(result["benchmark_metadata"]["run_id"]) == "active"
             and retrieval_variant_info(result)[0] == "official_first_caption"
         ]
-        if active_official_runs:
+        dimension_results = [
+            result
+            for result in results
+            if result["benchmark_metadata"].get("embedding_dimension") is not None
+        ]
+        if dimension_results:
+            dimension_states = {
+                result["benchmark_metadata"]["run_id"]: publication_states[
+                    result["benchmark_metadata"]["run_id"]
+                ]
+                for result in dimension_results
+            }
+            validation_documents["embedding-dimension-audit.json"] = (
+                build_embedding_dimension_audit(
+                    dimension_results,
+                    dimension_states,
+                    lifecycle["frozen_source_commit_sha"],
+                )
+            )
+
+        historical_suite_results = [
+            result
+            for result in all_results
+            if result["benchmark_metadata"].get("embedding_dimension") is None
+        ]
+        historical_suite_states = {
+            result["benchmark_metadata"]["run_id"]: publication_states[
+                result["benchmark_metadata"]["run_id"]
+            ]
+            for result in historical_suite_results
+        }
+        active_historical_official_runs = [
+            result
+            for result in active_official_runs
+            if result["benchmark_metadata"].get("embedding_dimension") is None
+        ]
+        if active_historical_official_runs:
             audit = build_clean_xm3600_reproducibility_audit(
-                all_results,
-                publication_states,
+                historical_suite_results,
+                historical_suite_states,
                 lifecycle["frozen_source_commit_sha"],
             )
             validation_dir = output_dir / "validation"
@@ -1292,7 +1373,7 @@ def generate_reports(
                 ) from error
             clean_openclip_japanese = next(
                 result
-                for result in active_official_runs
+                for result in active_historical_official_runs
                 if _configuration(result).get("model_key") == "openclip_multilingual_b32"
                 and result["language"] == "ja"
             )
@@ -1311,10 +1392,10 @@ def generate_reports(
                     "Clean XM3600 parity validation failed: "
                     + ", ".join(failed_checks)
                 )
-            validation_documents = {
+            validation_documents.update({
                 "clean-xm3600-reproducibility-audit.json": audit,
                 "official-xm3600-parity-clean.json": clean_parity,
-            }
+            })
         state_counts = Counter(
             entry["state"] for entry in lifecycle["entries"]
         )
@@ -1327,6 +1408,35 @@ def generate_reports(
             },
             "attempt_count": len(lifecycle["attempts"]),
         }
+        if baseline_input_path is not None and baseline_lifecycle_path is not None:
+            if not dimension_results:
+                raise DataIntegrityError(
+                    "Historical baseline comparison requires EmbeddingGemma dimension results."
+                )
+            previous_results = load_results(baseline_input_path)
+            previous_lifecycle = _load_publication_lifecycle(baseline_lifecycle_path)
+            previous_ids = {
+                str(result["benchmark_metadata"]["run_id"])
+                for result in previous_results
+            }
+            previous_lifecycle_ids = set(previous_lifecycle["entries_by_run_id"])
+            if previous_ids != previous_lifecycle_ids:
+                raise DataIntegrityError(
+                    "Historical baseline lifecycle does not match its raw results."
+                )
+            baseline_comparison = build_embedding_dimension_baseline_comparison(
+                dimension_results,
+                previous_results,
+                {
+                    run_id: entry["state"]
+                    for run_id, entry in previous_lifecycle["entries_by_run_id"].items()
+                },
+                lifecycle["frozen_source_commit_sha"],
+                previous_lifecycle["frozen_source_commit_sha"],
+            )
+            validation_documents["embedding-dimension-baseline-comparison.json"] = (
+                baseline_comparison
+            )
     output_dir.mkdir(parents=True, exist_ok=True)
     if validation_documents:
         validation_dir = output_dir / "validation"
@@ -1341,6 +1451,7 @@ def generate_reports(
             str(row["language"]),
             str(row["precision"]),
             str(row["model_key"]),
+            -int(row["embedding_dimension"] or 0),
             str(row["run_id"]),
         )
     )
@@ -1352,6 +1463,7 @@ def generate_reports(
             str(row["protocol"]),
             str(row["language"]),
             str(row["model_key"]),
+            -int(row["embedding_dimension"] or 0),
             str(row["run_id"]),
         )
     )
@@ -1366,6 +1478,11 @@ def generate_reports(
         _metadata_document(results, publication_states, publication_lifecycle),
     )
     plots = write_plots(results, output_dir / "plots")
+    dimension_files = write_embedding_dimension_analysis(
+        results,
+        output_dir,
+        baseline_comparison,
+    )
     report_path.write_text(
         render_report(
             results,
@@ -1381,5 +1498,6 @@ def generate_reports(
         "non_success_csv": non_success_path,
         "metadata_json": metadata_path,
         "report_markdown": report_path,
+        **dimension_files,
         **plots,
     }

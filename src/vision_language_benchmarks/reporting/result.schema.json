@@ -225,6 +225,23 @@
             "null"
           ]
         },
+        "embedding_dimension": {
+          "enum": [
+            768,
+            512,
+            256,
+            128
+          ]
+        },
+        "embedding_dimension_strategy": {
+          "const": "leading-dimensions-l2-v1"
+        },
+        "native_embedding_dimension": {
+          "const": 768
+        },
+        "embedding_generation_mode": {
+          "const": "native_truncate_dim"
+        },
         "adapter_name": {
           "type": [
             "string",
@@ -569,6 +586,25 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "embedding_dimension"
+            ]
+          },
+          "then": {
+            "required": [
+              "embedding_dimension_strategy",
+              "native_embedding_dimension",
+              "embedding_generation_mode"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {

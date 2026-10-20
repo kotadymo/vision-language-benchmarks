@@ -1048,7 +1048,7 @@ wheels = [
 
 [[package]]
 name = "openclip-gemma"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -1057,9 +1057,9 @@ dependencies = [
     { name = "torchvision" },
     { name = "transformers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c2/82/26757339835861af2e66cab74f51fdd2c3141694a12b9ed59207d63c3a86/openclip_gemma-0.3.0.tar.gz", hash = "sha256:bac74b521645ffd90a84b39f90f1c6d0bba1ace5e2b3115cd18180de01eceaf5", size = 45739, upload-time = "2026-10-19T11:16:54.717Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/9f/c689238796c1365a06daa98fc2c81030163cc6ea4ea7b19bbd01b69911f5/openclip_gemma-0.4.0.tar.gz", hash = "sha256:b81c14403a6c2bd3637e07ab1dc1fa93d71e07433879fe6fec100de7721c1899", size = 50711, upload-time = "2026-10-20T14:13:27.189Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7b/50/cf44acf38fb1b55e3ba0225b3b5c75a5fb2c313bc58a0deb3b6bf3f7b050/openclip_gemma-0.3.0-py3-none-any.whl", hash = "sha256:499e26ac837c4423f14d5379f5c8170081d1f41d64c9abd7392caef7224bd6e9", size = 43267, upload-time = "2026-10-19T11:16:53.33Z" },
+    { url = "https://files.pythonhosted.org/packages/48/8a/df7fa6ce40f81e881844d7fd6a9653f0a1d08cd3747583e6e37ac4758317/openclip_gemma-0.4.0-py3-none-any.whl", hash = "sha256:f588627fb99072b1e33e2857ddbc9d0d3211dc12969f1ffb8c580d33e1487174", size = 47889, upload-time = "2026-10-20T14:13:25.726Z" },
 ]
 
 [[package]]
@@ -2025,7 +2025,7 @@ requires-dist = [
     { name = "matplotlib", specifier = "==3.11.2" },
     { name = "numpy", specifier = "==2.5.4" },
     { name = "open-clip-torch", marker = "extra == 'openclip'", specifier = "==3.3.0" },
-    { name = "openclip-gemma", marker = "extra == 'gemma'", specifier = "==0.3.0" },
+    { name = "openclip-gemma", marker = "extra == 'gemma'", specifier = "==0.4.0" },
     { name = "pillow", specifier = "==13.0.0" },
     { name = "protobuf", marker = "extra == 'japanese-clip'", specifier = ">=3.20.3" },
     { name = "torch", marker = "extra == 'cuda'", specifier = "==2.14.1", index = "https://download.pytorch.org/whl/cu130" },

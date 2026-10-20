@@ -105,6 +105,11 @@ never write inference outputs directly into the tracked publication directory. `
 reuses a matching completed configuration; `--force` creates a new run. These flags are
 mutually exclusive, and neither bypasses strict source checks.
 
+EmbeddingGemma Matryoshka runs use the independent native dimensions 768/512/256/128 and
+include the selected dimension in run identity and publication metadata. See the
+[EmbeddingGemma dimension workflow](embedding-dimensions.md) for v0.4.0 inference, equivalence
+checks, and separate publication commands.
+
 Generate lifecycle assignments, then regenerate only publishable report artifacts:
 
 ```powershell

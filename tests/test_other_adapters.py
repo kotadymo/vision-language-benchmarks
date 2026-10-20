@@ -239,13 +239,14 @@ def test_embeddinggemma_batches_images_by_preprocessed_shape(
             batch: FakeImageBatch,
             *,
             normalize: bool,
+            truncate_dim: int,
         ) -> FakeFeatures:
             assert not normalize
             self.image_batch_shapes.append(batch.shape)
-            values = np.asarray(
-                [[image.value, image.value + 1] for image in batch.images],
-                dtype=np.float32,
-            )
+            values = np.zeros((len(batch.images), truncate_dim), dtype=np.float32)
+            values[:, 0] = [image.value for image in batch.images]
+            values[:, 1] = 1.0
+            values /= np.linalg.norm(values, axis=1, keepdims=True)
             return FakeFeatures(values)
 
     model = GroupedFakeModel()
@@ -291,7 +292,7 @@ def test_embeddinggemma_batches_images_by_preprocessed_shape(
 
     def package_version(name: str) -> str:
         versions = {
-            "openclip-gemma": "0.3.0",
+            "openclip-gemma": "0.4.0",
             "transformers": "4.45.0",
         }
         assert name in versions
@@ -326,7 +327,12 @@ def test_embeddinggemma_batches_images_by_preprocessed_shape(
     features = adapter.encode_images(prepared)
 
     assert model.image_batch_shapes == [(2, 3, 2, 4), (1, 3, 4, 2)]
-    assert features[:, 0].tolist() == [11.0, 22.0, 33.0]
+    expected_first_components = [
+        value / np.sqrt(value**2 + 1.0)
+        for value in (11.0, 22.0, 33.0)
+    ]
+    assert np.allclose(features[:, 0], expected_first_components)
+    assert features.shape == (3, 768)
     assert adapter.image_shape_group_max_batch_size == 2
     assert adapter.metadata()["image_shape_group_max_batch_size"] == 2
 

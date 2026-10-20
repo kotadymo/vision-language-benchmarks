@@ -18,6 +18,11 @@ import numpy as np
 from vision_language_benchmarks.adapters import create_adapter
 from vision_language_benchmarks.atomic import atomic_write_json, content_hash, sha256_file
 from vision_language_benchmarks.datasets.prepare import prepare_dataset
+from vision_language_benchmarks.embedding_dimensions import (
+    EMBEDDING_DIMENSION_STRATEGY,
+    NATIVE_EMBEDDING_DIMENSION,
+    resolve_embedding_dimension,
+)
 from vision_language_benchmarks.errors import (
     BatchSizeExhaustedError,
     BenchmarkError,
@@ -146,6 +151,7 @@ def _make_result(
     actual_device: str,
     batch_size: int,
     seed: int,
+    embedding_dimension: int | None = None,
     status: str,
     reason: str | None,
     source_commit_sha: str,
@@ -204,6 +210,8 @@ def _make_result(
         "dataset_checksum": record.get("dataset_checksum"),
         "data_terms_confirmed": data_terms_confirmed,
     }
+    if embedding_dimension is not None:
+        run_configuration["embedding_dimension"] = embedding_dimension
     if retrieval_variant is not None:
         run_configuration["retrieval_variant"] = retrieval_variant
     if reproducibility_mode == "strict":
@@ -347,6 +355,19 @@ def _make_result(
         ),
         "run_configuration": run_configuration,
     }
+    if embedding_dimension is not None:
+        metadata["embedding_dimension"] = embedding_dimension
+        metadata["embedding_dimension_strategy"] = adapter_metadata.get(
+            "embedding_dimension_strategy",
+            EMBEDDING_DIMENSION_STRATEGY,
+        )
+        metadata["native_embedding_dimension"] = adapter_metadata.get(
+            "native_embedding_dimension",
+            NATIVE_EMBEDDING_DIMENSION,
+        )
+        generation_mode = adapter_metadata.get("embedding_generation_mode")
+        if generation_mode is not None:
+            metadata["embedding_generation_mode"] = generation_mode
     if reproducibility_mode is not None:
         metadata.update(
             {
@@ -418,6 +439,7 @@ def _write_skipped_or_blocked(
     hardware: dict[str, Any],
     confirm_data_terms: bool = False,
     retrieval_variant: RetrievalVariant | None = None,
+    embedding_dimension: int | None = None,
     dataset_record: dict[str, Any] | None = None,
     configuration_hash: str | None = None,
     run_id: str | None = None,
@@ -439,6 +461,8 @@ def _write_skipped_or_blocked(
         "source_commit_sha": source_sha,
         "uv_lock_sha256": lock_sha,
     }
+    if embedding_dimension is not None:
+        configuration["embedding_dimension"] = embedding_dimension
     if retrieval_variant is not None:
         configuration["retrieval_variant"] = retrieval_variant
     config = configuration_hash or content_hash(configuration)
@@ -457,6 +481,7 @@ def _write_skipped_or_blocked(
         actual_device=device,
         batch_size=batch_size,
         seed=seed,
+        embedding_dimension=embedding_dimension,
         status=status,
         reason=reason,
         source_commit_sha=source_sha,
@@ -637,6 +662,7 @@ def run_benchmark(
     allow_cpu_fallback: bool = False,
     confirm_data_terms: bool = False,
     retrieval_variant: RetrievalVariant | None = None,
+    embedding_dimension: int | None = None,
     strict_reproducibility: bool = False,
     expected_source_commit_sha: str | None = None,
     uv_executable: Path | None = None,
@@ -644,6 +670,10 @@ def run_benchmark(
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
+    resolved_embedding_dimension = resolve_embedding_dimension(
+        model.key,
+        embedding_dimension,
+    )
     resolved_retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
     if protocol not in {"p0", "p1", "p2"}:
         raise ValueError(f"Unsupported protocol: {protocol!r}.")
@@ -663,7 +693,10 @@ def run_benchmark(
         raise ValueError("XM3600 retrieval variants are an additional dimension of P2.")
     normalized_language = canonical_language(language)
     preflight = None
-    reproducibility_metadata = {"reproducibility_mode": "exploratory"}
+    reproducibility_metadata = {
+        "reproducibility_mode": "exploratory",
+        "embedding_dimension": resolved_embedding_dimension,
+    }
     if strict_reproducibility:
         preflight = require_clean_source_preflight(
             PROJECT_ROOT,
@@ -676,6 +709,7 @@ def run_benchmark(
             "reproducibility_mode": "strict",
             "expected_source_commit_sha": preflight.source_commit_sha,
             "staging_directory": preflight.staging_directory,
+            "embedding_dimension": resolved_embedding_dimension,
         }
     else:
         source_sha = _source_commit_sha()
@@ -884,6 +918,8 @@ def run_benchmark(
         "source_commit_sha": source_sha,
         "uv_lock_sha256": lock_sha,
     }
+    if resolved_embedding_dimension is not None:
+        configuration["embedding_dimension"] = resolved_embedding_dimension
     if resolved_retrieval_variant is not None:
         configuration["retrieval_variant"] = resolved_retrieval_variant
     if strict_reproducibility:
@@ -917,6 +953,7 @@ def run_benchmark(
             "language": normalized_language,
             "protocol": protocol,
             "retrieval_variant": resolved_retrieval_variant,
+            "embedding_dimension": resolved_embedding_dimension,
             "dataset_checksum": dataset_record.get("dataset_checksum"),
         },
     )
@@ -927,7 +964,12 @@ def run_benchmark(
     evaluation_metadata: dict[str, Any] = {}
     oom_history: list[dict[str, Any]] = []
     try:
-        adapter = create_adapter(model.key, actual_device, precision)
+        adapter = create_adapter(
+            model.key,
+            actual_device,
+            precision,
+            embedding_dimension=resolved_embedding_dimension,
+        )
         model_initialization_seconds = time.perf_counter() - model_started
         torch = adapter.torch
         _seed_everything(seed, torch)
@@ -995,6 +1037,7 @@ def run_benchmark(
             actual_device=actual_device,
             batch_size=batch_size,
             seed=seed,
+            embedding_dimension=resolved_embedding_dimension,
             status="completed",
             reason=None,
             source_commit_sha=source_sha,
@@ -1038,6 +1081,7 @@ def run_benchmark(
             actual_device=actual_device,
             batch_size=batch_size,
             seed=seed,
+            embedding_dimension=resolved_embedding_dimension,
             status=status,
             reason=reason,
             source_commit_sha=source_sha,
