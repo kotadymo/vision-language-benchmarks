@@ -1,0 +1,59 @@
+{
+  "reference_commit": "ee14a9a8a9bcde09d51f4a4b1dff5a75182a3596",
+  "reference_version": "1.6.2",
+  "official_cli_default_model_name": "ViT-B-32-quickgelu",
+  "official_model_type": "open_clip",
+  "pretrained_tag": "openai",
+  "quick_gelu": true,
+  "dataset": "cifar10",
+  "split": "test",
+  "sample_count": 10000,
+  "class_count": 10,
+  "template_count": 18,
+  "precision": "fp32",
+  "device": "cuda:0",
+  "batch_size": 16,
+  "official_metrics": {
+    "acc1": 0.8983,
+    "acc5": 0.9961
+  },
+  "vlbench_metrics": {
+    "acc1": 0.8983,
+    "acc5": 0.9961
+  },
+  "absolute_differences": {
+    "acc1": 0.0,
+    "acc5": 0.0
+  },
+  "tolerance": 1e-12,
+  "parity_verified": true,
+  "vlbench_source_commit": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+  "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+  "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+  "validation_type": "end_to_end_numerical_parity",
+  "vlbench_run_id": "35cef7e32f8afb13",
+  "vlbench_result_path": "../raw/35cef7e32f8afb13.json",
+  "template_hash": "46d33640b228c3541cc8eeadb21872cd53b2ab0b0f5e91f848bed75d85d93dae",
+  "classnames_hash": "feb528d8ad763e4c89a96910f8ed9ea0113aa59fe89528e3f8804b4ae9b0d2e5",
+  "input_equivalence": {
+    "dataset_split_match": true,
+    "dataset_checksum_match": true,
+    "sample_count_match": true,
+    "class_count_match": true,
+    "template_count_match": true,
+    "template_hash_match": true,
+    "classnames_hash_match": true,
+    "checkpoint_sha256_match": true,
+    "preprocessing_match": true,
+    "precision_match": true,
+    "device_match": true
+  },
+  "runtime": {
+    "python_version": "3.12.10",
+    "torch_version": "2.14.1+cu130",
+    "cuda_runtime": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "gpu_vram_bytes": 17170956288,
+    "driver_version": "610.88"
+  }
+}

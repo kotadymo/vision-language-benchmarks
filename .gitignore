@@ -221,9 +221,29 @@ __marimo__/
 
 # Benchmark datasets and large artifacts
 data/
-datasets/
+/datasets/
 artifacts/
-results/raw/
+.cache/
+.huggingface/
+models/
+/results/**/run-manifest.json
+/results/**/*.jpg
+/results/**/*.jpeg
+/results/**/*.webp
+/results/**/*.bmp
+/results/**/*.tif
+/results/**/*.tiff
+/results/**/*.npy
+/results/**/*.npz
+/results/**/*.parquet
+/results/**/*.arrow
+/results/**/*.pkl
+/results/**/*.pickle
+/results/**/*.zip
+/results/**/*.tar
+/results/**/*.tgz
 *.safetensors
+*.bin
 *.pt
 *.pth
+*.part

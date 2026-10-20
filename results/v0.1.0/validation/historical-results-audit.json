@@ -1,0 +1,843 @@
+{
+  "schema_version": "1.0.0",
+  "audited_at_utc": "2026-10-19T23:06:48Z",
+  "historical_baseline_commit": "5b512ecb1d0177d88817a4e07d54f86810b7f86f",
+  "historical_result_count": 31,
+  "status_counts": {
+    "completed": 31
+  },
+  "protocol_counts": {
+    "classification:p0": 12,
+    "classification:p1": 12,
+    "retrieval:p2": 7
+  },
+  "all_historical_raw_files_unchanged": true,
+  "validation_checks": {
+    "all_results_schema_valid": true,
+    "all_completed_runs_have_fraction_metrics_in_range": true,
+    "no_missing_metrics_in_completed_runs": true,
+    "all_actual_image_and_text_batch_sizes_recorded": true,
+    "throughput_matches_images_or_texts_divided_by_inference_seconds": true,
+    "model_checkpoint_revision_and_sha256_consistent_per_model": true,
+    "dataset_revision_checksum_and_split_consistent_per_dataset": true,
+    "source_commits_resolve_to_git_commits": true,
+    "classification_protocols_separated": true,
+    "no_private_paths_or_token_patterns_found": true,
+    "no_embedded_features_cached_embeddings_or_weight_payloads_found": true
+  },
+  "source_commits": [
+    "2993187c2b960e6e6690c97205b22838d18a36a3",
+    "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+    "d72e4e462d137e9b77581a507e42897ff427eaf1"
+  ],
+  "dataset_provenance": {
+    "cifar10": {
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "split": "test"
+    },
+    "cifar100": {
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "split": "test"
+    },
+    "crossmodal3600": {
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "split": "all 3,600 images"
+    }
+  },
+  "model_provenance": {
+    "embeddinggemma2": {
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510"
+    },
+    "openai_clip_b32": {
+      "checkpoint_revision": null,
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31"
+    },
+    "openclip_b32_laion2b": {
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c"
+    },
+    "openclip_l14_laion2b": {
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb"
+    },
+    "openclip_multilingual_b32": {
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298"
+    },
+    "rinna_ja_clip_b16": {
+      "checkpoint_revision": "ce22bc39e6f5dcb449e082954211acfb00c2227b",
+      "checkpoint_sha256": "043cae46a1214011b90081233f50e86c086bf31f40929e57a569bfb334feb4e8"
+    },
+    "siglip2_base_224": {
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180"
+    }
+  },
+  "embeddinggemma_classification_prompt_audit": {
+    "prompt_name": "Classification",
+    "p0_text_candidate_counts": {
+      "cifar10": 180,
+      "cifar100": 1800
+    },
+    "p1_text_candidate_counts": {
+      "cifar10": 10,
+      "cifar100": 100
+    },
+    "conclusion": "The P0/P1 differences follow the implemented 18-template versus one model-native prompt protocol; no prompt-path defect was found."
+  },
+  "model_implementation_audit": {
+    "siglip2": "Image and text feature outputs are normalized in the shared FP32 retrieval/classification metric path.",
+    "openai_clip": "The pinned OpenCLIP pretrained configuration selects QuickGELU; the existing CIFAR-10 P0 official parity record validates the corresponding architecture and checkpoint.",
+    "retrieval_metric_directions": {
+      "image_retrieval_recall@k": "text-to-image",
+      "text_retrieval_recall@k": "image-to-text"
+    }
+  },
+  "historical_xm3600_variant_assignment": {
+    "retrieval_variant": "all_captions",
+    "assignment_source": "legacy_candidate_counts",
+    "raw_results_modified_or_relabelled": false,
+    "basis": "Each legacy run records 3,600 images, 7,200 English or 7,185 Japanese text candidates, and one positive image mapping per text candidate, matching the full-caption protocol.",
+    "runs": [
+      {
+        "run_id": "028043fb5a078d1e-214521ad",
+        "file": "raw/028043fb5a078d1e-214521ad.json",
+        "sha256": "9dfc3e1dcc493f55ecd725ec59adf667180c74755db02efc9bb6e9af6482530c",
+        "language": "ja",
+        "image_count": 3600,
+        "text_count": 7185,
+        "positive_pair_count": 7185,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "221fdf4bab042e89",
+        "file": "raw/221fdf4bab042e89.json",
+        "sha256": "27b6bcc3dfb7b97adc2b75bfbe84f9fb942ba5cf3d7c87e5b04c6b0f497fa5bb",
+        "language": "ja",
+        "image_count": 3600,
+        "text_count": 7185,
+        "positive_pair_count": 7185,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "3284f6a2ba1863cc",
+        "file": "raw/3284f6a2ba1863cc.json",
+        "sha256": "0e1838ba67839789ed76a0005143ca89855b89e5fbdefbfd153ce8858d7d2130",
+        "language": "en",
+        "image_count": 3600,
+        "text_count": 7200,
+        "positive_pair_count": 7200,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "36baa9edd5e9fa9a-53dd822c",
+        "file": "raw/36baa9edd5e9fa9a-53dd822c.json",
+        "sha256": "20cd7886e62ed81df77ee00571854910e0a959402f90ce962a7013b54cee19c6",
+        "language": "en",
+        "image_count": 3600,
+        "text_count": 7200,
+        "positive_pair_count": 7200,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "405472b594821180-783ab865",
+        "file": "raw/405472b594821180-783ab865.json",
+        "sha256": "72e280d74331d05ffc929ae2497ada6c6104d7921055bc0370815eb2e077aa23",
+        "language": "ja",
+        "image_count": 3600,
+        "text_count": 7185,
+        "positive_pair_count": 7185,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "5a7dc3bfc3d618c1",
+        "file": "raw/5a7dc3bfc3d618c1.json",
+        "sha256": "c99cf321da0b81d4fa27c178e5500a35d29a66e9ea85be2f51fccd79361d5ffa",
+        "language": "ja",
+        "image_count": 3600,
+        "text_count": 7185,
+        "positive_pair_count": 7185,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      },
+      {
+        "run_id": "8f9f79539fb877d6",
+        "file": "raw/8f9f79539fb877d6.json",
+        "sha256": "29cb8109b729a095973c0c26da7f489922c5213805ff5f54e2b01883649b1d90",
+        "language": "en",
+        "image_count": 3600,
+        "text_count": 7200,
+        "positive_pair_count": 7200,
+        "assigned_variant": "all_captions",
+        "assignment_source": "legacy_candidate_counts",
+        "raw_metadata_precedes_variant_field": true
+      }
+    ]
+  },
+  "raw_results": [
+    {
+      "run_id": "013541e887452604",
+      "file": "raw/013541e887452604.json",
+      "sha256": "3fff9ac7c07be9b9d8a4dc24bd2c516a84120f56c1fdb18c988c3a954599891a",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9354,
+        "acc5": 0.9986
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "028043fb5a078d1e-214521ad",
+      "file": "raw/028043fb5a078d1e-214521ad.json",
+      "sha256": "9dfc3e1dcc493f55ecd725ec59adf667180c74755db02efc9bb6e9af6482530c",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "d72e4e462d137e9b77581a507e42897ff427eaf1",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.5919276270006959,
+        "text_retrieval_recall@1": 0.7155555555555555,
+        "image_retrieval_recall@5": 0.8405010438413362,
+        "text_retrieval_recall@5": 0.9283333333333333,
+        "image_retrieval_recall@10": 0.9120389700765483,
+        "text_retrieval_recall@10": 0.9655555555555555
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "0c75f5095220051c-f8285c69",
+      "file": "raw/0c75f5095220051c-f8285c69.json",
+      "sha256": "0920b6a49c1b1fbc4eb2ceb3e507a8ccef560ba1c40011aec30bec718cb58073",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.6284,
+        "acc5": 0.8404
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "1de2d2b7854b5e80-30c3f626",
+      "file": "raw/1de2d2b7854b5e80-30c3f626.json",
+      "sha256": "ab1a02bff4779fb4226f7872f70a95b14b923332bccb463ab31a10ef31471bf3",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.8334,
+        "acc5": 0.9663
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "221fdf4bab042e89",
+      "file": "raw/221fdf4bab042e89.json",
+      "sha256": "27b6bcc3dfb7b97adc2b75bfbe84f9fb942ba5cf3d7c87e5b04c6b0f497fa5bb",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+      "checkpoint_revision": "ce22bc39e6f5dcb449e082954211acfb00c2227b",
+      "checkpoint_sha256": "043cae46a1214011b90081233f50e86c086bf31f40929e57a569bfb334feb4e8",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.5032707028531663,
+        "text_retrieval_recall@1": 0.58,
+        "image_retrieval_recall@5": 0.7727209464161447,
+        "text_retrieval_recall@5": 0.8483333333333334,
+        "image_retrieval_recall@10": 0.85205288796103,
+        "text_retrieval_recall@10": 0.9161111111111111
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "3284f6a2ba1863cc",
+      "file": "raw/3284f6a2ba1863cc.json",
+      "sha256": "0e1838ba67839789ed76a0005143ca89855b89e5fbdefbfd153ce8858d7d2130",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.6179166666666667,
+        "text_retrieval_recall@1": 0.7036111111111111,
+        "image_retrieval_recall@5": 0.8376388888888889,
+        "text_retrieval_recall@5": 0.9080555555555555,
+        "image_retrieval_recall@10": 0.9008333333333334,
+        "text_retrieval_recall@10": 0.9569444444444445
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "35cef7e32f8afb13",
+      "file": "raw/35cef7e32f8afb13.json",
+      "sha256": "843c4b7ed088c671181f83849d660da84fcd31eca9143fbba858ba0a177cbe1b",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": null,
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.8983,
+        "acc5": 0.9961
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "35dfb13b0aa46c57-54e65389",
+      "file": "raw/35dfb13b0aa46c57-54e65389.json",
+      "sha256": "a577a15950ddfda3ddfe9f170493fd6c9025e8980db78ae3b51b0d363eb39f26",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7556,
+        "acc5": 0.9387
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "36baa9edd5e9fa9a-53dd822c",
+      "file": "raw/36baa9edd5e9fa9a-53dd822c.json",
+      "sha256": "20cd7886e62ed81df77ee00571854910e0a959402f90ce962a7013b54cee19c6",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.5244444444444445,
+        "text_retrieval_recall@1": 0.6066666666666667,
+        "image_retrieval_recall@5": 0.7691666666666667,
+        "text_retrieval_recall@5": 0.8388888888888889,
+        "image_retrieval_recall@10": 0.8408333333333333,
+        "text_retrieval_recall@10": 0.8972222222222223
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "38a8be7d4b997457-8dbcaf34",
+      "file": "raw/38a8be7d4b997457-8dbcaf34.json",
+      "sha256": "92470102ac8f30f5e4f2e3fc6e7542dced3f8cd793da7a7dc31fe2bbcc27db0d",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7325,
+        "acc5": 0.9171
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "38b1a8be68ae509c",
+      "file": "raw/38b1a8be68ae509c.json",
+      "sha256": "7a8e36c233f9e7c8c497b3eb551dd3a92db2b9b9db3df9121e4170a69f63bfd3",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9362,
+        "acc5": 0.9985
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "405472b594821180-783ab865",
+      "file": "raw/405472b594821180-783ab865.json",
+      "sha256": "72e280d74331d05ffc929ae2497ada6c6104d7921055bc0370815eb2e077aa23",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.3750869867780097,
+        "text_retrieval_recall@1": 0.5258333333333334,
+        "image_retrieval_recall@5": 0.6285316631871956,
+        "text_retrieval_recall@5": 0.7911111111111111,
+        "image_retrieval_recall@10": 0.7212247738343772,
+        "text_retrieval_recall@10": 0.8683333333333333
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "4bf47c3e534537b0-fb1914c0",
+      "file": "raw/4bf47c3e534537b0-fb1914c0.json",
+      "sha256": "aeb5d9a3ead1cfd9f42fdfeb93958816b8c44e224e00704885b02c85d21b2e24",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7608,
+        "acc5": 0.9292
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "5a7dc3bfc3d618c1",
+      "file": "raw/5a7dc3bfc3d618c1.json",
+      "sha256": "c99cf321da0b81d4fa27c178e5500a35d29a66e9ea85be2f51fccd79361d5ffa",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "2993187c2b960e6e6690c97205b22838d18a36a3",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.7622825330549756,
+        "text_retrieval_recall@1": 0.8425,
+        "image_retrieval_recall@5": 0.9286012526096034,
+        "text_retrieval_recall@5": 0.9677777777777777,
+        "image_retrieval_recall@10": 0.9610299234516354,
+        "text_retrieval_recall@10": 0.9863888888888889
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "5a8886b0fab54729-30d1b401",
+      "file": "raw/5a8886b0fab54729-30d1b401.json",
+      "sha256": "c7326af9ec4c4e8e3a7982a60be479f9f2be38f16e1eac07600b50bc81643a9d",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": null,
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.642,
+        "acc5": 0.8873
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "5cd03bacdf1e5b06-43791242",
+      "file": "raw/5cd03bacdf1e5b06-43791242.json",
+      "sha256": "08e0cd954aa91d69da107a881be6c8223e0ab69f84f18a108abd4e1a7d2d2f6b",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.8307,
+        "acc5": 0.9657
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "649c7b44763ebc72",
+      "file": "raw/649c7b44763ebc72.json",
+      "sha256": "f4460ff4962d135dbf496d2f54ac8ffb4a100554be256629840945f9c87eb3e0",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9356,
+        "acc5": 0.9981
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "8f9f79539fb877d6",
+      "file": "raw/8f9f79539fb877d6.json",
+      "sha256": "29cb8109b729a095973c0c26da7f489922c5213805ff5f54e2b01883649b1d90",
+      "task": "retrieval",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "status": "completed",
+      "source_commit_sha": "d72e4e462d137e9b77581a507e42897ff427eaf1",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "Crossmodal-3600 official web-data release",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "metrics": {
+        "image_retrieval_recall@1": 0.4872222222222222,
+        "text_retrieval_recall@1": 0.5775,
+        "image_retrieval_recall@5": 0.7618055555555555,
+        "text_retrieval_recall@5": 0.835,
+        "image_retrieval_recall@10": 0.8434722222222222,
+        "text_retrieval_recall@10": 0.9105555555555556
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "931adb237a72e7b9",
+      "file": "raw/931adb237a72e7b9.json",
+      "sha256": "7310f18c0b348201d5ad884f0fde2924ee97fbb21347b585673269fc6913f481",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9364,
+        "acc5": 0.9988
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "9c075a8286dd1604",
+      "file": "raw/9c075a8286dd1604.json",
+      "sha256": "562bfdf220f4e9d04e382789bfdbecce1fba75b2419d70a6e1ddeaa11a7d8aee",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9692,
+        "acc5": 0.9993
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "a54f8b8dfb17227b-8e3ad59c",
+      "file": "raw/a54f8b8dfb17227b-8e3ad59c.json",
+      "sha256": "edddb99828d24f757523448f1a797495f5caf7393624e3bb0a544c2a7148c2b0",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7559,
+        "acc5": 0.9365
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "ab5d599956168b86",
+      "file": "raw/ab5d599956168b86.json",
+      "sha256": "d7fce57e7292e373f3ec0ff2d586e527405e340a6de7c3519f19a3f025227331",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9466,
+        "acc5": 0.9984
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "beac7b7ac03ee242",
+      "file": "raw/beac7b7ac03ee242.json",
+      "sha256": "09d5641573c98f4e3ba3d74e897a35326da0f8a1f956912d097642ff74f08515",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9258,
+        "acc5": 0.9964
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "c08f92332ebe01a4-2815d62c",
+      "file": "raw/c08f92332ebe01a4-2815d62c.json",
+      "sha256": "a1eb169af04c651ec590ccbce43be2e1c7a7032125eed9397a6afe2540660747",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": null,
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.6232,
+        "acc5": 0.87
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "c3350bf4370a58b8",
+      "file": "raw/c3350bf4370a58b8.json",
+      "sha256": "ee860473404e122f738a54dd87b9e7c03297b47e069f4df29482914bcd332af7",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "checkpoint_sha256": "42d5dea61abf3819843fa3d6dfaeddc9fa5984b7171220b83c8e89f8c1e8b92c",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9368,
+        "acc5": 0.9984
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "c542f4a0ea8ac9a8",
+      "file": "raw/c542f4a0ea8ac9a8.json",
+      "sha256": "666c568c28f45c06250e643b69d3c951f066f848a1476edd18790701fd4fc7fd",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": null,
+      "checkpoint_sha256": "e6d1bd7789aa45192b3bf90570a789b478bae1b74ebcce7eddd908e83a2b7c31",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.883,
+        "acc5": 0.9924
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "c8faef3bbd4c2779",
+      "file": "raw/c8faef3bbd4c2779.json",
+      "sha256": "e6669416219bb7871521c7b611819fc3e2a4b1d5474f76086df10eb4c033fe2b",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "1627032197142fbe2a7cfec626f4ced3ae60d07a",
+      "checkpoint_sha256": "0d3d33b7aacb273a6a8a9b0a9dde44227efe7417ca2251bf23d2e59436f387bb",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9661,
+        "acc5": 0.9985
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "d4721f7c31f9d23c-e083b306",
+      "file": "raw/d4721f7c31f9d23c-e083b306.json",
+      "sha256": "eb425360f9338e7b05e4eb36f9bedc62eea59cf7d8300a439c1dfe36be36ffcb",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7646,
+        "acc5": 0.9502
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "d59181f45a441ab9-1a33071f",
+      "file": "raw/d59181f45a441ab9-1a33071f.json",
+      "sha256": "bc7096488b9d7d1e5c34bd0276007c45b225a372f467c2cbc8d27d91ac74a7d1",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7368,
+        "acc5": 0.9189
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "ddcae56da141ed7f",
+      "file": "raw/ddcae56da141ed7f.json",
+      "sha256": "3077c22c6c57e0c93debafe28aadc7d085434e46d0cec8b6ce10a5d4234be916",
+      "task": "classification",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "metrics": {
+        "acc1": 0.9385,
+        "acc5": 0.9988
+      },
+      "unchanged_from_baseline_commit": true
+    },
+    {
+      "run_id": "e4c4922a8b419fc2-ac4a43b4",
+      "file": "raw/e4c4922a8b419fc2-ac4a43b4.json",
+      "sha256": "6312c47c964612cad6a7572864c9a749fefa5274f90f74178be8f6897c270d04",
+      "task": "classification",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "status": "completed",
+      "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+      "checkpoint_revision": "506d40eb551f4801a1c27fc20a31c7b8f590deda",
+      "checkpoint_sha256": "f8bd344cf9398b5869c9001efca0f26b8c13d6f0d072f8830de5a992bac4a298",
+      "dataset_revision": "CIFAR official python archive",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "metrics": {
+        "acc1": 0.7655,
+        "acc5": 0.9499
+      },
+      "unchanged_from_baseline_commit": true
+    }
+  ],
+  "issues": []
+}
