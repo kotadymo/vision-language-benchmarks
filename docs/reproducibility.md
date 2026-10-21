@@ -105,6 +105,11 @@ never write inference outputs directly into the tracked publication directory. `
 reuses a matching completed configuration; `--force` creates a new run. These flags are
 mutually exclusive, and neither bypasses strict source checks.
 
+EmbeddingGemma Matryoshka runs use the independent native dimensions 768/512/256/128 and
+include the selected dimension in run identity and publication metadata. See the
+[EmbeddingGemma dimension workflow](embedding-dimensions.md) for v0.4.0 inference, equivalence
+checks, and separate publication commands.
+
 Generate lifecycle assignments, then regenerate only publishable report artifacts:
 
 ```powershell
@@ -315,3 +320,29 @@ combinations.
 By default, data and caches are stored under the project root and excluded from Git. Set
 `VLBENCH_DATA_DIR` or `VLBENCH_CACHE_DIR` before running the CLI to move those locations.
 Output locations are selected with `--output`.
+
+## Published EmbeddingGemma Matryoshka suite
+
+The separate [v0.4.0 MRL publication](../results/mrl-openclip-gemma-v0.4.0/report.md) contains
+24 complete runs at 768D, 512D, 256D, and 128D, all recorded clean from source commit
+`a9909fbe1b15dc66b44bca51a41651f8f3a5d30c`. The model revision, checkpoint hash, dataset
+checksums, full run settings, actual batch sizes, OOM history, and XM3600 candidate-order
+checks are linked from its [dimension audit](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json)
+and [run-status manifest](../results/mrl-openclip-gemma-v0.4.0/run-status.json).
+
+The separate [native MRL equivalence report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.md)
+records a small-sample CUDA FP32 validation from source commit
+`dfda41a311f7a6b86a89aec95b7dd2aeebfe3073`. With `openclip-gemma==0.4.0`, it covered image,
+classification P0/P1, and English/Japanese retrieval text at all four dimensions. The maximum
+absolute difference from the mathematical reference was `2.980e-08` with `rtol=1e-5` and
+`atol=1e-6`; this validates API numerics, not the 24 full-dataset scores. The
+[machine-readable report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.json)
+contains the sample hashes and environment provenance. Ranking agreement is deferred because
+the published raw results do not contain per-query rankings or embeddings.
+
+To reproduce it, check out the frozen measurement commit, use the strict staging workflow and
+per-condition commands in [EmbeddingGemma dimension workflow](embedding-dimensions.md), and
+keep output under an ignored directory such as `.cache\benchmark-staging\embeddinggemma-mrl`.
+Do not run from the later publication commit if an exact source revision is required. The
+earlier schema-invalid 768D pilot is recorded as an excluded failed attempt; it has no persisted
+measurement and is not part of the report.

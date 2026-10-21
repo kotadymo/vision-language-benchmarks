@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from vision_language_benchmarks.embedding_dimensions import EMBEDDINGGEMMA_MODEL_KEY
 from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.reporting.retrieval_variant import retrieval_variant_info
 
@@ -41,6 +42,17 @@ def _attempt_state(status: Any) -> str:
         raise DataIntegrityError(
             f"Run manifest contains an unsupported attempt status: {status!r}."
         ) from error
+
+
+def _embedding_dimension(result: dict[str, Any]) -> int | None:
+    metadata = result["benchmark_metadata"]
+    configuration = metadata.get("run_configuration", {})
+    if not isinstance(configuration, dict):
+        configuration = {}
+    dimension = configuration.get("embedding_dimension", metadata.get("embedding_dimension"))
+    if dimension is None and configuration.get("model_key") == EMBEDDINGGEMMA_MODEL_KEY:
+        return 768
+    return dimension
 
 
 def _read_attempt_manifest(path: Path) -> dict[str, Any]:
@@ -79,6 +91,7 @@ def build_result_lifecycle(
         (
             result["benchmark_metadata"]["run_configuration"]["model_key"],
             result["language"],
+            _embedding_dimension(result),
         )
         for result in results
         if retrieval_variant_info(result)[0] == "official_first_caption"
@@ -102,6 +115,7 @@ def build_result_lifecycle(
         elif variant == "official_first_caption" and (
             configuration["model_key"],
             result["language"],
+            _embedding_dimension(result),
         ) in active_official_keys:
             state = "superseded"
         else:
@@ -118,6 +132,7 @@ def build_result_lifecycle(
                 "language": result["language"],
                 "protocol": configuration["protocol"],
                 "retrieval_variant": variant,
+                "embedding_dimension": _embedding_dimension(result),
                 "source_commit_sha": metadata.get("source_commit_sha"),
                 "working_tree_dirty": metadata.get("working_tree_dirty"),
             }

@@ -51,6 +51,105 @@ def test_dry_run_displays_pinned_model_size_and_verified_access_without_download
     assert not output_path.exists()
 
 
+def test_dry_run_exposes_embeddinggemma_dimension(capsys, tmp_path) -> None:
+    exit_code = main(
+        [
+            "run",
+            "--model",
+            "embeddinggemma2",
+            "--dataset",
+            "cifar10",
+            "--embedding-dimension",
+            "128",
+            "--device",
+            "cpu",
+            "--output",
+            str(tmp_path / "staging"),
+            "--dry-run",
+        ]
+    )
+    report = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert report["evaluation"]["embedding_dimension"] == 128
+
+
+def test_dry_run_rejects_dimensions_for_non_embeddinggemma_models(
+    capsys,
+    tmp_path,
+) -> None:
+    exit_code = main(
+        [
+            "run",
+            "--model",
+            "openai_clip_b32",
+            "--dataset",
+            "cifar10",
+            "--embedding-dimension",
+            "128",
+            "--output",
+            str(tmp_path / "staging"),
+            "--dry-run",
+        ]
+    )
+
+    assert exit_code == 1
+    assert "only for the embeddinggemma2 model" in capsys.readouterr().err
+
+
+def test_report_accepts_historical_baseline_inputs(monkeypatch, capsys, tmp_path) -> None:
+    received: dict[str, object] = {}
+
+    def fake_generate_reports(input_path, output_dir, **kwargs):
+        received.update(
+            {
+                "input_path": input_path,
+                "output_dir": output_dir,
+                **kwargs,
+            }
+        )
+        return {}
+
+    monkeypatch.setattr(
+        "vision_language_benchmarks.cli.generate_reports",
+        fake_generate_reports,
+    )
+    current_input = tmp_path / "current-raw"
+    current_output = tmp_path / "current-reports"
+    current_lifecycle = tmp_path / "current-lifecycle.json"
+    baseline_input = tmp_path / "baseline-raw"
+    baseline_lifecycle = tmp_path / "baseline-lifecycle.json"
+
+    exit_code = main(
+        [
+            "report",
+            "--input",
+            str(current_input),
+            "--output",
+            str(current_output),
+            "--publishable",
+            "--lifecycle",
+            str(current_lifecycle),
+            "--baseline-input",
+            str(baseline_input),
+            "--baseline-lifecycle",
+            str(baseline_lifecycle),
+        ]
+    )
+    capsys.readouterr()
+
+    assert exit_code == 0
+    assert received == {
+        "input_path": current_input,
+        "output_dir": current_output,
+        "publishable": True,
+        "lifecycle_path": current_lifecycle,
+        "expected_source_commit_sha": None,
+        "baseline_input_path": baseline_input,
+        "baseline_lifecycle_path": baseline_lifecycle,
+    }
+
+
 def test_data_terms_confirmation_does_not_override_verified_access(capsys, tmp_path) -> None:
     exit_code = main(
         [

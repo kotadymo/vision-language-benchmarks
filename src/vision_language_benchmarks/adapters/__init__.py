@@ -6,6 +6,7 @@ import importlib
 from typing import Any
 
 from vision_language_benchmarks.adapters.base import VisionLanguageAdapter
+from vision_language_benchmarks.embedding_dimensions import resolve_embedding_dimension
 from vision_language_benchmarks.errors import DependencyUnavailableError
 from vision_language_benchmarks.registry import get_model
 
@@ -14,8 +15,13 @@ def create_adapter(
     model_key: str,
     device: str,
     precision: str,
+    embedding_dimension: int | None = None,
 ) -> VisionLanguageAdapter:
     spec = get_model(model_key)
+    resolved_embedding_dimension = resolve_embedding_dimension(
+        model_key,
+        embedding_dimension,
+    )
     modules = {
         "openclip": "vision_language_benchmarks.adapters.openclip",
         "embeddinggemma": "vision_language_benchmarks.adapters.openclip_gemma",
@@ -34,6 +40,13 @@ def create_adapter(
             f"'{spec.dependency_extra}' extra."
         ) from error
     adapter_type: Any = module.Adapter
+    if spec.adapter == "embeddinggemma":
+        return adapter_type(
+            spec,
+            device,
+            precision,
+            embedding_dimension=resolved_embedding_dimension,
+        )
     return adapter_type(spec, device, precision)
 
 

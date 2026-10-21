@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from vision_language_benchmarks.embedding_dimensions import (
+    EMBEDDING_DIMENSION_STRATEGY,
+    NATIVE_EMBEDDING_DIMENSION,
+)
 from vision_language_benchmarks.evaluation.runner import _make_result
 from vision_language_benchmarks.registry import (
     RetrievalVariant,
@@ -21,6 +25,7 @@ def make_result(
     data_terms_confirmed: bool | None = None,
     image_id_order_hash: str = "a" * 64,
     retrieval_variant: RetrievalVariant | None = None,
+    embedding_dimension: int | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
@@ -129,6 +134,7 @@ def make_result(
         actual_device="cpu",
         batch_size=2,
         seed=0,
+        embedding_dimension=embedding_dimension,
         status=status,
         reason=reason,
         source_commit_sha="a" * 40,
@@ -147,10 +153,32 @@ def make_result(
         retrieval_variant=retrieval_variant,
         dataset_record=dataset_record,
         model_metadata={
-            "adapter_name": model.adapter,
-            "implementation_version": "test",
+            "adapter_name": (
+                "openclip_gemma" if embedding_dimension is not None else model.adapter
+            ),
+            "implementation_version": (
+                "0.4.0" if embedding_dimension is not None else "test"
+            ),
             "checkpoint_sha256": "1" * 64,
             "checkpoint_files": [],
+            "embedding_dimension_strategy": None,
+            "native_embedding_dimension": None,
+            "embedding_generation_mode": None,
+            "preprocessing_config": {
+                "embedding_dimension_strategy": (
+                    EMBEDDING_DIMENSION_STRATEGY
+                    if embedding_dimension is not None
+                    else None
+                ),
+                "native_embedding_dimension": (
+                    NATIVE_EMBEDDING_DIMENSION
+                    if embedding_dimension is not None
+                    else None
+                ),
+                "embedding_generation_mode": (
+                    "native_truncate_dim" if embedding_dimension is not None else None
+                ),
+            },
             "parameter_count": 123_456_789,
             "model_download_seconds": 1.0,
             "tokenizer_repository": model.tokenizer_repository or f"open_clip:{model.model_id}",

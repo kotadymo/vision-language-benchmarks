@@ -93,6 +93,12 @@ def paired_language_results(results: list[Result]) -> list[tuple[Result, Result]
             str(configuration.get("protocol", "")),
             str(variant),
             str(metadata.get("precision", "")),
+            str(
+                configuration.get(
+                    "embedding_dimension",
+                    metadata.get("embedding_dimension", ""),
+                )
+            ),
             dataset_checksum,
             dataset_revision,
             str(metadata.get("dataset_split", "")),
@@ -155,6 +161,11 @@ def paired_language_results(results: list[Result]) -> list[tuple[Result, Result]
             str(pair[0]["benchmark_metadata"]["run_configuration"].get("protocol", "")),
             str(retrieval_variant_info(pair[0])[0]),
             str(pair[0]["benchmark_metadata"].get("precision", "")),
+            str(
+                pair[0]["benchmark_metadata"]
+                .get("run_configuration", {})
+                .get("embedding_dimension", "")
+            ),
             str(
                 pair[0]["benchmark_metadata"]["run_configuration"].get(
                     "model_key", pair[0]["model"]

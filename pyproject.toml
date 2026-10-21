@@ -31,7 +31,7 @@ openclip = [
     "transformers==5.20.1",
 ]
 gemma = [
-    "openclip-gemma==0.3.0",
+    "openclip-gemma==0.4.0",
 ]
 siglip2 = [
     "transformers==5.20.1",

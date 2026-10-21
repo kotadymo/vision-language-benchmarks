@@ -9,6 +9,7 @@ from typing import Any
 
 from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.datasets.prepare import prepare_dataset
+from vision_language_benchmarks.embedding_dimensions import resolve_embedding_dimension
 from vision_language_benchmarks.errors import BenchmarkError
 from vision_language_benchmarks.evaluation.runner import run_benchmark
 from vision_language_benchmarks.hardware import doctor_report
@@ -106,9 +107,14 @@ def _run_plan(
     output: Path,
     confirm_data_terms: bool = False,
     retrieval_variant: RetrievalVariant | None = None,
+    embedding_dimension: int | None = None,
 ) -> dict[str, Any]:
     model = get_model(model_key)
     dataset = get_dataset(dataset_key)
+    resolved_embedding_dimension = resolve_embedding_dimension(
+        model.key,
+        embedding_dimension,
+    )
     normalized_language = canonical_language(language)
     resolved_retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
     if dataset.key == "crossmodal3600" and protocol != "p2":
@@ -194,6 +200,7 @@ def _run_plan(
             "batch_size": batch_size,
             "seed": seed,
             "output": str(output),
+            "embedding_dimension": resolved_embedding_dimension,
         },
     }
 
@@ -242,6 +249,7 @@ def _command_doctor(args: argparse.Namespace) -> int:
                 output=args.output,
                 confirm_data_terms=args.confirm_data_terms,
                 retrieval_variant=args.retrieval_variant,
+                embedding_dimension=args.embedding_dimension,
             )
         except (BenchmarkError, ValueError) as error:
             configuration = {"ok": False, "error": f"{type(error).__name__}: {error}"}
@@ -335,6 +343,7 @@ def _command_run(args: argparse.Namespace) -> int:
         output=args.output,
         confirm_data_terms=args.confirm_data_terms,
         retrieval_variant=args.retrieval_variant,
+        embedding_dimension=args.embedding_dimension,
     )
     if args.strict_reproducibility:
         if plan["dataset"]["access"] != "available":
@@ -371,6 +380,7 @@ def _command_run(args: argparse.Namespace) -> int:
         allow_cpu_fallback=args.allow_cpu_fallback,
         confirm_data_terms=args.confirm_data_terms,
         retrieval_variant=args.retrieval_variant,
+        embedding_dimension=args.embedding_dimension,
         strict_reproducibility=args.strict_reproducibility,
         expected_source_commit_sha=args.expected_source_commit,
         uv_executable=args.uv_executable,
@@ -407,6 +417,7 @@ def _suite_plans(args: argparse.Namespace) -> list[dict[str, Any]]:
                         output=args.output,
                         confirm_data_terms=args.confirm_data_terms,
                         retrieval_variant=args.retrieval_variant,
+                        embedding_dimension=args.embedding_dimension,
                     )
                 )
     return plans
@@ -474,6 +485,7 @@ def _command_suite(args: argparse.Namespace) -> int:
             allow_cpu_fallback=args.allow_cpu_fallback,
             confirm_data_terms=args.confirm_data_terms,
             retrieval_variant=args.retrieval_variant,
+            embedding_dimension=args.embedding_dimension,
             strict_reproducibility=args.strict_reproducibility,
             expected_source_commit_sha=args.expected_source_commit,
             uv_executable=args.uv_executable,
@@ -517,6 +529,8 @@ def _command_report(args: argparse.Namespace) -> int:
         publishable=args.publishable,
         lifecycle_path=args.lifecycle,
         expected_source_commit_sha=args.expected_source_commit,
+        baseline_input_path=args.baseline_input,
+        baseline_lifecycle_path=args.baseline_lifecycle,
     )
     _write_json({name: str(path) for name, path in files.items()})
     return 0
@@ -570,6 +584,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     doctor.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
     doctor.add_argument("--batch-size", type=int, default=16)
+    doctor.add_argument("--embedding-dimension", type=int)
     doctor.add_argument("--seed", type=int, default=0)
     doctor.add_argument(
         "--output",
@@ -615,6 +630,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
     run.add_argument("--device", default="cuda")
     run.add_argument("--batch-size", type=int, default=16)
+    run.add_argument("--embedding-dimension", type=int)
     run.add_argument("--seed", type=int, default=0)
     run.add_argument("--output", type=Path, default=RESULTS_ROOT)
     run_reuse = run.add_mutually_exclusive_group()
@@ -658,6 +674,7 @@ def build_parser() -> argparse.ArgumentParser:
     suite.add_argument("--precision", choices=("fp32", "bf16"), default="fp32")
     suite.add_argument("--device", default="cuda")
     suite.add_argument("--batch-size", type=int, default=16)
+    suite.add_argument("--embedding-dimension", type=int)
     suite.add_argument("--seed", type=int, default=0)
     suite.add_argument("--output", type=Path, default=RESULTS_ROOT)
     suite_reuse = suite.add_mutually_exclusive_group()
@@ -697,6 +714,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     report.add_argument("--lifecycle", type=Path)
     report.add_argument("--expected-source-commit")
+    report.add_argument(
+        "--baseline-input",
+        type=Path,
+        help="Raw historical results for a published EmbeddingGemma 768D comparison.",
+    )
+    report.add_argument(
+        "--baseline-lifecycle",
+        type=Path,
+        help="Lifecycle manifest matching --baseline-input.",
+    )
     report.set_defaults(handler=_command_report)
 
     lifecycle = commands.add_parser(

@@ -19,13 +19,32 @@ from vision_language_benchmarks.adapters.base import (
     parameter_count,
     tensor_to_numpy,
 )
+from vision_language_benchmarks.embedding_dimensions import (
+    EMBEDDING_DIMENSION_STRATEGY,
+    NATIVE_EMBEDDING_DIMENSION,
+    resolve_embedding_dimension,
+)
 from vision_language_benchmarks.errors import DataIntegrityError, DependencyUnavailableError
 from vision_language_benchmarks.registry import ModelSpec
 
 
 class Adapter(TorchAdapter):
-    def __init__(self, spec: ModelSpec, device: str, precision: str) -> None:
+    def __init__(
+        self,
+        spec: ModelSpec,
+        device: str,
+        precision: str,
+        *,
+        embedding_dimension: int | None = None,
+    ) -> None:
         super().__init__(spec, device, precision)
+        resolved_embedding_dimension = resolve_embedding_dimension(
+            spec.key,
+            embedding_dimension,
+        )
+        if resolved_embedding_dimension is None:
+            raise ValueError("EmbeddingGemma requires an embedding dimension.")
+        self.embedding_dimension = resolved_embedding_dimension
         cache_dir = configure_huggingface_cache()
         if spec.hf_repository is None or spec.checkpoint_revision is None:
             raise ValueError(f"Model {spec.key!r} has no pinned Hugging Face revision.")
@@ -88,8 +107,12 @@ class Adapter(TorchAdapter):
                 self.device_object
             )
             with self.inference_context(), self.autocast_context():
-                features = self.model.encode_image(pixel_batch, normalize=False)
-            encoded = tensor_to_numpy(features)
+                features = self.model.encode_image(
+                    pixel_batch,
+                    normalize=False,
+                    truncate_dim=self.embedding_dimension,
+                )
+            encoded = self._validate_native_features(features, "image")
             if encoded.shape[0] != len(group):
                 raise DataIntegrityError(
                     "EmbeddingGemma returned "
@@ -127,8 +150,27 @@ class Adapter(TorchAdapter):
     def encode_texts(self, tokens: Any, task: TextTask, language: str) -> NDArray:
         del task, language
         with self.inference_context(), self.autocast_context():
-            features = self.model.encode_text(tokens, normalize=False)
-        return tensor_to_numpy(features)
+            features = self.model.encode_text(
+                tokens,
+                normalize=False,
+                truncate_dim=self.embedding_dimension,
+            )
+        return self._validate_native_features(features, "text")
+
+    def _validate_native_features(self, features: Any, modality: str) -> NDArray:
+        encoded = tensor_to_numpy(features)
+        if encoded.shape[1] != self.embedding_dimension:
+            raise DataIntegrityError(
+                f"EmbeddingGemma returned {encoded.shape[1]} {modality} dimensions; "
+                f"expected {self.embedding_dimension} from native truncate_dim."
+            )
+        norms = np.linalg.norm(encoded, axis=1)
+        if not np.allclose(norms, 1.0, rtol=1e-4, atol=1e-4):
+            raise DataIntegrityError(
+                f"EmbeddingGemma returned non-normalized {modality} features for "
+                f"truncate_dim={self.embedding_dimension}."
+            )
+        return encoded
 
     def metadata(self) -> dict[str, Any]:
         vision = getattr(self.model, "vision_model", None)
@@ -142,6 +184,10 @@ class Adapter(TorchAdapter):
                 "transform": "openclip_gemma.create_model_and_transforms",
                 "input_resolution": getattr(config, "image_size", None),
                 "batching_strategy": "grouped_by_preprocessed_shape",
+                "embedding_dimension": self.embedding_dimension,
+                "embedding_dimension_strategy": EMBEDDING_DIMENSION_STRATEGY,
+                "native_embedding_dimension": NATIVE_EMBEDDING_DIMENSION,
+                "embedding_generation_mode": "native_truncate_dim",
             },
             "tokenizer_implementation_version": package_version("transformers"),
             "checkpoint_sha256": self.checkpoint_sha256,

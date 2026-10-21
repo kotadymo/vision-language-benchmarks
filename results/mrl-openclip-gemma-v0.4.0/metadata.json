@@ -1,0 +1,686 @@
+{
+  "schema_version": "1.0.0",
+  "result_file_count": 24,
+  "status_counts": {
+    "completed": 24
+  },
+  "source_commit_shas": [
+    "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+  ],
+  "datasets": [
+    {
+      "dataset_id": "cifar10",
+      "name": "CIFAR-10",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "3835a771df7c4084",
+          "confirmed": false
+        },
+        {
+          "run_id": "4c5567e303a9f771",
+          "confirmed": false
+        },
+        {
+          "run_id": "6950817bdd99d973",
+          "confirmed": false
+        },
+        {
+          "run_id": "b8214ecb970362c9",
+          "confirmed": false
+        },
+        {
+          "run_id": "c44690decef67d24",
+          "confirmed": false
+        },
+        {
+          "run_id": "cf413596e88f09f8",
+          "confirmed": false
+        },
+        {
+          "run_id": "e639f53a1ac6b75e",
+          "confirmed": false
+        },
+        {
+          "run_id": "e70f0dcf368d9e28",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 10,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "cifar100",
+      "name": "CIFAR-100",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "1466f26677032f18",
+          "confirmed": false
+        },
+        {
+          "run_id": "22ace06120892265",
+          "confirmed": false
+        },
+        {
+          "run_id": "820f9a84ba7355e3",
+          "confirmed": false
+        },
+        {
+          "run_id": "8969fe62960b874c",
+          "confirmed": false
+        },
+        {
+          "run_id": "948187d246867b59",
+          "confirmed": false
+        },
+        {
+          "run_id": "9ab2047e95be087e",
+          "confirmed": false
+        },
+        {
+          "run_id": "a7fde2561ffbbfc8",
+          "confirmed": false
+        },
+        {
+          "run_id": "b08c9f0fbe719961",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 100,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "crossmodal3600",
+      "name": "Crossmodal-3600 (XM3600)",
+      "split": "all 3,600 images",
+      "revision": "Crossmodal-3600 official web-data release",
+      "checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "license": "Google LLC licenses the XM3600 annotations under CC BY 4.0. The official image-attribution CSV lists all 3,600 images as CC BY 2.0; preserve attribution and do not redistribute the images.",
+      "license_status": "verified_attribution_required",
+      "terms_confirmations": [
+        {
+          "run_id": "02b17361f1a3a0ef",
+          "confirmed": true
+        },
+        {
+          "run_id": "4ace44f93791fe91",
+          "confirmed": true
+        },
+        {
+          "run_id": "5e1276cab5ecb4e8",
+          "confirmed": true
+        },
+        {
+          "run_id": "7984b20f43dbd568",
+          "confirmed": true
+        },
+        {
+          "run_id": "82000ad2e515beee",
+          "confirmed": true
+        },
+        {
+          "run_id": "9bcd1c60eb09d6af",
+          "confirmed": true
+        },
+        {
+          "run_id": "b69251bbf027b008",
+          "confirmed": true
+        },
+        {
+          "run_id": "f2db802561a13e29",
+          "confirmed": true
+        }
+      ],
+      "image_count": 3600,
+      "expected_text_counts_by_language": {
+        "en": 7200,
+        "ja": 7185
+      },
+      "class_count": null,
+      "retrieval_variant_evaluations": [
+        {
+          "run_id": "02b17361f1a3a0ef",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 768,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "13c5f119f07cdbbceefdb9b557d2f0be2d92eb0ca631ab005dfdf0f24e9b65f3"
+        },
+        {
+          "run_id": "4ace44f93791fe91",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 512,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "04808bf0e33397d1f7b2c26c1c7e440212786ebf189ae38ab8206c6b160e34f6"
+        },
+        {
+          "run_id": "9bcd1c60eb09d6af",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 256,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "66bc406c5270fd7153100d4ac7d21d80baeaf50fdfdd05efe275c17c22f11a6a"
+        },
+        {
+          "run_id": "b69251bbf027b008",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 128,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "0ee105ea22218f9e3743981d5050853c062f4ea4440e01f6436342982087c0b8"
+        },
+        {
+          "run_id": "5e1276cab5ecb4e8",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 768,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "13c5f119f07cdbbceefdb9b557d2f0be2d92eb0ca631ab005dfdf0f24e9b65f3"
+        },
+        {
+          "run_id": "7984b20f43dbd568",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 128,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "0ee105ea22218f9e3743981d5050853c062f4ea4440e01f6436342982087c0b8"
+        },
+        {
+          "run_id": "82000ad2e515beee",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 512,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "04808bf0e33397d1f7b2c26c1c7e440212786ebf189ae38ab8206c6b160e34f6"
+        },
+        {
+          "run_id": "f2db802561a13e29",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": 256,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+          "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+          "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+          "preprocessing_config_sha256": "66bc406c5270fd7153100d4ac7d21d80baeaf50fdfdd05efe275c17c22f11a6a"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "EmbeddingGemma 2",
+      "model_id": "google/embeddinggemma-2",
+      "repository": "google/embeddinggemma-2",
+      "checkpoint_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+      "checkpoint_filename": "model.safetensors",
+      "checkpoint_size_bytes": 1488915288,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "parameter_count": 744371488
+    }
+  ],
+  "environments": [
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "3835a771df7c4084",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "b8214ecb970362c9",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "cf413596e88f09f8",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "e639f53a1ac6b75e",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    },
+    {
+      "run_id": "4c5567e303a9f771",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "6950817bdd99d973",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "c44690decef67d24",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    },
+    {
+      "run_id": "e70f0dcf368d9e28",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "1466f26677032f18",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    },
+    {
+      "run_id": "9ab2047e95be087e",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "a7fde2561ffbbfc8",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "b08c9f0fbe719961",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "22ace06120892265",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "820f9a84ba7355e3",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "8969fe62960b874c",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "948187d246867b59",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    },
+    {
+      "run_id": "02b17361f1a3a0ef",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "4ace44f93791fe91",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "9bcd1c60eb09d6af",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    },
+    {
+      "run_id": "b69251bbf027b008",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "5e1276cab5ecb4e8",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 768
+    },
+    {
+      "run_id": "7984b20f43dbd568",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 128
+    },
+    {
+      "run_id": "82000ad2e515beee",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 512
+    },
+    {
+      "run_id": "f2db802561a13e29",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/embeddinggemma-2",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": 256
+    }
+  ],
+  "publication_lifecycle": {
+    "frozen_source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+    "state_counts": {
+      "active": 24,
+      "blocked": 0,
+      "failed": 0,
+      "historical": 0,
+      "incomplete": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "superseded": 0
+    },
+    "attempt_count": 0
+  }
+}

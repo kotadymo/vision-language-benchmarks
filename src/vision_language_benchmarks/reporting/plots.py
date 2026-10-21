@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
+from vision_language_benchmarks.embedding_dimensions import EMBEDDINGGEMMA_MODEL_KEY
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.retrieval_variant import (
@@ -43,13 +44,21 @@ def _configuration(result: Result) -> dict[str, Any]:
 
 
 def _model_label(result: Result) -> str:
-    key = _configuration(result).get("model_key")
+    configuration = _configuration(result)
+    key = configuration.get("model_key")
+    dimension = configuration.get(
+        "embedding_dimension",
+        _metadata(result).get("embedding_dimension"),
+    )
+    if dimension is None and key == EMBEDDINGGEMMA_MODEL_KEY:
+        dimension = 768
+    suffix = f" · {dimension}D" if isinstance(dimension, int) else ""
     if isinstance(key, str):
         try:
-            return get_model(key).name
+            return f"{get_model(key).name}{suffix}"
         except ValueError:
             pass
-    return str(result["model"])
+    return f"{result['model']}{suffix}"
 
 
 def _dataset_label(result: Result) -> str:
@@ -465,10 +474,175 @@ def _throughput_plots(results: list[Result], output_dir: Path) -> dict[str, Path
     return files
 
 
+def _embedding_dimension_plots(
+    results: list[Result],
+    output_dir: Path,
+) -> dict[str, Path]:
+    dimension_results = [
+        result
+        for result in results
+        if result.get("status") == "completed"
+        and isinstance(_metadata(result).get("embedding_dimension"), int)
+    ]
+    if not dimension_results:
+        return {}
+
+    files: dict[str, Path] = {}
+    classification_groups: dict[tuple[str, str, str, str, str], list[Result]] = defaultdict(
+        list
+    )
+    retrieval_groups: dict[tuple[str, str, str, str, str, str], list[Result]] = defaultdict(
+        list
+    )
+    for result in dimension_results:
+        configuration = _configuration(result)
+        metadata = _metadata(result)
+        group_key = (
+            str(configuration.get("model_key", result["model"])),
+            str(result["dataset"]),
+            str(configuration.get("protocol", "")),
+            str(result["language"]),
+            str(metadata.get("precision", "")),
+        )
+        if result.get("task") == "classification":
+            classification_groups[group_key].append(result)
+        elif result.get("task") == "retrieval":
+            retrieval_groups[
+                (
+                    *group_key,
+                    retrieval_variant_info(result)[0] or "unspecified",
+                )
+            ].append(result)
+
+    for (model_key, dataset_key, protocol, language, precision), items in sorted(
+        classification_groups.items()
+    ):
+        ordered = sorted(
+            items,
+            key=lambda result: int(_metadata(result)["embedding_dimension"]),
+            reverse=True,
+        )
+        dimensions = [
+            int(_metadata(result)["embedding_dimension"])
+            for result in ordered
+        ]
+        figure, axis = plt.subplots(figsize=(8, 5))
+        for metric, label in (("acc1", "Top-1"), ("acc5", "Top-5")):
+            values = [
+                result.get("metrics", {}).get(metric)
+                for result in ordered
+            ]
+            if all(isinstance(value, (int, float)) for value in values):
+                axis.plot(
+                    dimensions,
+                    [float(value) * 100 for value in values],
+                    marker="o",
+                    label=label,
+                )
+        axis.set_xticks(dimensions)
+        axis.set_xlabel("Embedding dimension (FP32)")
+        axis.set_ylabel("Accuracy (%)")
+        axis.set_ylim(0, 100)
+        axis.set_title(
+            f"{get_model(model_key).name} · {_dataset_label(ordered[0])} · "
+            f"{protocol.upper()} · {language.upper()} · {precision.upper()}"
+        )
+        axis.grid(alpha=0.25)
+        axis.legend()
+        figure.tight_layout()
+        files.update(
+            _save_figure(
+                figure,
+                output_dir,
+                f"embedding_dimension_{_slug(dataset_key)}_{_slug(protocol)}_"
+                f"{_slug(language)}_classification",
+            )
+        )
+
+    for (
+        model_key,
+        dataset_key,
+        protocol,
+        language,
+        precision,
+        variant,
+    ), items in sorted(retrieval_groups.items()):
+        ordered = sorted(
+            items,
+            key=lambda result: int(_metadata(result)["embedding_dimension"]),
+            reverse=True,
+        )
+        dimensions = [
+            int(_metadata(result)["embedding_dimension"])
+            for result in ordered
+        ]
+        figure, axis = plt.subplots(figsize=(10, 6))
+        plotted = False
+        for metric, label in RETRIEVAL_SERIES:
+            values = [
+                result.get("metrics", {}).get(metric)
+                for result in ordered
+            ]
+            if not all(isinstance(value, (int, float)) for value in values):
+                continue
+            axis.plot(
+                dimensions,
+                [float(value) * 100 for value in values],
+                marker="o",
+                label=label,
+            )
+            plotted = True
+        if not plotted:
+            plt.close(figure)
+            continue
+        axis.set_xticks(dimensions)
+        axis.set_xlabel("Embedding dimension (FP32)")
+        axis.set_ylabel("Recall (%)")
+        axis.set_ylim(0, 100)
+        axis.set_title(
+            f"{get_model(model_key).name} · {_dataset_label(ordered[0])} · "
+            f"{language.upper()} · {protocol.upper()} · {precision.upper()} · "
+            f"{retrieval_variant_label(None if variant == 'unspecified' else variant)}"
+        )
+        axis.grid(alpha=0.25)
+        axis.legend(ncol=2, fontsize=8)
+        figure.tight_layout()
+        files.update(
+            _save_figure(
+                figure,
+                output_dir,
+                f"embedding_dimension_{_slug(dataset_key)}_{_slug(language)}_"
+                f"{_slug(variant)}",
+            )
+        )
+
+    dimensions = list(
+        dict.fromkeys(
+            int(_metadata(result)["embedding_dimension"])
+            for result in dimension_results
+        )
+    )
+    dimensions.sort(reverse=True)
+    figure, axis = plt.subplots(figsize=(7, 4.5))
+    axis.bar(
+        [str(dimension) for dimension in dimensions],
+        [dimension / 768 * 100 for dimension in dimensions],
+        color=plt.get_cmap("viridis")(np.linspace(0.15, 0.85, len(dimensions))),
+    )
+    axis.set_xlabel("Embedding dimension")
+    axis.set_ylabel("FP32 vector storage relative to 768D (%)")
+    axis.set_title("Embedding vector size (excluding weights and index overhead)")
+    axis.grid(axis="y", alpha=0.25)
+    figure.tight_layout()
+    files.update(_save_figure(figure, output_dir, "embedding_dimension_storage"))
+    return files
+
+
 def write_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
     files: dict[str, Path] = {}
     files.update(_classification_plots(results, output_dir))
     files.update(_retrieval_plots(results, output_dir))
     files.update(_language_comparison_plots(results, output_dir))
     files.update(_throughput_plots(results, output_dir))
+    files.update(_embedding_dimension_plots(results, output_dir))
     return files

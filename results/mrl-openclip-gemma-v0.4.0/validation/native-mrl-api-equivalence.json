@@ -1,0 +1,1474 @@
+{
+  "schema_version": "1.0.0",
+  "validation_type": "native_mrl_api_equivalence",
+  "status": "completed",
+  "aggregate_validation_status": "passed",
+  "overall_passed": true,
+  "validation_source": "tests/real_model/test_embeddinggemma_mrl_equivalence.py",
+  "source_commit_sha": "dfda41a311f7a6b86a89aec95b7dd2aeebfe3073",
+  "timestamp_utc": "2026-10-21T10:23:47.254260Z",
+  "working_tree_dirty": false,
+  "library": "openclip-gemma",
+  "library_version": "0.4.0",
+  "model_id": "google/embeddinggemma-2",
+  "model_revision": "914f7f89142e33e77833254d9c9b90c3cef7303b",
+  "device": "cuda",
+  "precision": "fp32",
+  "dimensions": [
+    768,
+    512,
+    256,
+    128
+  ],
+  "tolerance": {
+    "rtol": 1e-05,
+    "atol": 1e-06
+  },
+  "checkpoint": {
+    "sha256": "1ff16e54c7410c6a1c8a8fddd076136fba78368eec798b45a0f9532e83b2f510",
+    "files": [
+      {
+        "path": "model.safetensors",
+        "sha256": "197a32965d4b1105faf060417baa899e193fb73cd401f42ec9295234d5553d79"
+      }
+    ]
+  },
+  "dataset_identifiers": [
+    "cifar10",
+    "crossmodal3600"
+  ],
+  "dataset_checksums": {
+    "cifar10": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+    "crossmodal3600": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce"
+  },
+  "sample_counts": {
+    "images": 2,
+    "classification_text": {
+      "classification_p0_en": 36,
+      "classification_p1_en": 2
+    },
+    "retrieval_text": {
+      "retrieval_en": 2,
+      "retrieval_ja": 2
+    }
+  },
+  "sample_selection": {
+    "cifar10": {
+      "selection_description": "CIFAR-10 test images at indices [0, 1]; classification prompts use the first two class names and the existing P0/P1 prompt generators.",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_sample_count": 2,
+      "image_sample_indices": [
+        0,
+        1
+      ],
+      "image_sample_ids_sha256": "f0dc2658782c3fbae836f8b973bcbd696d64343ce3885628d4bb6ad5e28072f4",
+      "text_samples": {
+        "classification_p0_en": {
+          "sample_count": 36,
+          "text_ids_sha256": "46d7090923186f14dfa23ba1c46da000e6eae9ba80fc4b2908a1ddf7b79aa118",
+          "text_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1",
+          "task_prompt_name": "Classification",
+          "prompt_policy": "clip_benchmark_zeroshot_templates",
+          "prompt_set_sha256": "95ed38369c5985ca65db136975e72179d03961a8a597764c17dc591ead402a7a",
+          "selected_class_names": [
+            "airplane",
+            "automobile"
+          ],
+          "prompt_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1"
+        },
+        "classification_p1_en": {
+          "sample_count": 2,
+          "text_ids_sha256": "79213cf50bd5e59aac4ca5d552a29166c6922c68a9101582dc516fb8d003f3ef",
+          "text_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d",
+          "task_prompt_name": "Classification",
+          "prompt_policy": "model_native_classification_task",
+          "prompt_set_sha256": "3866e93b88bc2159056101a421150ff3b8277dae91ee7fc7a2f37b20d0dcaf97",
+          "selected_class_names": [
+            "airplane",
+            "automobile"
+          ],
+          "prompt_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d"
+        }
+      }
+    },
+    "crossmodal3600": {
+      "selection_description": "The first two candidate records in canonical annotation order, using `official_first_caption` (caption index 0).",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "text_samples": {
+        "en": {
+          "sample_count": 2,
+          "text_ids_sha256": "773813644528b7923c17470683c147abc6a83ac1f6a529fb022da682a20ff7ea",
+          "text_content_sha256": "7a893a212362fb08a1139e9897d8801cd25011b3053427497f2ac51a60ca8c3c",
+          "task_prompt_name": "SearchQuery"
+        },
+        "ja": {
+          "sample_count": 2,
+          "text_ids_sha256": "773813644528b7923c17470683c147abc6a83ac1f6a529fb022da682a20ff7ea",
+          "text_content_sha256": "395cd9b8866d97d14172e79d1d6e4778b4ddd645458be917653012d3dc1249e7",
+          "task_prompt_name": "SearchQuery"
+        }
+      }
+    }
+  },
+  "environment": {
+    "python_version": "3.12.10",
+    "pytorch_version": "2.14.1+cu130",
+    "cuda_runtime": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER"
+  },
+  "measurements": [
+    {
+      "embedding_dimension": 768,
+      "modality": "image",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        768
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1536,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 1.8718214755963913e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          768
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1536,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 1.8718214755963913e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": null,
+      "prompt_content_sha256": null,
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true
+    },
+    {
+      "embedding_dimension": 768,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 36,
+      "native_output_shape": [
+        36,
+        768
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 36,
+        "valid_comparison_count": 36,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 2.9802322387695312e-08,
+        "mean_absolute_difference": 1.0634979974855487e-09,
+        "max_relative_difference": 1.5888340555775743e-07,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 27647,
+        "minimum_cosine_similarity": 0.9999999999999996,
+        "maximum_l2_norm_deviation_from_one": 9.541439571769672e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          36,
+          768
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 36,
+          "valid_comparison_count": 36,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 27647,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 9.541439571769672e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1",
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "prompt_set_sha256": "95ed38369c5985ca65db136975e72179d03961a8a597764c17dc591ead402a7a",
+      "passed": true,
+      "protocol": "p0",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 768,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        768
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 2.9802322387695312e-08,
+        "mean_absolute_difference": 9.835166755086295e-10,
+        "max_relative_difference": 1.1895234388456484e-07,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1536,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 5.8408476277804766e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          768
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1536,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 3.799697090300924e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d",
+      "prompt_policy": "model_native_classification_task",
+      "prompt_set_sha256": "3866e93b88bc2159056101a421150ff3b8277dae91ee7fc7a2f37b20d0dcaf97",
+      "passed": true,
+      "protocol": "p1",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 768,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        768
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1536,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 3.3978346802854276e-09,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          768
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1536,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 3.3978346802854276e-09,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "7a893a212362fb08a1139e9897d8801cd25011b3053427497f2ac51a60ca8c3c",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 768,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        768
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 2.9802322387695312e-08,
+        "mean_absolute_difference": 1.3632946623450455e-09,
+        "max_relative_difference": 1.589049668051497e-07,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1536,
+        "minimum_cosine_similarity": 0.9999999999999997,
+        "maximum_l2_norm_deviation_from_one": 6.850425271487381e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          768
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1536,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 4.4342844729428066e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "395cd9b8866d97d14172e79d1d6e4778b4ddd645458be917653012d3dc1249e7",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "ja"
+    },
+    {
+      "embedding_dimension": 512,
+      "modality": "image",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        512
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1024,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 5.478688835935941e-09,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          512
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1024,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 5.478688835935941e-09,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": null,
+      "prompt_content_sha256": null,
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true
+    },
+    {
+      "embedding_dimension": 512,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 36,
+      "native_output_shape": [
+        36,
+        512
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 36,
+        "valid_comparison_count": 36,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 18431,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 7.85732776620307e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          36,
+          512
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 36,
+          "valid_comparison_count": 36,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 18431,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 7.85732776620307e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1",
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "prompt_set_sha256": "95ed38369c5985ca65db136975e72179d03961a8a597764c17dc591ead402a7a",
+      "passed": true,
+      "protocol": "p0",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 512,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        512
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1024,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 4.2307109371364504e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          512
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1024,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 4.2307109371364504e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d",
+      "prompt_policy": "model_native_classification_task",
+      "prompt_set_sha256": "3866e93b88bc2159056101a421150ff3b8277dae91ee7fc7a2f37b20d0dcaf97",
+      "passed": true,
+      "protocol": "p1",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 512,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        512
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1024,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 2.0791964372435245e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          512
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1024,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 2.0791964372435245e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "7a893a212362fb08a1139e9897d8801cd25011b3053427497f2ac51a60ca8c3c",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 512,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        512
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 1024,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 2.9068768947482226e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          512
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 1024,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 2.9068768947482226e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "395cd9b8866d97d14172e79d1d6e4778b4ddd645458be917653012d3dc1249e7",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "ja"
+    },
+    {
+      "embedding_dimension": 256,
+      "modality": "image",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        256
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 512,
+        "minimum_cosine_similarity": 0.9999999999999999,
+        "maximum_l2_norm_deviation_from_one": 4.667132702529386e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          256
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 512,
+          "minimum_cosine_similarity": 0.9999999999999999,
+          "maximum_l2_norm_deviation_from_one": 4.667132702529386e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": null,
+      "prompt_content_sha256": null,
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true
+    },
+    {
+      "embedding_dimension": 256,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 36,
+      "native_output_shape": [
+        36,
+        256
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 36,
+        "valid_comparison_count": 36,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 9216,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 5.982050066410949e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          36,
+          256
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 36,
+          "valid_comparison_count": 36,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 9216,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 5.982050066410949e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1",
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "prompt_set_sha256": "95ed38369c5985ca65db136975e72179d03961a8a597764c17dc591ead402a7a",
+      "passed": true,
+      "protocol": "p0",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 256,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        256
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 512,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 7.136286006570458e-09,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          256
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 512,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 7.136286006570458e-09,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d",
+      "prompt_policy": "model_native_classification_task",
+      "prompt_set_sha256": "3866e93b88bc2159056101a421150ff3b8277dae91ee7fc7a2f37b20d0dcaf97",
+      "passed": true,
+      "protocol": "p1",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 256,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        256
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 512,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 2.3704583185235606e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          256
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 512,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 2.3704583185235606e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "7a893a212362fb08a1139e9897d8801cd25011b3053427497f2ac51a60ca8c3c",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 256,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        256
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 512,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 2.06779966482884e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          256
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 512,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 2.06779966482884e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "395cd9b8866d97d14172e79d1d6e4778b4ddd645458be917653012d3dc1249e7",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "ja"
+    },
+    {
+      "embedding_dimension": 128,
+      "modality": "image",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        128
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 256,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 4.1443229736870535e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          128
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 256,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 4.1443229736870535e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": null,
+      "prompt_content_sha256": null,
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true
+    },
+    {
+      "embedding_dimension": 128,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 36,
+      "native_output_shape": [
+        36,
+        128
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 36,
+        "valid_comparison_count": 36,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 4608,
+        "minimum_cosine_similarity": 0.9999999999999998,
+        "maximum_l2_norm_deviation_from_one": 8.372725190941566e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          36,
+          128
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 36,
+          "valid_comparison_count": 36,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 4608,
+          "minimum_cosine_similarity": 0.9999999999999998,
+          "maximum_l2_norm_deviation_from_one": 8.372725190941566e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "8b1c60b0f278751599d99d2874b01265453fe5715aa831c5a607f00d2c7f8bd1",
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "prompt_set_sha256": "95ed38369c5985ca65db136975e72179d03961a8a597764c17dc591ead402a7a",
+      "passed": true,
+      "protocol": "p0",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 128,
+      "modality": "classification_text",
+      "dataset_ids": [
+        "cifar10"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        128
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 256,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 5.9472371916058364e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          128
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 256,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 5.9472371916058364e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "Classification",
+      "prompt_content_sha256": "f57afb7fa3caf6c985b378dcbd1b64924ce4603b38c799c3c9134c8818eb603d",
+      "prompt_policy": "model_native_classification_task",
+      "prompt_set_sha256": "3866e93b88bc2159056101a421150ff3b8277dae91ee7fc7a2f37b20d0dcaf97",
+      "passed": true,
+      "protocol": "p1",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 128,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        128
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 256,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 5.459165164367619e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          128
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 256,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 5.459165164367619e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "7a893a212362fb08a1139e9897d8801cd25011b3053427497f2ac51a60ca8c3c",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "en"
+    },
+    {
+      "embedding_dimension": 128,
+      "modality": "retrieval_text",
+      "dataset_ids": [
+        "crossmodal3600"
+      ],
+      "sample_count": 2,
+      "native_output_shape": [
+        2,
+        128
+      ],
+      "native_vs_reference": {
+        "compared_embedding_count": 2,
+        "valid_comparison_count": 2,
+        "non_finite_embedding_count": 0,
+        "zero_norm_embedding_count": 0,
+        "invalid_embedding_count": 0,
+        "max_absolute_difference": 0.0,
+        "mean_absolute_difference": 0.0,
+        "max_relative_difference": 0.0,
+        "relative_error_reference_abs_threshold": 1e-06,
+        "relative_error_coordinate_count": 256,
+        "minimum_cosine_similarity": 1.0,
+        "maximum_l2_norm_deviation_from_one": 4.380436058326609e-08,
+        "tolerance": {
+          "rtol": 1e-05,
+          "atol": 1e-06
+        },
+        "within_tolerance": true,
+        "passed": true
+      },
+      "adapter_output": {
+        "dtype": "float32",
+        "shape": [
+          2,
+          128
+        ],
+        "shape_matches_direct_native": true,
+        "dtype_is_float32": true,
+        "vs_direct_native": {
+          "compared_embedding_count": 2,
+          "valid_comparison_count": 2,
+          "non_finite_embedding_count": 0,
+          "zero_norm_embedding_count": 0,
+          "invalid_embedding_count": 0,
+          "max_absolute_difference": 0.0,
+          "mean_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "relative_error_reference_abs_threshold": 1e-06,
+          "relative_error_coordinate_count": 256,
+          "minimum_cosine_similarity": 1.0,
+          "maximum_l2_norm_deviation_from_one": 4.380436058326609e-08,
+          "tolerance": {
+            "rtol": 1e-05,
+            "atol": 1e-06
+          },
+          "within_tolerance": true,
+          "passed": true
+        }
+      },
+      "task_prompt_name": "SearchQuery",
+      "prompt_content_sha256": "395cd9b8866d97d14172e79d1d6e4778b4ddd645458be917653012d3dc1249e7",
+      "prompt_policy": null,
+      "prompt_set_sha256": null,
+      "passed": true,
+      "protocol": "p2",
+      "language": "ja"
+    }
+  ],
+  "failures": []
+}

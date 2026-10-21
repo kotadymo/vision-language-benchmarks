@@ -8,6 +8,7 @@ from typing import Any
 
 import jsonschema
 
+from vision_language_benchmarks.embedding_dimensions import resolve_embedding_dimension
 from vision_language_benchmarks.registry import (
     RETRIEVAL_VARIANTS,
     get_dataset,
@@ -53,6 +54,42 @@ def validate_result(result: dict[str, Any]) -> None:
             raise ValueError(
                 "Strict reproducibility results must identify their staging directory."
             )
+    configuration = metadata.get("run_configuration")
+    configured_dimension = (
+        configuration.get("embedding_dimension")
+        if isinstance(configuration, dict)
+        else None
+    )
+    embedding_dimension = metadata.get("embedding_dimension")
+    if embedding_dimension is not None or configured_dimension is not None:
+        if embedding_dimension != configured_dimension:
+            raise ValueError(
+                "Result metadata and run configuration embedding dimensions must match."
+            )
+        model_key = configuration.get("model_key") if isinstance(configuration, dict) else None
+        resolved_dimension = resolve_embedding_dimension(model_key, embedding_dimension)
+        if resolved_dimension != embedding_dimension:
+            raise ValueError("Embedding dimension metadata is inconsistent.")
+        if result["status"] == "completed":
+            if metadata.get("embedding_dimension_strategy") != "leading-dimensions-l2-v1":
+                raise ValueError(
+                    "Completed embedding dimension results must identify the truncation strategy."
+                )
+            if metadata.get("native_embedding_dimension") != 768:
+                raise ValueError(
+                    "Completed embedding dimension results must identify the 768D native space."
+                )
+            if metadata.get("embedding_generation_mode") != "native_truncate_dim":
+                raise ValueError(
+                    "Completed embedding dimension results must use native truncate_dim inference."
+                )
+            if (
+                metadata.get("adapter_name") != "openclip_gemma"
+                or metadata.get("model_implementation_version") != "0.4.0"
+            ):
+                raise ValueError(
+                    "Completed embedding dimension results require openclip-gemma==0.4.0."
+                )
     retrieval_variant = metadata.get("retrieval_variant")
     if retrieval_variant is not None:
         if retrieval_variant not in RETRIEVAL_VARIANTS:
