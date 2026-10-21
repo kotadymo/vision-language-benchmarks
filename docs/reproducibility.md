@@ -330,6 +330,16 @@ checksums, full run settings, actual batch sizes, OOM history, and XM3600 candid
 checks are linked from its [dimension audit](../results/mrl-openclip-gemma-v0.4.0/validation/embedding-dimension-audit.json)
 and [run-status manifest](../results/mrl-openclip-gemma-v0.4.0/run-status.json).
 
+The separate [native MRL equivalence report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.md)
+records a small-sample CUDA FP32 validation from source commit
+`dfda41a311f7a6b86a89aec95b7dd2aeebfe3073`. With `openclip-gemma==0.4.0`, it covered image,
+classification P0/P1, and English/Japanese retrieval text at all four dimensions. The maximum
+absolute difference from the mathematical reference was `2.980e-08` with `rtol=1e-5` and
+`atol=1e-6`; this validates API numerics, not the 24 full-dataset scores. The
+[machine-readable report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.json)
+contains the sample hashes and environment provenance. Ranking agreement is deferred because
+the published raw results do not contain per-query rankings or embeddings.
+
 To reproduce it, check out the frozen measurement commit, use the strict staging workflow and
 per-condition commands in [EmbeddingGemma dimension workflow](embedding-dimensions.md), and
 keep output under an ignored directory such as `.cache\benchmark-staging\embeddinggemma-mrl`.

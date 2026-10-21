@@ -125,15 +125,36 @@ tracked publication directory.
 ## Validation and comparison
 
 The offline test suite verifies configuration, result-schema, lifecycle, and reporting
-behavior. The opt-in real-model test checks that each native image and text output matches
-manual prefix truncation followed by FP32 L2 normalization:
+behavior. The opt-in CUDA equivalence test uses real CIFAR-10 test images and prompts plus
+XM3600 English/Japanese `official_first_caption` texts. It tests image, classification P0/P1,
+and retrieval text paths at 768D, 512D, 256D, and 128D. For validation only, each native
+`truncate_dim=N` output is compared with the L2-normalized leading N coordinates of a separate
+native 768D output; the full-dataset benchmark results continue to use native inference.
 
 ```powershell
 $env:VLBENCH_RUN_MRL_INTEGRATION = "1"
-uv run --locked --extra cuda --extra gemma pytest -q `
-  tests/real_model/test_embeddinggemma_mrl_equivalence.py
-Remove-Item Env:VLBENCH_RUN_MRL_INTEGRATION
+$env:VLBENCH_MRL_VALIDATION_OUTPUT_DIR = ".cache\mrl-validation-staging"
+try {
+  uv run --locked --extra cuda --extra gemma pytest -q `
+    tests/real_model/test_embeddinggemma_mrl_equivalence.py
+  if ($LASTEXITCODE -ne 0) {
+    throw "Native MRL equivalence validation failed."
+  }
+}
+finally {
+  Remove-Item Env:VLBENCH_RUN_MRL_INTEGRATION -ErrorAction SilentlyContinue
+  Remove-Item Env:VLBENCH_MRL_VALIDATION_OUTPUT_DIR -ErrorAction SilentlyContinue
+}
 ```
+
+The opt-in test writes a measured JSON and Markdown report to the selected output directory.
+The published validation covers 20 dimension/category checks over 176 embeddings (2 images,
+38 classification prompts, and 4 retrieval texts). Its maximum native-versus-reference
+absolute difference was `2.980e-08`; the adapter's NumPy FP32 output matched direct native
+output exactly. All checks passed with `rtol=1e-5`, `atol=1e-6`, and zero invalid embeddings.
+See the [detailed numerical report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.md)
+and [machine-readable results](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.json).
+This small-sample result does not reproduce the 24 full-dataset accuracy measurements.
 
 Dimension reports include the measured classification/retrieval scores, throughput, latency,
 VRAM, OOM retries, and score changes versus the matching 768D condition. The estimated

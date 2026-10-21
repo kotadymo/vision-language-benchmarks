@@ -4,6 +4,18 @@ Each row comes from an independent full-dataset run. Both image and text embeddi
 
 The native strategy is `leading-dimensions-l2-v1`. The vector-size columns below are calculated for FP32 output (`dimension × 4` bytes) and exclude model weights, indexes, metadata, and storage-system overhead.
 
+## Native MRL API equivalence validation
+
+This separate small-sample check validates native embedding numerics; it does not reproduce the full-dataset accuracy measurements.
+
+- Validation status: **PASSED** across 20 dimension/category checks and 176 embedding comparisons.
+- Samples: 2 CIFAR-10 images, 38 classification prompts, and 4 XM3600 retrieval texts.
+- Maximum native-versus-reference absolute difference: `2.980e-08`; maximum adapter NumPy FP32 conversion difference: `0.000e+00`; invalid embeddings: `0`.
+- Maximum meaningful relative difference: `1.589e-07`; minimum cosine similarity: `0.99999999999999956`; maximum unit-norm deviation: `9.541e-08`.
+- Tolerance: `rtol=1e-05`, `atol=1e-06`. Validation source commit: `dfda41a311f7a6b86a89aec95b7dd2aeebfe3073`.
+
+[Detailed numerical results](validation/native-mrl-api-equivalence.md) · [machine-readable JSON](validation/native-mrl-api-equivalence.json).
+
 [Download the machine-readable comparison](embedding-dimension-summary.csv).
 
 ## CIFAR zero-shot classification
@@ -46,10 +58,14 @@ Recall values are reported as measured. Deltas in the CSV are percentage-point d
 
 Condition check status: `conditions_differ`. Differences are reported as measured; baseline JSON files remain unchanged.
 
+Equal numerical metrics do not establish identical historical execution conditions.
+
+Unverified historical fields: preprocessing_config.
+
+Condition differences detected in: preprocessing_config.
+
 | Dataset | Protocol | Language | Metric | v0.3.0 | v0.4.0 768D | Difference (pp) |
 |---|---|---|---|---:|---:|---:|
-Unverified historical fields: preprocessing_config.
-Condition differences detected in: preprocessing_config.
 | cifar10 | P0 | EN | acc1 | 94.66% | 94.66% | +0.00 pp |
 | cifar10 | P0 | EN | acc5 | 99.84% | 99.84% | +0.00 pp |
 | cifar10 | P1 | EN | acc1 | 92.58% | 92.58% | +0.00 pp |

@@ -105,6 +105,16 @@ features. See the [dimension workflow](embedding-dimensions.md) for strict execu
 validation commands, and the [verified 24-run report](../results/mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md)
 for the measured dimension/accuracy/storage trade-offs.
 
+Native API equivalence was validated separately on a deterministic sample of 2 CIFAR-10 images,
+38 classification prompts, and 4 XM3600 first-caption texts across English and Japanese. All
+20 dimension/category checks passed; maximum absolute difference from the mathematical
+reference was `2.980e-08`, maximum relative difference on meaningful coordinates was
+`1.589e-07`, minimum cosine similarity was `0.9999999999999996`, and maximum unit-norm deviation was
+`9.541e-08`. Adapter NumPy FP32 outputs matched direct native outputs exactly. The validation
+used `rtol=1e-5`, `atol=1e-6` on CUDA FP32 with `openclip-gemma==0.4.0`; it does not reproduce
+the full-dataset accuracy scores. See the [validation report](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.md)
+and [JSON](../results/mrl-openclip-gemma-v0.4.0/validation/native-mrl-api-equivalence.json).
+
 On CUDA out-of-memory, the runner retries with a halved batch size down to one. The final
 batch sizes and OOM history are stored in the result. If a batch of one still fails, the run
 is retained as a failure rather than being reported as a measurement.

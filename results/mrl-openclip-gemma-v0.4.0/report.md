@@ -131,6 +131,20 @@ Throughput is computed from model inference only; model downloads, initializatio
 
 EmbeddingGemma results use independent native `truncate_dim` inference at each dimension. The [dimension-wise analysis](embedding-dimension-analysis.md) reports classification and retrieval metrics, measured throughput, and FP32 vector-size trade-offs relative to 768D.
 
+## Native MRL API equivalence validation
+
+The native `truncate_dim` output was compared with L2-normalized leading coordinates of an independently computed native 768D output. This small-sample check is distinct from the 24 full-dataset benchmark measurements.
+
+- Validation status: **PASSED** across 20 dimension/category checks and 176 embedding comparisons.
+- Samples: 2 CIFAR-10 images, 38 classification prompts, and 4 XM3600 retrieval texts.
+- Maximum native-versus-reference absolute difference: `2.980e-08`; maximum adapter NumPy FP32 conversion difference: `0.000e+00`; invalid embeddings: `0`.
+- Maximum meaningful relative difference: `1.589e-07`; minimum cosine similarity: `0.99999999999999956`; maximum unit-norm deviation: `9.541e-08`.
+- Tolerance: `rtol=1e-05`, `atol=1e-06`. Validation source commit: `dfda41a311f7a6b86a89aec95b7dd2aeebfe3073`.
+
+See the [detailed validation report](validation/native-mrl-api-equivalence.md) and [machine-readable JSON](validation/native-mrl-api-equivalence.json).
+
+Ranking-agreement metrics are not reported: the published raw records contain aggregate Recall@K and candidate-order provenance, not per-query rankings or embeddings. Such an analysis requires separate full-dataset native inference.
+
 ## Non-successful runs
 
 No unsuccessful-run JSON records are included in the published raw set. See the machine-readable run status for blocked evaluations and access constraints.
