@@ -833,6 +833,10 @@ def write_embedding_dimension_analysis(
         "columns below are calculated for FP32 output (`dimension × 4` bytes) and exclude "
         "model weights, indexes, metadata, and storage-system overhead.",
         "",
+        "Native API equivalence was checked separately on a deterministic, small sample "
+        "of real benchmark inputs. It validates embedding numerics, not full-dataset "
+        "accuracy; see the [quantitative validation](validation/native-mrl-api-equivalence.md).",
+        "",
         "[Download the machine-readable comparison](embedding-dimension-summary.csv).",
         "",
         "## CIFAR zero-shot classification",
@@ -901,21 +905,6 @@ def write_embedding_dimension_analysis(
         ]
     )
     if baseline_comparison is not None:
-        lines.extend(
-            [
-                "",
-                "## Fresh 768D results versus the v0.3.0 baseline",
-                "",
-                f"Condition check status: `{baseline_comparison['status']}`. Differences are "
-                "reported as measured; baseline JSON files remain unchanged.",
-                "",
-                (
-                    "| Dataset | Protocol | Language | Metric | v0.3.0 | "
-                    "v0.4.0 768D | Difference (pp) |"
-                ),
-                "|---|---|---|---|---:|---:|---:|",
-            ]
-        )
         unverified_checks = sorted(
             {
                 name
@@ -930,14 +919,46 @@ def write_embedding_dimension_analysis(
                 for name in comparison["failed_checks"]
             }
         )
+        lines.extend(
+            [
+                "",
+                "## Fresh 768D results versus the v0.3.0 baseline",
+                "",
+                f"Condition check status: `{baseline_comparison['status']}`. Differences are "
+                "reported as measured; baseline JSON files remain unchanged.",
+                "",
+                "Equal numerical metrics do not establish identical historical execution "
+                "conditions.",
+            ]
+        )
         if unverified_checks:
-            lines.append(
-                "Unverified historical fields: " + ", ".join(unverified_checks) + "."
+            lines.extend(
+                [
+                    "",
+                    "Unverified historical fields: "
+                    + ", ".join(unverified_checks)
+                    + ".",
+                ]
             )
         if failed_checks:
-            lines.append(
-                "Condition differences detected in: " + ", ".join(failed_checks) + "."
+            lines.extend(
+                [
+                    "",
+                    "Condition differences detected in: "
+                    + ", ".join(failed_checks)
+                    + ".",
+                ]
             )
+        lines.extend(
+            [
+                "",
+                (
+                    "| Dataset | Protocol | Language | Metric | v0.3.0 | "
+                    "v0.4.0 768D | Difference (pp) |"
+                ),
+                "|---|---|---|---|---:|---:|---:|",
+            ]
+        )
         for comparison in baseline_comparison["comparisons"]:
             condition = comparison["condition"]
             for metric, values in comparison["metrics"].items():
@@ -978,5 +999,17 @@ def render_embedding_dimension_section(results: list[Result]) -> list[str]:
         "dimension. The [dimension-wise analysis](embedding-dimension-analysis.md) reports "
         "classification and retrieval metrics, measured throughput, and FP32 vector-size "
         "trade-offs relative to 768D.",
+        "",
+        "## Native MRL API equivalence validation",
+        "",
+        "A separate, small-sample CUDA check compares native `truncate_dim` outputs with "
+        "L2-normalized leading-dimension slices of the native 768D outputs. It covers image, "
+        "classification-text, and retrieval-text paths; it is not a full-dataset benchmark "
+        "rerun. See the [measured validation report](validation/native-mrl-api-equivalence.md) "
+        "and [machine-readable results](validation/native-mrl-api-equivalence.json).",
+        "",
+        "Ranking-agreement metrics are not reported: the published raw records contain "
+        "aggregate Recall@K and candidate-order provenance, not per-query rankings or "
+        "embeddings. Such an analysis requires separate full-dataset native inference.",
         "",
     ]

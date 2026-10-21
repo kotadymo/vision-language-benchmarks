@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,31 @@ from vision_language_benchmarks.reporting.lifecycle import build_result_lifecycl
 
 FROZEN_SOURCE_COMMIT = "a" * 40
 DIMENSIONS = (768, 512, 256, 128)
+
+
+def _markdown_table_cells(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def _markdown_tables(markdown: str) -> list[list[list[str]]]:
+    tables: list[list[list[str]]] = []
+    current: list[list[str]] = []
+    for line in markdown.splitlines():
+        if line.strip().startswith("|"):
+            current.append(_markdown_table_cells(line))
+        elif current:
+            tables.append(current)
+            current = []
+    if current:
+        tables.append(current)
+
+    for table in tables:
+        assert len(table) >= 2
+        header, separator = table[:2]
+        assert len(header) == len(separator)
+        assert all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator)
+        assert all(len(row) == len(header) for row in table[2:])
+    return tables
 
 
 def _make_mrl_results() -> list[dict[str, Any]]:
@@ -320,3 +346,113 @@ def test_publishable_mrl_report_compares_only_eligible_legacy_768d_results(
     )
     assert "Fresh 768D results versus the v0.3.0 baseline" in analysis
     assert "Unverified historical fields: preprocessing_config." in analysis
+    assert (
+        "Equal numerical metrics do not establish identical historical execution "
+        "conditions."
+        in analysis
+    )
+
+    tables = _markdown_tables(analysis)
+    expected_headers = [
+        [
+            "Dataset",
+            "Protocol",
+            "Dimension",
+            "Top-1",
+            "Δ vs 768D",
+            "Top-5",
+            "Δ vs 768D",
+            "Images/s",
+            "FP32 bytes/vector",
+        ],
+        [
+            "Language",
+            "Dimension",
+            "T→I R@1 / R@5 / R@10",
+            "I→T R@1 / R@5 / R@10",
+            "Images/s",
+            "Texts/s",
+            "FP32 bytes/vector",
+        ],
+        [
+            "Dataset",
+            "Protocol",
+            "Language",
+            "Metric",
+            "v0.3.0",
+            "v0.4.0 768D",
+            "Difference (pp)",
+        ],
+    ]
+    assert [table[0] for table in tables] == expected_headers
+
+    baseline_table = tables[2]
+    baseline_rows = baseline_table[2:]
+    assert len(baseline_rows) == 20
+    analysis_lines = analysis.splitlines()
+    table_start = analysis_lines.index(
+        "| Dataset | Protocol | Language | Metric | v0.3.0 | "
+        "v0.4.0 768D | Difference (pp) |"
+    )
+    assert next(
+        index
+        for index, line in enumerate(analysis_lines)
+        if "Condition check status:" in line
+    ) < table_start
+    assert next(
+        index
+        for index, line in enumerate(analysis_lines)
+        if "Unverified historical fields:" in line
+    ) < table_start
+
+    with files["embedding_dimension_summary_csv"].open(
+        encoding="utf-8",
+        newline="",
+    ) as stream:
+        dimension_rows = list(csv.DictReader(stream))
+    dimension_rows_by_condition = {
+        (
+            row["dataset_key"],
+            row["protocol"],
+            row["language"],
+            row["embedding_dimension"],
+        ): row
+        for row in dimension_rows
+    }
+    expected_baseline_rows: dict[tuple[str, str, str, str], list[str]] = {}
+    for comparison in audit["comparisons"]:
+        condition = comparison["condition"]
+        csv_row = dimension_rows_by_condition[
+            (
+                condition["dataset"],
+                condition["protocol"],
+                condition["language"],
+                "768",
+            )
+        ]
+        for metric, values in comparison["metrics"].items():
+            if values["previous_value"] is None:
+                continue
+            current_from_csv = float(csv_row[f"{metric}_fraction"])
+            assert current_from_csv == values["current_value"]
+            key = (
+                condition["dataset"],
+                condition["protocol"],
+                condition["language"],
+                metric,
+            )
+            expected_baseline_rows[key] = [
+                condition["dataset"],
+                condition["protocol"].upper(),
+                condition["language"].upper(),
+                metric,
+                f'{values["previous_value"] * 100:.2f}%',
+                f"{current_from_csv * 100:.2f}%",
+                f'{values["difference_percentage_points"]:+.2f} pp',
+            ]
+    actual_baseline_rows = {
+        (row[0], row[1].lower(), row[2].lower(), row[3]): row
+        for row in baseline_rows
+    }
+    assert len(expected_baseline_rows) == 20
+    assert actual_baseline_rows == expected_baseline_rows
