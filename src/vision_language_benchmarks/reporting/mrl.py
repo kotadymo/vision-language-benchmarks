@@ -804,10 +804,129 @@ def _rate(value: Any) -> str:
     return "—" if not isinstance(value, (int, float)) else f"{float(value):.1f}"
 
 
+def _native_mrl_validation_summary(report: dict[str, Any]) -> list[str]:
+    measurements = report.get("measurements")
+    if not isinstance(measurements, list):
+        raise DataIntegrityError("Native MRL validation report has no measurement list.")
+    if not measurements:
+        return [
+            f"- Validation status: `{report.get('status', 'unknown')}`; no numerical "
+            "measurements were recorded."
+        ]
+
+    native_errors = [
+        measurement["native_vs_reference"].get("max_absolute_difference")
+        for measurement in measurements
+        if isinstance(
+            measurement["native_vs_reference"].get("max_absolute_difference"),
+            (int, float),
+        )
+    ]
+    adapter_errors = [
+        measurement["adapter_output"]["vs_direct_native"].get(
+            "max_absolute_difference"
+        )
+        for measurement in measurements
+        if isinstance(
+            measurement["adapter_output"]["vs_direct_native"].get(
+                "max_absolute_difference"
+            ),
+            (int, float),
+        )
+    ]
+    relative_errors = [
+        measurement["native_vs_reference"].get("max_relative_difference")
+        for measurement in measurements
+        if isinstance(
+            measurement["native_vs_reference"].get("max_relative_difference"),
+            (int, float),
+        )
+    ]
+    cosine_similarities = [
+        measurement["native_vs_reference"].get("minimum_cosine_similarity")
+        for measurement in measurements
+        if isinstance(
+            measurement["native_vs_reference"].get("minimum_cosine_similarity"),
+            (int, float),
+        )
+    ]
+    norm_deviations = [
+        measurement["native_vs_reference"].get(
+            "maximum_l2_norm_deviation_from_one"
+        )
+        for measurement in measurements
+        if isinstance(
+            measurement["native_vs_reference"].get(
+                "maximum_l2_norm_deviation_from_one"
+            ),
+            (int, float),
+        )
+    ]
+    native_max = max(native_errors, default=None)
+    adapter_max = max(adapter_errors, default=None)
+    relative_max = max(relative_errors, default=None)
+    cosine_min = min(cosine_similarities, default=None)
+    norm_deviation_max = max(norm_deviations, default=None)
+    compared_embedding_count = sum(
+        int(measurement["native_vs_reference"].get("compared_embedding_count", 0))
+        for measurement in measurements
+    )
+    invalid_embedding_count = sum(
+        int(measurement["native_vs_reference"].get("invalid_embedding_count", 0))
+        + int(
+            measurement["adapter_output"]["vs_direct_native"].get(
+                "invalid_embedding_count",
+                0,
+            )
+        )
+        for measurement in measurements
+    )
+    sample_counts = report.get("sample_counts", {})
+    classification_count = sum(
+        int(value)
+        for value in sample_counts.get("classification_text", {}).values()
+    )
+    retrieval_count = sum(
+        int(value) for value in sample_counts.get("retrieval_text", {}).values()
+    )
+    validation_status = (
+        "PASSED"
+        if report.get("overall_passed") is True
+        else str(report.get("status", "unknown")).upper()
+    )
+    tolerance = report.get("tolerance", {})
+    check_label = "check" if len(measurements) == 1 else "checks"
+
+    def scientific(value: Any) -> str:
+        return "n/a" if not isinstance(value, (int, float)) else f"{float(value):.3e}"
+
+    def decimal(value: Any) -> str:
+        return "n/a" if not isinstance(value, (int, float)) else f"{float(value):.17g}"
+
+    return [
+        f"- Validation status: **{validation_status}** across {len(measurements)} "
+        f"dimension/category {check_label} and {compared_embedding_count} "
+        "embedding comparisons.",
+        f"- Samples: {sample_counts.get('images', 0)} CIFAR-10 images, "
+        f"{classification_count} classification prompts, and {retrieval_count} XM3600 "
+        "retrieval texts.",
+        f"- Maximum native-versus-reference absolute difference: "
+        f"`{scientific(native_max)}`; maximum adapter NumPy FP32 conversion difference: "
+        f"`{scientific(adapter_max)}`; invalid embeddings: `{invalid_embedding_count}`.",
+        f"- Maximum meaningful relative difference: `{scientific(relative_max)}`; "
+        f"minimum cosine similarity: `{decimal(cosine_min)}`; maximum unit-norm "
+        f"deviation: `{scientific(norm_deviation_max)}`.",
+        f"- Tolerance: `rtol={float(tolerance.get('rtol', 0.0)):.0e}`, "
+        f"`atol={float(tolerance.get('atol', 0.0)):.0e}`. Validation source commit: "
+        f"`{report.get('source_commit_sha', 'not recorded')}`.",
+    ]
+
+
 def write_embedding_dimension_analysis(
     results: list[Result],
     output_dir: Path,
     baseline_comparison: dict[str, Any] | None = None,
+    native_validation_report: dict[str, Any] | None = None,
 ) -> dict[str, Path]:
     rows = _summary_rows(results)
     if not rows:
@@ -833,18 +952,41 @@ def write_embedding_dimension_analysis(
         "columns below are calculated for FP32 output (`dimension × 4` bytes) and exclude "
         "model weights, indexes, metadata, and storage-system overhead.",
         "",
-        "Native API equivalence was checked separately on a deterministic, small sample "
-        "of real benchmark inputs. It validates embedding numerics, not full-dataset "
-        "accuracy; see the [quantitative validation](validation/native-mrl-api-equivalence.md).",
-        "",
-        "[Download the machine-readable comparison](embedding-dimension-summary.csv).",
-        "",
-        "## CIFAR zero-shot classification",
-        "",
-        "| Dataset | Protocol | Dimension | Top-1 | Δ vs 768D | Top-5 | Δ vs 768D | "
-        "Images/s | FP32 bytes/vector |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
+    if native_validation_report is not None:
+        lines.extend(
+            [
+                "## Native MRL API equivalence validation",
+                "",
+                "This separate small-sample check validates native embedding numerics; it "
+                "does not reproduce the full-dataset accuracy measurements.",
+                "",
+                *_native_mrl_validation_summary(native_validation_report),
+                "",
+                "[Detailed numerical results](validation/native-mrl-api-equivalence.md) · "
+                "[machine-readable JSON](validation/native-mrl-api-equivalence.json).",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "Native API equivalence is a separate small-sample validation and is not "
+                "inferred from the full-dataset accuracy results.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "[Download the machine-readable comparison](embedding-dimension-summary.csv).",
+            "",
+            "## CIFAR zero-shot classification",
+            "",
+            "| Dataset | Protocol | Dimension | Top-1 | Δ vs 768D | Top-5 | Δ vs 768D | "
+            "Images/s | FP32 bytes/vector |",
+            "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
     for row in classification_rows:
         lines.append(
             "| "
@@ -988,28 +1130,52 @@ def write_embedding_dimension_analysis(
     }
 
 
-def render_embedding_dimension_section(results: list[Result]) -> list[str]:
+def render_embedding_dimension_section(
+    results: list[Result],
+    native_validation_report: dict[str, Any] | None = None,
+) -> list[str]:
     rows = _summary_rows(results)
     if not rows:
         return []
-    return [
+    lines = [
         "## Matryoshka embedding dimensions",
         "",
         "EmbeddingGemma results use independent native `truncate_dim` inference at each "
         "dimension. The [dimension-wise analysis](embedding-dimension-analysis.md) reports "
         "classification and retrieval metrics, measured throughput, and FP32 vector-size "
         "trade-offs relative to 768D.",
-        "",
-        "## Native MRL API equivalence validation",
-        "",
-        "A separate, small-sample CUDA check compares native `truncate_dim` outputs with "
-        "L2-normalized leading-dimension slices of the native 768D outputs. It covers image, "
-        "classification-text, and retrieval-text paths; it is not a full-dataset benchmark "
-        "rerun. See the [measured validation report](validation/native-mrl-api-equivalence.md) "
-        "and [machine-readable results](validation/native-mrl-api-equivalence.json).",
-        "",
-        "Ranking-agreement metrics are not reported: the published raw records contain "
-        "aggregate Recall@K and candidate-order provenance, not per-query rankings or "
-        "embeddings. Such an analysis requires separate full-dataset native inference.",
-        "",
     ]
+    if native_validation_report is not None:
+        lines.extend(
+            [
+                "",
+                "## Native MRL API equivalence validation",
+                "",
+                "The native `truncate_dim` output was compared with L2-normalized leading "
+                "coordinates of an independently computed native 768D output. This small-sample "
+                "check is distinct from the 24 full-dataset benchmark measurements.",
+                "",
+                *_native_mrl_validation_summary(native_validation_report),
+                "",
+                "See the [detailed validation report](validation/native-mrl-api-equivalence.md) "
+                "and [machine-readable JSON](validation/native-mrl-api-equivalence.json).",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "",
+                "Native MRL API equivalence is a separate opt-in small-sample check; it does "
+                "not reproduce full-dataset accuracy results.",
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "Ranking-agreement metrics are not reported: the published raw records contain "
+            "aggregate Recall@K and candidate-order provenance, not per-query rankings or "
+            "embeddings. Such an analysis requires separate full-dataset native inference.",
+            "",
+        ]
+    )
+    return lines

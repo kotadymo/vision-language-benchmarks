@@ -109,6 +109,14 @@ def test_compare_embedding_arrays_reports_close_normalized_vectors() -> None:
     assert result["passed"] is True
 
 
+def test_compare_embedding_arrays_clamps_cosine_roundoff_to_its_valid_range() -> None:
+    vector = np.asarray([[0.304717093706131, -1.039984107017517]], dtype=np.float32)
+
+    result = compare_embedding_arrays(vector, vector)
+
+    assert result["minimum_cosine_similarity"] == 1.0
+
+
 @pytest.mark.parametrize("modality", ["image", "text"])
 def test_compare_native_mrl_batch_measures_native_dimension_order(
     modality: str,

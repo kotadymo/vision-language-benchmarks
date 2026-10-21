@@ -296,6 +296,39 @@ def test_publishable_mrl_report_compares_only_eligible_legacy_768d_results(
             "attempts": [],
         },
     )
+    atomic_write_json(
+        current_output_dir / "validation" / "native-mrl-api-equivalence.json",
+        {
+            "validation_type": "native_mrl_api_equivalence",
+            "status": "completed",
+            "overall_passed": True,
+            "source_commit_sha": FROZEN_SOURCE_COMMIT,
+            "tolerance": {"rtol": 1e-5, "atol": 1e-6},
+            "sample_counts": {
+                "images": 2,
+                "classification_text": {"p0_en": 36},
+                "retrieval_text": {"en": 2},
+            },
+            "measurements": [
+                {
+                    "native_vs_reference": {
+                        "compared_embedding_count": 2,
+                        "max_absolute_difference": 2.9802322387695312e-8,
+                        "max_relative_difference": 1e-7,
+                        "minimum_cosine_similarity": 0.9999999999999996,
+                        "maximum_l2_norm_deviation_from_one": 5e-8,
+                        "invalid_embedding_count": 0,
+                    },
+                    "adapter_output": {
+                        "vs_direct_native": {
+                            "max_absolute_difference": 0.0,
+                            "invalid_embedding_count": 0,
+                        }
+                    },
+                }
+            ],
+        },
+    )
 
     files = generate_reports(
         current_raw_dir,
@@ -344,6 +377,9 @@ def test_publishable_mrl_report_compares_only_eligible_legacy_768d_results(
     analysis = files["embedding_dimension_analysis_markdown"].read_text(
         encoding="utf-8"
     )
+    assert "Maximum native-versus-reference absolute difference: `2.980e-08`" in analysis
+    assert "maximum adapter NumPy FP32 conversion difference: `0.000e+00`" in analysis
+    assert "Maximum meaningful relative difference: `1.000e-07`" in analysis
     assert "Fresh 768D results versus the v0.3.0 baseline" in analysis
     assert "Unverified historical fields: preprocessing_config." in analysis
     assert (
@@ -351,6 +387,9 @@ def test_publishable_mrl_report_compares_only_eligible_legacy_768d_results(
         "conditions."
         in analysis
     )
+    generated_report = files["report_markdown"].read_text(encoding="utf-8")
+    assert "1 dimension/category check and 2 embedding comparisons" in generated_report
+    assert "rtol=1e-05" in generated_report
 
     tables = _markdown_tables(analysis)
     expected_headers = [

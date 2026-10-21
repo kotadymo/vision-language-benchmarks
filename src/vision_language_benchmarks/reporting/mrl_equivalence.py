@@ -158,8 +158,11 @@ def compare_embedding_arrays(
             )
             max_relative_difference = float(np.max(relative_difference))
 
-        cosine_similarity = np.sum(valid_native * valid_reference, axis=1) / (
-            native_norms[valid] * reference_norms[valid]
+        cosine_similarity = np.clip(
+            np.sum(valid_native * valid_reference, axis=1)
+            / (native_norms[valid] * reference_norms[valid]),
+            -1.0,
+            1.0,
         )
         minimum_cosine_similarity = float(np.min(cosine_similarity))
 
@@ -204,6 +207,10 @@ def compare_embedding_arrays(
 
 def _scientific(value: Any) -> str:
     return "n/a" if value is None else f"{float(value):.3e}"
+
+
+def _cosine(value: Any) -> str:
+    return "n/a" if value is None else f"{float(value):.17g}"
 
 
 def render_native_mrl_api_equivalence_markdown(
@@ -301,7 +308,7 @@ def render_native_mrl_api_equivalence_markdown(
                     _scientific(comparison["max_absolute_difference"]),
                     _scientific(comparison["mean_absolute_difference"]),
                     _scientific(comparison["max_relative_difference"]),
-                    _scientific(comparison["minimum_cosine_similarity"]),
+                    _cosine(comparison["minimum_cosine_similarity"]),
                     _scientific(comparison["maximum_l2_norm_deviation_from_one"]),
                     str(comparison["invalid_embedding_count"]),
                     "PASS" if comparison["passed"] else "FAIL",

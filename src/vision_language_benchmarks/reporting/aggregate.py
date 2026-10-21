@@ -841,6 +841,7 @@ def render_report(
     plot_files: dict[str, Path] | None = None,
     validation_dir: Path | None = None,
     publication_lifecycle: dict[str, Any] | None = None,
+    native_validation_report: dict[str, Any] | None = None,
 ) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
@@ -954,7 +955,12 @@ def render_report(
     )
     lines.extend(_render_paired_language_section(completed))
     lines.extend(_render_performance_section(completed))
-    lines.extend(render_embedding_dimension_section(completed))
+    lines.extend(
+        render_embedding_dimension_section(
+            completed,
+            native_validation_report,
+        )
+    )
 
     lines.extend(
         [
@@ -1273,6 +1279,25 @@ def _metadata_document(
     return document
 
 
+def _load_native_mrl_validation_report(output_dir: Path) -> dict[str, Any] | None:
+    report_path = output_dir / "validation" / "native-mrl-api-equivalence.json"
+    if not report_path.is_file():
+        return None
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise DataIntegrityError(
+            f"Cannot read native MRL validation report {report_path}: {error}"
+        ) from error
+    if (
+        not isinstance(report, dict)
+        or report.get("validation_type") != "native_mrl_api_equivalence"
+        or not isinstance(report.get("measurements"), list)
+    ):
+        raise DataIntegrityError(f"Invalid native MRL validation report at {report_path}.")
+    return report
+
+
 def generate_reports(
     input_path: Path,
     output_dir: Path,
@@ -1443,6 +1468,7 @@ def generate_reports(
         validation_dir.mkdir(parents=True, exist_ok=True)
         for filename, document in validation_documents.items():
             atomic_write_json(validation_dir / filename, document)
+    native_validation_report = _load_native_mrl_validation_report(output_dir)
     completed_rows = summary_rows(results, publication_states)
     completed_rows.sort(
         key=lambda row: (
@@ -1482,6 +1508,7 @@ def generate_reports(
         results,
         output_dir,
         baseline_comparison,
+        native_validation_report,
     )
     report_path.write_text(
         render_report(
@@ -1489,6 +1516,7 @@ def generate_reports(
             plots,
             output_dir / "validation",
             publication_lifecycle,
+            native_validation_report,
         ),
         encoding="utf-8",
         newline="\n",
