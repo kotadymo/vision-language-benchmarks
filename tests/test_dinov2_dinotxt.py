@@ -570,6 +570,16 @@ def test_dinotxt_report_separates_inference_and_report_regeneration() -> None:
     input_path = Path("results/dinov2-dinotxt-v0.6.0/raw")
     output_path = Path("results/dinov2-dinotxt-v0.6.0")
     lifecycle_path = output_path / "validation" / "result-lifecycle.json"
+    comparison_inputs = (
+        Path("results/v0.1.0/raw"),
+        Path("results/mrl-openclip-gemma-v0.4.0/raw"),
+    )
+    comparison_lifecycles = (
+        Path("results/v0.1.0/validation/result-lifecycle.json"),
+        Path(
+            "results/mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json"
+        ),
+    )
 
     report = render_report(
         [result],
@@ -578,6 +588,8 @@ def test_dinotxt_report_separates_inference_and_report_regeneration() -> None:
         reproduction_lifecycle_path=lifecycle_path,
         reproduction_expected_source_commit_sha=source_commit,
         reproduction_publishable=True,
+        reproduction_comparison_input_paths=comparison_inputs,
+        reproduction_comparison_lifecycle_paths=comparison_lifecycles,
     )
     inference_section, report_section = report.split(
         "### Regenerate this report only (no inference)",
@@ -596,4 +608,12 @@ def test_dinotxt_report_separates_inference_and_report_regeneration() -> None:
         "results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json "
         "--expected-source-commit "
         + source_commit
+    ) in report_section
+    assert (
+        "--comparison-input results/v0.1.0/raw "
+        "--comparison-lifecycle "
+        "results/v0.1.0/validation/result-lifecycle.json "
+        "--comparison-input results/mrl-openclip-gemma-v0.4.0/raw "
+        "--comparison-lifecycle "
+        "results/mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json"
     ) in report_section

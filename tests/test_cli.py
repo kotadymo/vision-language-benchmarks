@@ -119,6 +119,8 @@ def test_report_accepts_historical_baseline_inputs(monkeypatch, capsys, tmp_path
     current_lifecycle = tmp_path / "current-lifecycle.json"
     baseline_input = tmp_path / "baseline-raw"
     baseline_lifecycle = tmp_path / "baseline-lifecycle.json"
+    comparison_input = tmp_path / "comparison-raw"
+    comparison_lifecycle = tmp_path / "comparison-lifecycle.json"
 
     exit_code = main(
         [
@@ -134,6 +136,10 @@ def test_report_accepts_historical_baseline_inputs(monkeypatch, capsys, tmp_path
             str(baseline_input),
             "--baseline-lifecycle",
             str(baseline_lifecycle),
+            "--comparison-input",
+            str(comparison_input),
+            "--comparison-lifecycle",
+            str(comparison_lifecycle),
         ]
     )
     capsys.readouterr()
@@ -147,6 +153,8 @@ def test_report_accepts_historical_baseline_inputs(monkeypatch, capsys, tmp_path
         "expected_source_commit_sha": None,
         "baseline_input_path": baseline_input,
         "baseline_lifecycle_path": baseline_lifecycle,
+        "comparison_input_paths": (comparison_input,),
+        "comparison_lifecycle_paths": (comparison_lifecycle,),
     }
 
 

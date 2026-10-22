@@ -26,13 +26,23 @@ fields to the old shared image-transform settings.
 
 ## DINOv2 + dino.txt v0.6.0 integration
 
-The [integration report](dinov2-dinotxt-v0.6.0/report.md) records six requested conditions,
-all blocked before data preparation or model loading because the upstream materials do not
-state licenses for the separately distributed dino.txt Vision Head and Text Encoder weights.
-There are no accuracy, retrieval, or throughput values and no charts. The
-[checkpoint integrity record](dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json)
-contains actual cached-file hashes; this confirms file identity, not permission to use the
-weights.
+The [campaign report](dinov2-dinotxt-v0.6.0/report.md) publishes six full-dataset CUDA FP32
+measurements from `openvlclip==0.6.0`, using the fixed 2048D DINOv2 ViT-L/14 + dino.txt
+global embedding. All six used frozen source commit
+`28519573b78f0dcb7ab6515ead02bc6b403a92bd` and a clean working tree. The
+[license review](../docs/dinotxt-license-review.md) documents why the pinned Meta terms support
+the local scientific benchmark; the original six blocked attempts remain unchanged as
+historical records and contribute no metrics. The report includes matched CIFAR and XM3600
+comparisons, exact hit counts, throughput, peak GPU memory, and PNG/SVG figures. The
+[summary CSV](dinov2-dinotxt-v0.6.0/summary.csv),
+[model-comparison CSV](dinov2-dinotxt-v0.6.0/model-comparison.csv),
+[raw results](dinov2-dinotxt-v0.6.0/raw/),
+[run-status manifest](dinov2-dinotxt-v0.6.0/run-status.json),
+[publication lifecycle](dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json),
+[comparison audit](dinov2-dinotxt-v0.6.0/validation/model-comparison-audit.json),
+[checkpoint integrity record](dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json), and
+[CUDA smoke-validation record](dinov2-dinotxt-v0.6.0/validation/dinotxt-cuda-smoke.json) retain
+the associated provenance.
 
 ## v0.1.0 benchmark results
 

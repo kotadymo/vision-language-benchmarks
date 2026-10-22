@@ -52,6 +52,11 @@ def _model_label(result: Result) -> str:
     )
     if dimension is None and key == EMBEDDINGGEMMA_MODEL_KEY:
         dimension = 768
+    if dimension is None and isinstance(key, str):
+        try:
+            dimension = get_model(key).global_embedding_dimension
+        except ValueError:
+            pass
     suffix = f" · {dimension}D" if isinstance(dimension, int) else ""
     if isinstance(key, str):
         try:
@@ -145,7 +150,12 @@ def _condition_groups(
     ]
 
 
-def _classification_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
+def _classification_plots(
+    results: list[Result],
+    output_dir: Path,
+    *,
+    filename_prefix: str = "",
+) -> dict[str, Path]:
     groups = _condition_groups(results, task="classification")
     files: dict[str, Path] = {}
     for (protocol, precision, language), items in groups:
@@ -165,6 +175,7 @@ def _classification_plots(results: list[Result], output_dir: Path) -> dict[str, 
                 f"classification_accuracy_{_slug(protocol)}_"
                 f"{_slug(precision)}_{_slug(language)}"
             )
+        stem = f"{filename_prefix}{stem}"
         datasets = [_dataset_label(result) for result in eligible]
         unique_datasets = list(dict.fromkeys(datasets))
         title = (
@@ -197,7 +208,12 @@ def _classification_plots(results: list[Result], output_dir: Path) -> dict[str, 
     return files
 
 
-def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
+def _retrieval_plots(
+    results: list[Result],
+    output_dir: Path,
+    *,
+    filename_prefix: str = "",
+) -> dict[str, Path]:
     grouped: dict[tuple[str, str, str, str], dict[str, list[Result]]] = defaultdict(
         lambda: defaultdict(list)
     )
@@ -321,6 +337,7 @@ def _retrieval_plots(results: list[Result], output_dir: Path) -> dict[str, Path]
                 f"retrieval_recall_{_slug(dataset_key)}_{_slug(protocol)}_"
                 f"{_slug(precision)}_{_slug(variant)}"
             )
+        stem = f"{filename_prefix}{stem}"
         files.update(_save_figure(figure, output_dir, stem))
     return files
 
@@ -427,7 +444,12 @@ def _language_comparison_plots(results: list[Result], output_dir: Path) -> dict[
     return files
 
 
-def _throughput_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
+def _throughput_plots(
+    results: list[Result],
+    output_dir: Path,
+    *,
+    filename_prefix: str = "",
+) -> dict[str, Path]:
     groups = _condition_groups(results, task="classification")
     files: dict[str, Path] = {}
     for (protocol, precision, language), items in groups:
@@ -449,6 +471,7 @@ def _throughput_plots(results: list[Result], output_dir: Path) -> dict[str, Path
                 f"performance_comparison_{_slug(protocol)}_"
                 f"{_slug(precision)}_{_slug(language)}"
             )
+        stem = f"{filename_prefix}{stem}"
         dataset_labels = list(dict.fromkeys(_dataset_label(result) for result in eligible))
         title = (
             f"Zero-shot accuracy versus image throughput — {protocol.upper()} / "
@@ -645,4 +668,34 @@ def write_plots(results: list[Result], output_dir: Path) -> dict[str, Path]:
     files.update(_language_comparison_plots(results, output_dir))
     files.update(_throughput_plots(results, output_dir))
     files.update(_embedding_dimension_plots(results, output_dir))
+    return files
+
+
+def write_model_comparison_plots(
+    results: list[Result],
+    output_dir: Path,
+) -> dict[str, Path]:
+    filename_prefix = "model_comparison_"
+    files: dict[str, Path] = {}
+    files.update(
+        _classification_plots(
+            results,
+            output_dir,
+            filename_prefix=filename_prefix,
+        )
+    )
+    files.update(
+        _retrieval_plots(
+            results,
+            output_dir,
+            filename_prefix=filename_prefix,
+        )
+    )
+    files.update(
+        _throughput_plots(
+            results,
+            output_dir,
+            filename_prefix=filename_prefix,
+        )
+    )
     return files

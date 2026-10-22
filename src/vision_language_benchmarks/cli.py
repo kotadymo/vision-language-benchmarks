@@ -584,6 +584,8 @@ def _command_report(args: argparse.Namespace) -> int:
         expected_source_commit_sha=args.expected_source_commit,
         baseline_input_path=args.baseline_input,
         baseline_lifecycle_path=args.baseline_lifecycle,
+        comparison_input_paths=tuple(args.comparison_input or ()),
+        comparison_lifecycle_paths=tuple(args.comparison_lifecycle or ()),
     )
     _write_json({name: str(path) for name, path in files.items()})
     return 0
@@ -776,6 +778,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline-lifecycle",
         type=Path,
         help="Lifecycle manifest matching --baseline-input.",
+    )
+    report.add_argument(
+        "--comparison-input",
+        type=Path,
+        action="append",
+        default=[],
+        help="Eligible historical runs for matched model comparisons; repeat with lifecycle.",
+    )
+    report.add_argument(
+        "--comparison-lifecycle",
+        type=Path,
+        action="append",
+        default=[],
+        help="Lifecycle manifest matching one --comparison-input; repeat in the same order.",
     )
     report.set_defaults(handler=_command_report)
 

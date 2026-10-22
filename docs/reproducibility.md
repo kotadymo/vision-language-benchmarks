@@ -156,6 +156,15 @@ in lifecycle/status artifacts. The report generator uses a fixed SVG hash salt a
 metadata so repeated generation from the same eligible raw JSON is byte-identical.
 Automated tests cover CSV, Markdown, metadata JSON, PNG, and SVG regeneration.
 
+For matched comparisons across campaigns, repeat `--comparison-input` and
+`--comparison-lifecycle` once per historical campaign, in matching order. The report validates
+each lifecycle against its raw results and matches only the same dataset checksum, split, task,
+protocol, language, precision, counts, and retrieval variant. It emits
+`model-comparison.csv`, a comparison audit, and separate cross-model plots. Accuracy and recall
+cells include exact hit/query counts. FP32 vector-payload bytes are a derived
+`vector_count × dimension × 4` calculation, not measured on-disk size; dimensions absent from
+legacy raw records are left unreported rather than inferred.
+
 Validated, sanitized per-run metric JSON under `results/v0.1.0/raw/` may be committed. The
 private `run-manifest.json` is git-ignored. Do not commit datasets, model weights, caches,
 tokens, credentials, local filesystem paths, or embedding arrays. Reports should be published
