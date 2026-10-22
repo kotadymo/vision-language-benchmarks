@@ -421,7 +421,9 @@ def test_cli_records_blocked_model_without_download_confirmation(
     assert list(output.glob("*.json"))
 
 
-def test_dinotxt_non_success_reporting_surfaces_license_status() -> None:
+def test_dinotxt_non_success_reporting_surfaces_license_status(
+    tmp_path: Path,
+) -> None:
     result = make_result(
         model_key="dinov2_dinotxt",
         status="blocked",
@@ -435,7 +437,17 @@ def test_dinotxt_non_success_reporting_surfaces_license_status() -> None:
     assert status_row["model_weight_license_status"] == "blocked"
     assert "external dino.txt Vision Head" in status_row["model_weight_license_reason"]
 
-    report = render_report([result])
+    validation_dir = tmp_path / "validation"
+    validation_dir.mkdir()
+    (validation_dir / "checkpoint-integrity.json").write_text(
+        "{}",
+        encoding="utf-8",
+    )
+    report = render_report([result], validation_dir=validation_dir)
     assert "| Model weight license |" in report
     assert status_row["model"] in report
     assert "| blocked |" in report
+    assert (
+        "[checkpoint-integrity.json](validation/checkpoint-integrity.json)" in report
+    )
+    assert "runs blocked earlier intentionally leave them unset" in report

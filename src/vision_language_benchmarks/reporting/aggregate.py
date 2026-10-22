@@ -1040,6 +1040,7 @@ def render_report(
     validation_artifacts = (
         "historical-results-audit.json",
         "model-smoke-tests.json",
+        "checkpoint-integrity.json",
         "official-cifar10-parity.json",
         "official-xm3600-openclip-ja.json",
         "official-xm3600-parity.json",
@@ -1058,8 +1059,9 @@ def render_report(
             "## Validation and reproducibility",
             "",
             "Each raw result is schema-validated before aggregation. Per-run JSON records retain "
-            "the source commit, model checkpoint fingerprint, dataset checksum, ordered "
-            "candidate IDs and hashes, prompt policy, runtime, and measured metrics.",
+            "status-appropriate provenance. Checkpoint fingerprints, dataset checksums, "
+            "candidate IDs, and metrics are available only when a run reaches those stages; "
+            "runs blocked earlier intentionally leave them unset.",
         ]
     )
     if available_validation_artifacts:
