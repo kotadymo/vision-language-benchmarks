@@ -1,10 +1,12 @@
 {
   "schema_version": "1.0.0",
-  "result_file_count": 6,
+  "result_file_count": 12,
   "status_counts": {
-    "blocked": 6
+    "blocked": 6,
+    "completed": 6
   },
   "source_commit_shas": [
+    "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
     "53eeb22790fc8f135c3a94d589e2e422f8b6566a"
   ],
   "datasets": [
@@ -12,11 +14,19 @@
       "dataset_id": "cifar10",
       "name": "CIFAR-10",
       "split": "test",
-      "revision": null,
-      "checksum": null,
+      "revision": "CIFAR official python archive",
+      "checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
       "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
       "license_status": "public_download_citation_required",
       "terms_confirmations": [
+        {
+          "run_id": "0f885e751a90a8ef",
+          "confirmed": false
+        },
+        {
+          "run_id": "7d2fd70c52399af1",
+          "confirmed": false
+        },
         {
           "run_id": "a68a143e2e19b0d5",
           "confirmed": false
@@ -43,11 +53,19 @@
       "license_status": "public_download_citation_required",
       "terms_confirmations": [
         {
+          "run_id": "37ce26e54de28445",
+          "confirmed": false
+        },
+        {
           "run_id": "984949e7d7414e90",
           "confirmed": false
         },
         {
           "run_id": "c84d9fc9038d5f29",
+          "confirmed": false
+        },
+        {
+          "run_id": "f0b3f208c3f8f151",
           "confirmed": false
         }
       ],
@@ -72,7 +90,15 @@
           "confirmed": false
         },
         {
+          "run_id": "347bf1161cfb1180",
+          "confirmed": false
+        },
+        {
           "run_id": "7a9cfe6313eb4e28",
+          "confirmed": false
+        },
+        {
+          "run_id": "d8c51bd44857ee04",
           "confirmed": false
         }
       ],
@@ -105,6 +131,30 @@
           "preprocessing_config_sha256": "6930bf3058b2a4df6255a0d099269f922e02584a62c47c31be7dbed03a7848f0"
         },
         {
+          "run_id": "d8c51bd44857ee04",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
+          "checkpoint_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8+backbone-36e4deffbaef061a2576705b0c36f93621e2ae20bf6274694821b0b492551b51+vision-706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5+text-13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a+bpe-924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+          "checkpoint_sha256": "1437692cb21e90de8b70f7eea32126f3eb90d06f5dba51137ffdf97485001cc8",
+          "preprocessing_config_sha256": "3138392cd4ab9fb0952c4c1b77f8c91be71bf6425e10c71cc029e631e8095da4"
+        },
+        {
           "run_id": "0cbffc061dfc6663",
           "status": "blocked",
           "protocol": "p2",
@@ -124,6 +174,30 @@
           "checkpoint_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8+backbone-36e4deffbaef061a2576705b0c36f93621e2ae20bf6274694821b0b492551b51+vision-706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5+text-13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a+bpe-924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
           "checkpoint_sha256": null,
           "preprocessing_config_sha256": "6930bf3058b2a4df6255a0d099269f922e02584a62c47c31be7dbed03a7848f0"
+        },
+        {
+          "run_id": "347bf1161cfb1180",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
+          "checkpoint_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8+backbone-36e4deffbaef061a2576705b0c36f93621e2ae20bf6274694821b0b492551b51+vision-706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5+text-13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a+bpe-924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+          "checkpoint_sha256": "1437692cb21e90de8b70f7eea32126f3eb90d06f5dba51137ffdf97485001cc8",
+          "preprocessing_config_sha256": "3138392cd4ab9fb0952c4c1b77f8c91be71bf6425e10c71cc029e631e8095da4"
         }
       ]
     }
@@ -138,12 +212,23 @@
         "en",
         "ja"
       ],
+      "checkpoint_sha256": "1437692cb21e90de8b70f7eea32126f3eb90d06f5dba51137ffdf97485001cc8",
       "pretrained_tag": "official",
-      "license": "OpenVLCLIP and DINOv2 code/backbone: Apache-2.0; CLIP BPE vocabulary: MIT; dino.txt Vision Head and Text Encoder weight licenses are not stated in the reviewed upstream materials.",
-      "tokenizer_license": "MIT (BPE vocabulary); Apache-2.0 (tokenizer code)"
+      "license": "DINOv2 code and model weights, including the dino.txt Vision Head and Text Encoder: Apache-2.0; CLIP BPE vocabulary: MIT; OpenVLCLIP software is separately licensed.",
+      "tokenizer_license": "MIT (BPE vocabulary); Apache-2.0 (tokenizer code)",
+      "parameter_count": 867830273
     }
   ],
   "environments": [
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    },
     {
       "python_version": "3.12.10",
       "torch_version": "2.14.1+cu130",
@@ -156,8 +241,20 @@
   ],
   "runs": [
     {
+      "run_id": "7d2fd70c52399af1",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
       "run_id": "a68a143e2e19b0d5",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -168,8 +265,20 @@
       "embedding_dimension": null
     },
     {
+      "run_id": "0f885e751a90a8ef",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
       "run_id": "a84a8a06e04ef7ed",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -181,7 +290,7 @@
     },
     {
       "run_id": "c84d9fc9038d5f29",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -192,8 +301,32 @@
       "embedding_dimension": null
     },
     {
+      "run_id": "f0b3f208c3f8f151",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "37ce26e54de28445",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
       "run_id": "984949e7d7414e90",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -205,7 +338,7 @@
     },
     {
       "run_id": "7a9cfe6313eb4e28",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -216,8 +349,20 @@
       "embedding_dimension": null
     },
     {
+      "run_id": "d8c51bd44857ee04",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
       "run_id": "0cbffc061dfc6663",
-      "publication_state": "",
+      "publication_state": "blocked",
       "reproducibility_mode": "strict",
       "status": "blocked",
       "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
@@ -226,6 +371,32 @@
       "protocol": "p2",
       "precision": "fp32",
       "embedding_dimension": null
+    },
+    {
+      "run_id": "347bf1161cfb1180",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
     }
-  ]
+  ],
+  "publication_lifecycle": {
+    "frozen_source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
+    "state_counts": {
+      "active": 6,
+      "blocked": 6,
+      "failed": 0,
+      "historical": 0,
+      "incomplete": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "superseded": 0
+    },
+    "attempt_count": 0
+  }
 }

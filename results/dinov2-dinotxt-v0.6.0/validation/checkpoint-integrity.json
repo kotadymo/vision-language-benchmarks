@@ -3,9 +3,9 @@
   "validation_type": "dinotxt_checkpoint_integrity",
   "status": "completed",
   "model_inference_performed": false,
-  "source_commit_sha": "53eeb22790fc8f135c3a94d589e2e422f8b6566a",
+  "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
   "working_tree_dirty": false,
-  "timestamp_utc": "2026-10-22T11:13:01Z",
+  "timestamp_utc": "2026-10-22T13:23:08Z",
   "library": "openvlclip",
   "library_version": "0.6.0",
   "library_version_expected": "0.6.0",
@@ -39,8 +39,8 @@
       "filename": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_vision_head.pth",
       "sha256": "706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5",
       "size_bytes": 101317814,
-      "license": "Not stated in the reviewed upstream materials",
-      "license_status": "unverified",
+      "license": "Apache-2.0 (official DINOv2 README model-weight statement)",
+      "license_status": "verified",
       "verified": true
     },
     {
@@ -49,8 +49,8 @@
       "filename": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_text_encoder.pth",
       "sha256": "13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a",
       "size_bytes": 2152639923,
-      "license": "Not stated in the reviewed upstream materials",
-      "license_status": "unverified",
+      "license": "Apache-2.0 (official DINOv2 README model-weight statement)",
+      "license_status": "verified",
       "verified": true
     },
     {
