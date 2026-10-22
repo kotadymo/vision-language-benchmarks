@@ -12,7 +12,10 @@ The reviewed OpenVLCLIP and DINOv2 source materials identify Apache-2.0 for the 
 and DINOv2 backbone, while the bundled CLIP BPE vocabulary is MIT-licensed. The separately
 distributed dino.txt Vision Head and Text Encoder weights do not have a license stated in the
 reviewed upstream materials. Those component rights cannot be inferred from the package or
-backbone license.
+backbone license. OpenVLCLIP's pinned
+[dino.txt v0.6.0 reference](https://github.com/kotadymo/openvlclip/blob/v0.6.0/docs/dinotxt-v0.6.0.md#license-and-dependency-findings)
+also records that no dino.txt-specific checkpoint license is linked and requests explicit
+licensing confirmation before release.
 
 Accordingly, the model is registered as `blocked`. The benchmark runner stops before dataset
 preparation, OpenVLCLIP import, checkpoint loading, and inference. CLI `--yes` and
@@ -48,5 +51,6 @@ existing CLIP and EmbeddingGemma result files are not modified by this integrati
 ### Upstream references
 
 - [OpenVLCLIP v0.6.0](https://github.com/kotadymo/openvlclip/tree/v0.6.0)
+- [OpenVLCLIP dino.txt license findings](https://github.com/kotadymo/openvlclip/blob/v0.6.0/docs/dinotxt-v0.6.0.md#license-and-dependency-findings)
 - [DINOv2 source revision](https://github.com/facebookresearch/dinov2/tree/7764ea0f912e53c92e82eb78a2a1631e92725fc8)
 - [DINOv2 license](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/LICENSE)
