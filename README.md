@@ -30,12 +30,24 @@ for those checks and their measured differences.
 
 ## DINOv2 + dino.txt integration
 
-An OpenVLCLIP v0.6.0 adapter is prepared for fixed 2048D DINOv2+dino.txt embeddings. Its
-external Vision Head and Text Encoder weight licenses are not stated in the reviewed upstream
-materials, so model loading and all benchmark inference remain blocked. See the
-[integration status and protocol](docs/dinotxt-integration.md) and the
-[blocked run report](results/dinov2-dinotxt-v0.6.0/report.md); no performance scores are
-claimed.
+The OpenVLCLIP v0.6.0 adapter evaluates the official fixed-2048D DINOv2 ViT-L/14 + dino.txt
+model. The evidence-based license review supports local, non-redistributive scientific
+benchmarking; the original six license-blocked attempts remain preserved as historical
+records. Six subsequent full-dataset CUDA FP32 measurements use frozen source commit
+`28519573b78f0dcb7ab6515ead02bc6b403a92bd`.
+
+- [Campaign report](results/dinov2-dinotxt-v0.6.0/report.md) ·
+  [summary CSV](results/dinov2-dinotxt-v0.6.0/summary.csv) ·
+  [matched model-comparison CSV](results/dinov2-dinotxt-v0.6.0/model-comparison.csv)
+- [Raw results](results/dinov2-dinotxt-v0.6.0/raw/) ·
+  [run status](results/dinov2-dinotxt-v0.6.0/run-status.json) ·
+  [lifecycle audit](results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json)
+- [License determination](docs/dinotxt-license-review.md) ·
+  [integration and protocol notes](docs/dinotxt-integration.md)
+
+Japanese XM3600 retrieval is exploratory and must not be read as evidence of Japanese
+semantic capability. The campaign report keeps P0 and P1 separate and distinguishes inference
+commands from report-only regeneration commands.
 
 ## Verified v0.1.0 results
 

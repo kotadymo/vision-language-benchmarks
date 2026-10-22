@@ -1,53 +1,89 @@
 # DINOv2 + dino.txt integration status
 
-The `dinov2_dinotxt` adapter is wired to OpenVLCLIP v0.6.0 for zero-shot classification and
-image-text retrieval. It uses OpenVLCLIP's official `dinov2-dinotxt` factory, its returned
-preprocessing transform, and raw CLIP-tokenized text without task prefixes. The global image
-and text embedding space is fixed at 2048 dimensions; this model does not expose the
-EmbeddingGemma MRL dimension option.
+The `dinov2_dinotxt` adapter uses OpenVLCLIP v0.6.0's official `dinov2-dinotxt` factory,
+preprocessing transform, and tokenizer. Image and text outputs share a fixed 2048D global
+embedding space; this model does not support EmbeddingGemma-style MRL truncation.
 
-## Current status: local benchmark use verified
+## Status: campaign completed
 
-The pinned Meta DINOv2 README directly lists the Vision Head and Text Encoder as pretrained
-dino.txt heads, provides the official Hub loader, and states that DINOv2 code and model
-weights are Apache-2.0. Separate terms are explicitly called out for Cell-DINO and XRay-DINO,
-but not for dino.txt. The official BPE vocabulary license is MIT. Based on this source chain,
-local scientific benchmarking with no weight redistribution is registered as `verified`.
-The evidence, scope, and remaining limitation are documented in the
-[DINO.txt licensing review](dinotxt-license-review.md).
+The pinned Meta DINOv2 README lists the dino.txt Vision Head and Text Encoder checkpoints as
+pretrained heads, provides the official Hub loader, and states that DINOv2 code and model
+weights are Apache-2.0. The official BPE vocabulary is MIT-licensed. Based on this evidence,
+local, non-redistributive scientific benchmark use is registered as `verified`. The detailed
+scope, reasoning, and remaining wording limitation are documented in the
+[DINO.txt license review](dinotxt-license-review.md). This is an engineering determination,
+not formal legal advice; it does not establish dataset rights or a commercial-use determination.
 
-The model-level gate has been updated only for this verified use. It still checks the
-registered status before package import or weight loading, and it does not override dataset
-access or attribution checks. The six original blocked run records remain historical records
-of the first attempt; they are not measurements and are not relabeled as completed.
+The model-level access gate remains active and checks the registered state before importing
+OpenVLCLIP or loading weights. Dataset access and attribution controls remain independent.
+The six original blocked run records are retained unchanged as historical attempts; they do
+not contribute metrics and have not been relabeled as completed.
 
-CUDA smoke validation and the six requested full-dataset measurements are pending execution
-from a clean frozen source revision. No inference results are claimed by this status update.
+## Completed benchmark campaign
 
-The pinned cache artifacts can be checked without loading them or running inference:
-[checkpoint integrity validation](../results/dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json).
-SHA-256 verification establishes file identity; the separate
-[license review](dinotxt-license-review.md) records the basis for the permitted local use.
+Six full-dataset CUDA FP32 evaluations completed from frozen source commit
+`28519573b78f0dcb7ab6515ead02bc6b403a92bd`, all with `working_tree_dirty=false`. They use
+`openvlclip==0.6.0`, seed 0, requested batch size 16, and the official checkpoint components.
+CIFAR-10 and CIFAR-100 each use all 10,000 official test images. XM3600 uses 3,600 images and
+3,600 first-caption candidates per language.
 
-## Evaluation protocol when rights are resolved
+| Condition | Top-1 | Top-5 |
+|---|---:|---:|
+| CIFAR-10 P0 English | 98.24% (9,824/10,000) | 99.95% (9,995/10,000) |
+| CIFAR-10 P1 English | 98.12% (9,812/10,000) | 99.94% (9,994/10,000) |
+| CIFAR-100 P0 English | 89.71% (8,971/10,000) | 98.17% (9,817/10,000) |
+| CIFAR-100 P1 English | 89.14% (8,914/10,000) | 98.13% (9,813/10,000) |
 
-- **Classification:** P0 uses the existing 18 CLIP Benchmark CIFAR templates. P1 uses the
-  explicit single template `a photo of a {class}.`
-- **Retrieval:** XM3600 uses P2 and the `official_first_caption` variant, with no model task
-  prefix. The existing English and Japanese captions are evaluated separately.
-- **Language:** Japanese is marked experimental; listing Japanese in the tokenizer/model
-  interface is not evidence of Japanese accuracy.
-- **Precision and hardware:** the requested campaign is CUDA FP32 on the available RTX 4070 Ti
-  SUPER. No model inference has been performed for this integration.
-- **Provenance:** the three weight files and BPE vocabulary are pinned separately by filename,
-  byte size, and SHA-256. Successful future runs will record the actual component hashes.
+XM3600 English T→I Recall@1/5/10 is 51.50% / 77.31% / 84.64%; I→T is 53.03% / 77.33% /
+85.44%. Japanese T→I is 2.03% / 5.14% / 7.75%; I→T is 3.17% / 8.00% / 11.97%. Japanese
+retrieval is exploratory and uses the original Japanese captions without translation; it is
+not evidence of Japanese semantic capability.
 
-Run the real-model smoke test and all six full-dataset conditions from a clean committed
-source revision. The existing CLIP and EmbeddingGemma result files are not modified by this
-integration.
+See the [campaign report](../results/dinov2-dinotxt-v0.6.0/report.md),
+[summary CSV](../results/dinov2-dinotxt-v0.6.0/summary.csv),
+[matched comparison CSV](../results/dinov2-dinotxt-v0.6.0/model-comparison.csv),
+[raw results](../results/dinov2-dinotxt-v0.6.0/raw/),
+[run-status manifest](../results/dinov2-dinotxt-v0.6.0/run-status.json), and
+[publication lifecycle](../results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json).
+The initial blocked attempts remain separate from the six active measurements.
+
+## CUDA and checkpoint validation
+
+CUDA smoke validation confirmed the official 224×224 preprocessing, 77-token text context,
+finite normalized 2048D image/text embeddings, finite cosine similarity, and English and
+Japanese text encoding. Maximum absolute difference between official and wrapper image/text
+outputs was zero. The full measurements record CUDA FP32 timing and memory.
+
+The composite checkpoint fingerprint and all four component SHA-256 values are published in
+the [checkpoint-integrity report](../results/dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json)
+and [smoke record](../results/dinov2-dinotxt-v0.6.0/validation/dinotxt-cuda-smoke.json).
+Hash verification establishes file identity; the separate license review records the basis
+for local use. No model weights or dataset files are redistributed.
+
+## Evaluation protocol and comparison scope
+
+- **P0:** CIFAR zero-shot classification with the pinned CLIP Benchmark class names and 18
+  common templates per class.
+- **P1:** a separate model-native protocol. DINO.txt uses the single explicit template
+  `a photo of a {class}.`; EmbeddingGemma uses its task prefix, SigLIP 2 its model-card template,
+  and other CLIP-family adapters their single photo template. P0 and P1 remain separate.
+- **P2:** XM3600 `official_first_caption` retrieval, with one original caption per image and
+  no model task prefix. English and Japanese results remain separate.
+- Historical comparisons match dataset checksum, split, task, protocol, language, precision,
+  sample/candidate counts, and retrieval variant. Historical package/source revisions and
+  batch sizes may differ, so throughput differences are descriptive rather than controlled
+  performance claims.
+
+## Reproduction
+
+The [report reproduction section](../results/dinov2-dinotxt-v0.6.0/report.md#reproduction)
+separates `vlbench run` commands that perform inference from `vlbench report` commands that
+only regenerate summaries and figures from existing raw JSON.
 
 ### Upstream references
 
 - [OpenVLCLIP v0.6.0](https://github.com/kotadymo/openvlclip/tree/v0.6.0)
-- [DINOv2 source revision](https://github.com/facebookresearch/dinov2/tree/7764ea0f912e53c92e82eb78a2a1631e92725fc8)
-- [DINOv2 license](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/LICENSE)
+- [Pinned DINOv2 source revision](https://github.com/facebookresearch/dinov2/tree/7764ea0f912e53c92e82eb78a2a1631e92725fc8)
+- [Official DINOv2 README and license statements](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/README.md)
+- [Official dino.txt Hub loader](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/hub/dinotxt.py)
+- [DINOv2 LICENSE](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/LICENSE)

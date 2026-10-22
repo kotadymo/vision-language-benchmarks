@@ -617,3 +617,32 @@ def test_dinotxt_report_separates_inference_and_report_regeneration() -> None:
         "--comparison-lifecycle "
         "results/mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json"
     ) in report_section
+
+
+def test_dinotxt_overview_docs_match_completed_campaign() -> None:
+    repository_root = Path(__file__).resolve().parents[1]
+    campaign_root = repository_root / "results" / "dinov2-dinotxt-v0.6.0"
+    run_status = json.loads(
+        (campaign_root / "run-status.json").read_text(encoding="utf-8")
+    )
+    readme = (repository_root / "README.md").read_text(encoding="utf-8")
+    integration = (repository_root / "docs" / "dinotxt-integration.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert run_status["completed_measurement_count"] == 6
+    assert run_status["historical_blocked_attempt_count"] == 6
+    assert run_status["source_commit_sha"] in readme
+    assert "results/dinov2-dinotxt-v0.6.0/report.md" in readme
+    assert "Six full-dataset CUDA FP32 evaluations completed" in integration
+    assert "six active measurements" in integration
+    for stale_claim in (
+        "all benchmark inference remain blocked",
+        "pending execution",
+        "No inference results are claimed",
+        "No model inference has been performed",
+        "when rights are resolved",
+        "no performance scores are claimed",
+    ):
+        assert stale_claim not in readme
+        assert stale_claim not in integration
