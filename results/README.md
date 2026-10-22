@@ -24,6 +24,16 @@ v0.3.0 baseline. The audit preserves the provenance limitation: the old CIFAR pr
 configuration is unavailable, while the XM3600 v0.4.0 configuration adds native-dimension
 fields to the old shared image-transform settings.
 
+## DINOv2 + dino.txt v0.6.0 integration
+
+The [integration report](dinov2-dinotxt-v0.6.0/report.md) records six requested conditions,
+all blocked before data preparation or model loading because the upstream materials do not
+state licenses for the separately distributed dino.txt Vision Head and Text Encoder weights.
+There are no accuracy, retrieval, or throughput values and no charts. The
+[checkpoint integrity record](dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json)
+contains actual cached-file hashes; this confirms file identity, not permission to use the
+weights.
+
 ## v0.1.0 benchmark results
 
 The raw archive contains 45 schema-validated, completed full-dataset CUDA FP32 measurements:

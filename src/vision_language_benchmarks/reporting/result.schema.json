@@ -219,6 +219,154 @@
           },
           "uniqueItems": true
         },
+        "model_architecture": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "global_embedding_dimension": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "experimental_languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2
+          },
+          "uniqueItems": true
+        },
+        "model_weight_license_status": {
+          "enum": [
+            "verified",
+            "unverified",
+            "blocked",
+            null
+          ]
+        },
+        "model_weight_license_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_library": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_library_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expected_checkpoint_components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "component",
+              "kind",
+              "filename",
+              "sha256",
+              "size_bytes",
+              "license",
+              "license_status"
+            ],
+            "properties": {
+              "component": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "weight",
+                  "tokenizer"
+                ]
+              },
+              "filename": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "license": {
+                "type": "string"
+              },
+              "license_status": {
+                "enum": [
+                  "verified",
+                  "unverified"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "checkpoint_components": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "required": [
+              "component",
+              "kind",
+              "filename",
+              "sha256",
+              "size_bytes",
+              "license",
+              "license_status",
+              "verified"
+            ],
+            "properties": {
+              "component": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "weight",
+                  "tokenizer"
+                ]
+              },
+              "filename": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "license": {
+                "type": "string"
+              },
+              "license_status": {
+                "enum": [
+                  "verified",
+                  "unverified"
+                ]
+              },
+              "verified": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "pretrained_tag": {
           "type": [
             "string",

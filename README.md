@@ -28,6 +28,15 @@ full condition identity: historical CIFAR preprocessing provenance is unavailabl
 new XM3600 records include native-dimension metadata absent from v0.3.0. See the baseline audit
 for those checks and their measured differences.
 
+## DINOv2 + dino.txt integration
+
+An OpenVLCLIP v0.6.0 adapter is prepared for fixed 2048D DINOv2+dino.txt embeddings. Its
+external Vision Head and Text Encoder weight licenses are not stated in the reviewed upstream
+materials, so model loading and all benchmark inference remain blocked. See the
+[integration status and protocol](docs/dinotxt-integration.md) and the
+[blocked run report](results/dinov2-dinotxt-v0.6.0/report.md); no performance scores are
+claimed.
+
 ## Verified v0.1.0 results
 
 The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 records on an NVIDIA

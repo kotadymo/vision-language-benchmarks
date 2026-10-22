@@ -21,6 +21,9 @@ uv sync --locked --group dev --extra cuda --extra openclip
 # EmbeddingGemma 2
 uv sync --locked --group dev --extra cuda --extra gemma
 
+# DINOv2 + dino.txt (installing code does not authorize model-weight use)
+uv sync --locked --group dev --extra cuda --extra dinotxt
+
 # SigLIP 2
 uv sync --locked --group dev --extra cuda --extra siglip2
 
@@ -53,6 +56,19 @@ language-appropriate text inference, validates finite and dimension-compatible e
 normalized cosine similarities, records checkpoint/runtime/GPU-memory metadata, then releases
 the model before the next test. Local execution logs are written under `.cache/real-smoke/` and
 are excluded from Git.
+
+The DINOv2+dino.txt CUDA smoke test is separately gated. Do not set its opt-in environment
+variable until rights for both external dino.txt weight files are confirmed:
+
+```powershell
+$env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS = "1"
+uv run --locked --extra cuda --extra dinotxt pytest -q -s tests/real_model/test_dinov2_dinotxt.py
+Remove-Item Env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS
+```
+
+The registered model currently remains blocked, so explicitly enabling this test fails before
+OpenVLCLIP imports or weights load. See the
+[license and integration record](dinotxt-integration.md).
 
 To exercise the complete benchmark runner against all 3,600 authorized XM3600 images and the
 7,185 Japanese captions, run this separate, longer integration test:
@@ -87,6 +103,8 @@ uv run vlbench run --model openai_clip_b32 --dataset cifar10 --device cuda --dry
 `--dry-run` performs no dataset or checkpoint downloads. Review the output for the pinned
 checkpoint revision and size, dataset split and access state, language, protocol, precision,
 device, and output path.
+For `dinov2_dinotxt`, the plan shows a model-level `blocked` access state until both external
+weight licenses are confirmed. Neither `--yes` nor `--confirm-data-terms` overrides it.
 
 For a dataset marked `requires_user_confirmation`, review the exact terms and obtain any
 required user acceptance before passing `--confirm-data-terms`; this flag is not legal

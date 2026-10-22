@@ -6,6 +6,10 @@ class DependencyUnavailableError(BenchmarkError):
     """A required optional model dependency is not installed."""
 
 
+class ModelAccessBlockedError(BenchmarkError):
+    """Model inference is blocked by an unresolved access or license condition."""
+
+
 class DatasetUnavailableError(BenchmarkError):
     """A dataset is not available for legal or technical reasons."""
 

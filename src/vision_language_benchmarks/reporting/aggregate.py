@@ -38,12 +38,19 @@ SUMMARY_FIELDS = (
     "reproducibility_mode",
     "model_key",
     "embedding_dimension",
+    "global_embedding_dimension",
     "model",
     "model_checkpoint_filename",
     "model_checkpoint_size_bytes",
     "model_parameter_count",
+    "model_architecture",
     "model_languages",
     "model_license",
+    "model_weight_license_status",
+    "model_weight_license_reason",
+    "experimental_languages",
+    "model_library",
+    "model_library_version",
     "tokenizer_license",
     "dataset_key",
     "dataset",
@@ -100,7 +107,10 @@ NON_SUCCESS_FIELDS = (
     "status",
     "model_key",
     "embedding_dimension",
+    "global_embedding_dimension",
     "model",
+    "model_weight_license_status",
+    "model_weight_license_reason",
     "dataset_key",
     "dataset",
     "language",
@@ -340,12 +350,21 @@ def summary_rows(
                 "embedding_dimension",
                 configuration.get("embedding_dimension"),
             ),
+            "global_embedding_dimension": metadata.get("global_embedding_dimension"),
             "model": _model_name(result),
             "model_checkpoint_filename": metadata.get("model_checkpoint_filename"),
             "model_checkpoint_size_bytes": metadata.get("model_checkpoint_size_bytes"),
             "model_parameter_count": metadata.get("parameter_count"),
+            "model_architecture": metadata.get("model_architecture"),
             "model_languages": ", ".join(metadata.get("model_languages") or []),
             "model_license": metadata.get("model_license"),
+            "model_weight_license_status": metadata.get("model_weight_license_status"),
+            "model_weight_license_reason": metadata.get("model_weight_license_reason"),
+            "experimental_languages": ", ".join(
+                metadata.get("experimental_languages") or []
+            ),
+            "model_library": metadata.get("model_library"),
+            "model_library_version": metadata.get("model_library_version"),
             "tokenizer_license": metadata.get("tokenizer_license"),
             "dataset_key": result["dataset"],
             "dataset": _dataset_name(result),
@@ -404,7 +423,14 @@ def _status_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "embedding_dimension",
                     configuration.get("embedding_dimension"),
                 ),
+                "global_embedding_dimension": metadata.get("global_embedding_dimension"),
                 "model": _model_name(result),
+                "model_weight_license_status": metadata.get(
+                    "model_weight_license_status"
+                ),
+                "model_weight_license_reason": metadata.get(
+                    "model_weight_license_reason"
+                ),
                 "dataset_key": result["dataset"],
                 "dataset": _dataset_name(result),
                 "language": result["language"],
@@ -978,8 +1004,8 @@ def render_report(
                     f"### {status.capitalize()}",
                     "",
                     "| Model | Dataset | Language | Protocol | Retrieval variant | "
-                    "Reason | Run ID |",
-                    "|---|---|---|---|---|---|---|",
+                    "Model weight license | Reason | Run ID |",
+                    "|---|---|---|---|---|---|---|---|",
                 ]
             )
             for row in status_items:
@@ -993,6 +1019,7 @@ def render_report(
                             "language",
                             "protocol",
                             "retrieval_variant",
+                            "model_weight_license_status",
                             "reason",
                             "run_id",
                         )

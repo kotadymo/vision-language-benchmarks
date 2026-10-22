@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -119,6 +120,19 @@ def _run_plan(
     resolved_retrieval_variant = normalize_retrieval_variant(dataset_key, retrieval_variant)
     if dataset.key == "crossmodal3600" and protocol != "p2":
         raise ValueError("XM3600 retrieval variants are an additional dimension of P2.")
+    model_access = (
+        "blocked"
+        if model.weight_license_status in {"blocked", "unverified"}
+        else "available"
+    )
+    model_access_reason = (
+        (
+            model.weight_license_reason
+            or f"Model weights for {model.name!r} are not verified for use."
+        )
+        if model_access == "blocked"
+        else None
+    )
     if dataset.access_status == "blocked" or dataset.license_status == "blocked":
         access = "blocked"
         access_reason = dataset.access_reason
@@ -154,6 +168,16 @@ def _run_plan(
             "revision": model.checkpoint_revision or model.repository_revision,
             "pretrained_tag": model.pretrained_tag,
             "license": model.license,
+            "weight_license_status": model.weight_license_status,
+            "weight_license_reason": model.weight_license_reason,
+            "architecture": model.architecture,
+            "global_embedding_dimension": model.global_embedding_dimension,
+            "experimental_languages": list(model.experimental_languages),
+            "expected_checkpoint_components": [
+                asdict(component) for component in model.expected_checkpoint_components
+            ],
+            "access": model_access,
+            "access_reason": model_access_reason,
             "supported_languages": list(model.languages),
             "checkpoint_filename": model.checkpoint_filename,
             "checkpoint_size_bytes": model.checkpoint_size_bytes,
@@ -255,13 +279,20 @@ def _command_doctor(args: argparse.Namespace) -> int:
             configuration = {"ok": False, "error": f"{type(error).__name__}: {error}"}
         else:
             configuration = {
-                "ok": plan["dataset"]["access"] == "available",
+                "ok": (
+                    plan["dataset"]["access"] == "available"
+                    and plan["model"]["access"] == "available"
+                ),
                 "model": plan["model"],
                 "dataset": plan["dataset"],
                 "evaluation": plan["evaluation"],
             }
             if not configuration["ok"]:
-                configuration["error"] = plan["dataset"]["access_reason"]
+                configuration["error"] = (
+                    plan["model"]["access_reason"]
+                    if plan["model"]["access"] != "available"
+                    else plan["dataset"]["access_reason"]
+                )
 
     cuda_ok = args.device == "cuda" and bool(
         hardware.get("torch", {}).get("cuda_available")
@@ -346,10 +377,18 @@ def _command_run(args: argparse.Namespace) -> int:
         embedding_dimension=args.embedding_dimension,
     )
     if args.strict_reproducibility:
-        if plan["dataset"]["access"] != "available":
+        if (
+            plan["dataset"]["access"] != "available"
+            or plan["model"]["access"] != "available"
+        ):
+            access_reason = (
+                plan["model"]["access_reason"]
+                if plan["model"]["access"] != "available"
+                else plan["dataset"]["access_reason"]
+            )
             raise ValueError(
-                "Strict reproducibility requires an available dataset and supported "
-                f"configuration: {plan['dataset']['access_reason']}"
+                "Strict reproducibility requires an available model and dataset: "
+                f"{access_reason}"
             )
         require_clean_source_preflight(
             PROJECT_ROOT,
@@ -360,9 +399,10 @@ def _command_run(args: argparse.Namespace) -> int:
     if args.dry_run:
         _write_json({"dry_run": True, **plan})
         return 0
-    if plan["dataset"]["access"] == "available" and not _authorize_downloads(
-        plan,
-        args.yes,
+    if (
+        plan["dataset"]["access"] == "available"
+        and plan["model"]["access"] == "available"
+        and not _authorize_downloads(plan, args.yes)
     ):
         return 2
     result = run_benchmark(
@@ -434,15 +474,23 @@ def _command_suite(args: argparse.Namespace) -> int:
         unavailable = [
             plan
             for plan in plans
-            if plan["dataset"]["access"] != "available"
+            if (
+                plan["dataset"]["access"] != "available"
+                or plan["model"]["access"] != "available"
+            )
         ]
         if unavailable:
+            access_reason = (
+                unavailable[0]["model"]["access_reason"]
+                if unavailable[0]["model"]["access"] != "available"
+                else unavailable[0]["dataset"]["access_reason"]
+            )
             raise ValueError(
                 "Strict reproducibility requires every suite configuration to be "
                 "available; blocked configuration: "
                 f"{unavailable[0]['model']['key']} / {unavailable[0]['dataset']['key']} "
                 f"/ {unavailable[0]['evaluation']['language']} "
-                f"({unavailable[0]['dataset']['access_reason']})."
+                f"({access_reason})."
             )
         require_clean_source_preflight(
             PROJECT_ROOT,
@@ -454,7 +502,12 @@ def _command_suite(args: argparse.Namespace) -> int:
         _write_json({"dry_run": True, "suite": args.name, "plans": plans})
         return 0
     _write_json({"suite": args.name, "plans": plans})
-    if not args.yes:
+    requires_authorization = any(
+        plan["dataset"]["access"] == "available"
+        and plan["model"]["access"] == "available"
+        for plan in plans
+    )
+    if requires_authorization and not args.yes:
         if not sys.stdin.isatty():
             print(
                 "No suite started. Review all plans and pass --yes to authorize downloads.",

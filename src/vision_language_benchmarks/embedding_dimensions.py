@@ -14,6 +14,11 @@ def resolve_embedding_dimension(
 ) -> int | None:
     if model_key != EMBEDDINGGEMMA_MODEL_KEY:
         if embedding_dimension is not None:
+            if model_key == "dinov2_dinotxt":
+                raise ValueError(
+                    "DINOv2+dino.txt returns fixed 2048D global embeddings and does not "
+                    "support --embedding-dimension or MRL truncation."
+                )
             raise ValueError(
                 "--embedding-dimension is supported only for the embeddinggemma2 model."
             )

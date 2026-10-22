@@ -30,6 +30,7 @@ CLIP_BENCHMARK_CIFAR_TEMPLATES: tuple[str, ...] = (
 
 CLIP_SINGLE_TEMPLATE = "a photo of a {c}."
 SIGLIP2_SINGLE_TEMPLATE = "This is a photo of a {c}."
+DINOTXT_SINGLE_TEMPLATE = "a photo of a {c}."
 
 
 def classification_prompt_groups(
@@ -47,6 +48,9 @@ def classification_prompt_groups(
         elif model_key == "siglip2_base_224":
             templates = (SIGLIP2_SINGLE_TEMPLATE,)
             prompt_policy = "siglip2_model_card_photo_prompt"
+        elif model_key == "dinov2_dinotxt":
+            templates = (DINOTXT_SINGLE_TEMPLATE,)
+            prompt_policy = "dinotxt_p1_single_photo_template"
         else:
             templates = (CLIP_SINGLE_TEMPLATE,)
             prompt_policy = "model_native_single_photo_template"

@@ -9,6 +9,7 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,7 @@ from vision_language_benchmarks.errors import (
     BenchmarkError,
     DataIntegrityError,
     DependencyUnavailableError,
+    ModelAccessBlockedError,
 )
 from vision_language_benchmarks.evaluation.engine import (
     evaluate_classification,
@@ -236,9 +238,23 @@ def _make_result(
         "model_checkpoint_size_bytes": model.checkpoint_size_bytes,
         "model_languages": list(model.languages),
         "model_repository_revision": model.repository_revision,
+        "model_architecture": model.architecture,
         "pretrained_tag": model.pretrained_tag,
         "adapter_name": adapter_metadata.get("adapter_name", model.adapter),
         "model_license": model.license,
+        "model_weight_license_status": model.weight_license_status,
+        "model_weight_license_reason": model.weight_license_reason,
+        "global_embedding_dimension": adapter_metadata.get(
+            "global_embedding_dimension",
+            model.global_embedding_dimension,
+        ),
+        "experimental_languages": list(model.experimental_languages),
+        "expected_checkpoint_components": [
+            asdict(component) for component in model.expected_checkpoint_components
+        ],
+        "checkpoint_components": adapter_metadata.get("checkpoint_components"),
+        "model_library": adapter_metadata.get("model_library"),
+        "model_library_version": adapter_metadata.get("model_library_version"),
         "model_compatibility_note": model.compatibility_note,
         "checkpoint_sha256": adapter_metadata.get("checkpoint_sha256"),
         "checkpoint_files": adapter_metadata.get("checkpoint_files"),
@@ -732,6 +748,31 @@ def run_benchmark(
         )
     hardware = _hardware_values(hardware_report, device)
 
+    if model.weight_license_status in {"blocked", "unverified"}:
+        return _write_skipped_or_blocked(
+            model_key=model_key,
+            dataset_key=dataset_key,
+            protocol=protocol,
+            language=language,
+            precision=precision,
+            device=device,
+            batch_size=batch_size,
+            seed=seed,
+            status="blocked",
+            reason=(
+                model.weight_license_reason
+                or f"Model weights for {model.name!r} are not verified for use."
+            ),
+            results_root=results_root,
+            source_sha=source_sha,
+            lock_sha=lock_sha,
+            dirty=dirty,
+            hardware=hardware,
+            confirm_data_terms=confirm_data_terms,
+            retrieval_variant=resolved_retrieval_variant,
+            **reproducibility_metadata,
+        )
+
     if dataset.access_status == "blocked" or dataset.license_status == "blocked":
         return _write_skipped_or_blocked(
             model_key=model_key,
@@ -1076,7 +1117,12 @@ def run_benchmark(
         if isinstance(error, BatchSizeExhaustedError):
             oom_history = error.oom_history
         reason = f"{type(error).__name__}: {error}"
-        status = "skipped" if isinstance(error, DependencyUnavailableError) else "failed"
+        if isinstance(error, ModelAccessBlockedError):
+            status = "blocked"
+        elif isinstance(error, DependencyUnavailableError):
+            status = "skipped"
+        else:
+            status = "failed"
         if progress:
             progress(f"Run {selected_run_id} {status}: {reason}")
         result = _make_result(
