@@ -15,13 +15,22 @@ from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.registry import get_dataset, get_model
 from vision_language_benchmarks.reporting.comparison import paired_language_results
+from vision_language_benchmarks.reporting.model_comparison import (
+    MODEL_COMPARISON_FIELDS,
+    build_model_comparison_rows,
+    exact_hit_count,
+    render_model_comparison_section,
+)
 from vision_language_benchmarks.reporting.mrl import (
     build_embedding_dimension_audit,
     build_embedding_dimension_baseline_comparison,
     render_embedding_dimension_section,
     write_embedding_dimension_analysis,
 )
-from vision_language_benchmarks.reporting.plots import write_plots
+from vision_language_benchmarks.reporting.plots import (
+    write_model_comparison_plots,
+    write_plots,
+)
 from vision_language_benchmarks.reporting.reproducibility_audit import (
     build_clean_official_xm3600_parity,
     build_clean_xm3600_reproducibility_audit,
@@ -38,12 +47,19 @@ SUMMARY_FIELDS = (
     "reproducibility_mode",
     "model_key",
     "embedding_dimension",
+    "global_embedding_dimension",
     "model",
     "model_checkpoint_filename",
     "model_checkpoint_size_bytes",
     "model_parameter_count",
+    "model_architecture",
     "model_languages",
     "model_license",
+    "model_weight_license_status",
+    "model_weight_license_reason",
+    "experimental_languages",
+    "model_library",
+    "model_library_version",
     "tokenizer_license",
     "dataset_key",
     "dataset",
@@ -69,13 +85,29 @@ SUMMARY_FIELDS = (
     "dataset_terms_confirmed",
     "prompt_name",
     "acc1_fraction",
+    "acc1_correct_count",
+    "acc1_total_count",
     "acc5_fraction",
+    "acc5_correct_count",
+    "acc5_total_count",
     "image_retrieval_recall@1_fraction",
+    "image_retrieval_recall@1_hits",
+    "image_retrieval_recall@1_queries",
     "image_retrieval_recall@5_fraction",
+    "image_retrieval_recall@5_hits",
+    "image_retrieval_recall@5_queries",
     "image_retrieval_recall@10_fraction",
+    "image_retrieval_recall@10_hits",
+    "image_retrieval_recall@10_queries",
     "text_retrieval_recall@1_fraction",
+    "text_retrieval_recall@1_hits",
+    "text_retrieval_recall@1_queries",
     "text_retrieval_recall@5_fraction",
+    "text_retrieval_recall@5_hits",
+    "text_retrieval_recall@5_queries",
     "text_retrieval_recall@10_fraction",
+    "text_retrieval_recall@10_hits",
+    "text_retrieval_recall@10_queries",
     "throughput_images_per_sec",
     "throughput_texts_per_sec",
     "inference_ms_median",
@@ -100,7 +132,10 @@ NON_SUCCESS_FIELDS = (
     "status",
     "model_key",
     "embedding_dimension",
+    "global_embedding_dimension",
     "model",
+    "model_weight_license_status",
+    "model_weight_license_reason",
     "dataset_key",
     "dataset",
     "language",
@@ -264,10 +299,13 @@ def _select_publishable_results(
         if variant == "official_first_caption" and state not in {
             "active",
             "superseded",
-        }:
+        } and not (
+            result["status"] in {"blocked", "failed", "skipped"}
+            and state == result["status"]
+        ):
             raise DataIntegrityError(
-                "Official-first-caption results must be active or explicitly superseded; "
-                "invalid, failed, or incomplete records cannot be published."
+                "Official-first-caption completed results must be active or explicitly "
+                "superseded; unsuccessful records must retain their matching lifecycle state."
             )
         if not entry["leaderboard_eligible"]:
             continue
@@ -340,12 +378,21 @@ def summary_rows(
                 "embedding_dimension",
                 configuration.get("embedding_dimension"),
             ),
+            "global_embedding_dimension": metadata.get("global_embedding_dimension"),
             "model": _model_name(result),
             "model_checkpoint_filename": metadata.get("model_checkpoint_filename"),
             "model_checkpoint_size_bytes": metadata.get("model_checkpoint_size_bytes"),
             "model_parameter_count": metadata.get("parameter_count"),
+            "model_architecture": metadata.get("model_architecture"),
             "model_languages": ", ".join(metadata.get("model_languages") or []),
             "model_license": metadata.get("model_license"),
+            "model_weight_license_status": metadata.get("model_weight_license_status"),
+            "model_weight_license_reason": metadata.get("model_weight_license_reason"),
+            "experimental_languages": ", ".join(
+                metadata.get("experimental_languages") or []
+            ),
+            "model_library": metadata.get("model_library"),
+            "model_library_version": metadata.get("model_library_version"),
             "tokenizer_license": metadata.get("tokenizer_license"),
             "dataset_key": result["dataset"],
             "dataset": _dataset_name(result),
@@ -371,7 +418,11 @@ def summary_rows(
             "dataset_terms_confirmed": metadata.get("dataset_terms_confirmed"),
             "prompt_name": metadata.get("prompt_name"),
             "acc1_fraction": metrics.get("acc1"),
+            "acc1_correct_count": exact_hit_count(result, "acc1", "image_count"),
+            "acc1_total_count": metadata.get("image_count") if "acc1" in metrics else None,
             "acc5_fraction": metrics.get("acc5"),
+            "acc5_correct_count": exact_hit_count(result, "acc5", "image_count"),
+            "acc5_total_count": metadata.get("image_count") if "acc5" in metrics else None,
             "throughput_images_per_sec": metadata.get("throughput_images_per_sec"),
             "throughput_texts_per_sec": metadata.get("throughput_texts_per_sec"),
             "inference_ms_median": metadata.get("inference_ms_median"),
@@ -383,6 +434,19 @@ def summary_rows(
         }
         for metric_name in RETRIEVAL_KEYS:
             row[f"{metric_name}_fraction"] = metrics.get(metric_name)
+            denominator_key = (
+                "text_count"
+                if metric_name.startswith("image_retrieval_")
+                else "image_count"
+            )
+            row[f"{metric_name}_hits"] = exact_hit_count(
+                result,
+                metric_name,
+                denominator_key,
+            )
+            row[f"{metric_name}_queries"] = (
+                metadata.get(denominator_key) if metric_name in metrics else None
+            )
         rows.append(row)
     return rows
 
@@ -404,7 +468,14 @@ def _status_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "embedding_dimension",
                     configuration.get("embedding_dimension"),
                 ),
+                "global_embedding_dimension": metadata.get("global_embedding_dimension"),
                 "model": _model_name(result),
+                "model_weight_license_status": metadata.get(
+                    "model_weight_license_status"
+                ),
+                "model_weight_license_reason": metadata.get(
+                    "model_weight_license_reason"
+                ),
                 "dataset_key": result["dataset"],
                 "dataset": _dataset_name(result),
                 "language": result["language"],
@@ -485,6 +556,22 @@ def _percentage(metrics: dict[str, Any], key: str) -> str:
     return "—" if value is None else f"{float(value) * 100:.2f}%"
 
 
+def _percentage_with_hits(
+    result: dict[str, Any],
+    metric_key: str,
+    denominator_key: str,
+) -> str:
+    value = result["metrics"].get(metric_key)
+    if value is None:
+        return "—"
+    metadata = result["benchmark_metadata"]
+    hits = exact_hit_count(result, metric_key, denominator_key)
+    denominator = metadata.get(denominator_key)
+    if hits is None or not isinstance(denominator, int):
+        return f"{float(value) * 100:.2f}%"
+    return f"{float(value) * 100:.2f}% ({hits:,}/{denominator:,})"
+
+
 def _sample_count(value: Any) -> str:
     return "—" if not isinstance(value, int) else f"{value:,}"
 
@@ -499,6 +586,13 @@ def _milliseconds(value: Any) -> str:
 
 def _gibibytes(value: Any) -> str:
     return "—" if not isinstance(value, (int, float)) else f"{float(value) / 1024**3:.2f}"
+
+
+def _output_embedding_dimension(metadata: dict[str, Any]) -> str:
+    dimension = metadata.get("embedding_dimension")
+    if dimension is None:
+        dimension = metadata.get("global_embedding_dimension")
+    return _sample_count(dimension)
 
 
 def _peak_memory(metadata: dict[str, Any]) -> str:
@@ -532,13 +626,13 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         lines = [
             "| Model | Embedding dim | Parameters | Checkpoint | "
             "Dataset | Split | Images | Classes | "
-            "Requested / image / text batch | Top-1 | Top-5 | Images/s | Median (ms) | "
+            "Requested / image / text batch | Top-1 (correct/total) | "
+            "Top-5 (correct/total) | Images/s | Median (ms) | "
             "Peak allocated / reserved (GiB) | OOM retries | Raw result |",
             "|---|---:|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
         ]
         for result in results:
             metadata = result["benchmark_metadata"]
-            metrics = result["metrics"]
             parameter_count = metadata.get("parameter_count")
             parameter_size = (
                 "—" if parameter_count is None else f"{int(parameter_count) / 1_000_000:.1f} M"
@@ -551,7 +645,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             )
             values = (
                 _model_name(result),
-                _sample_count(metadata.get("embedding_dimension")),
+                _output_embedding_dimension(metadata),
                 parameter_size,
                 checkpoint_size_text,
                 _dataset_name(result),
@@ -559,8 +653,8 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
                 _sample_count(metadata.get("image_count")),
                 _sample_count(metadata.get("class_count")),
                 _batch_sizes(metadata),
-                _percentage(metrics, "acc1"),
-                _percentage(metrics, "acc5"),
+                _percentage_with_hits(result, "acc1", "image_count"),
+                _percentage_with_hits(result, "acc5", "image_count"),
                 _rate(metadata.get("throughput_images_per_sec")),
                 _milliseconds(metadata.get("inference_ms_median")),
                 _peak_memory(metadata),
@@ -575,14 +669,15 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         "Language | Retrieval variant | "
         "Images / captions | "
         "Requested / image / text batch | "
-        "T→I R@1 | T→I R@5 | T→I R@10 | I→T R@1 | I→T R@5 | I→T R@10 | "
+        "T→I R@1 (hits/queries) | T→I R@5 (hits/queries) | "
+        "T→I R@10 (hits/queries) | I→T R@1 (hits/queries) | "
+        "I→T R@5 (hits/queries) | I→T R@10 (hits/queries) | "
         "Images/s | Texts/s | Median (ms) | Peak allocated / reserved (GiB) | "
         "OOM retries | Raw result |",
         "|---|---:|---:|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for result in results:
         metadata = result["benchmark_metadata"]
-        metrics = result["metrics"]
         parameter_count = metadata.get("parameter_count")
         parameter_size = (
             "—" if parameter_count is None else f"{int(parameter_count) / 1_000_000:.1f} M"
@@ -600,7 +695,7 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
         variant, _ = retrieval_variant_info(result)
         values = (
             _model_name(result),
-            _sample_count(metadata.get("embedding_dimension")),
+            _output_embedding_dimension(metadata),
             parameter_size,
             checkpoint_size_text,
             _dataset_name(result),
@@ -609,12 +704,12 @@ def _render_measurement_table(results: list[dict[str, Any]]) -> list[str]:
             variant or "—",
             image_caption_count,
             _batch_sizes(metadata),
-            _percentage(metrics, "image_retrieval_recall@1"),
-            _percentage(metrics, "image_retrieval_recall@5"),
-            _percentage(metrics, "image_retrieval_recall@10"),
-            _percentage(metrics, "text_retrieval_recall@1"),
-            _percentage(metrics, "text_retrieval_recall@5"),
-            _percentage(metrics, "text_retrieval_recall@10"),
+            _percentage_with_hits(result, "image_retrieval_recall@1", "text_count"),
+            _percentage_with_hits(result, "image_retrieval_recall@5", "text_count"),
+            _percentage_with_hits(result, "image_retrieval_recall@10", "text_count"),
+            _percentage_with_hits(result, "text_retrieval_recall@1", "image_count"),
+            _percentage_with_hits(result, "text_retrieval_recall@5", "image_count"),
+            _percentage_with_hits(result, "text_retrieval_recall@10", "image_count"),
             _rate(metadata.get("throughput_images_per_sec")),
             _rate(metadata.get("throughput_texts_per_sec")),
             _milliseconds(metadata.get("inference_ms_median")),
@@ -684,7 +779,7 @@ def _render_paired_language_section(results: list[dict[str, Any]]) -> list[str]:
             japanese_metrics = japanese["metrics"]
             values = (
                 _model_name(english),
-                _sample_count(english_metadata.get("embedding_dimension")),
+                _output_embedding_dimension(english_metadata),
                 english_metadata["dataset_split"],
                 _sample_count(english_metadata.get("image_count")),
                 (
@@ -836,12 +931,134 @@ def _render_performance_section(results: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _powershell_argument(value: str | Path) -> str:
+    rendered = value.as_posix() if isinstance(value, Path) else value
+    if any(character.isspace() for character in rendered):
+        return "'" + rendered.replace("'", "''") + "'"
+    return rendered
+
+
+def _benchmark_reproduction_command(
+    result: dict[str, Any],
+    staging_output: Path,
+) -> str | None:
+    metadata = result["benchmark_metadata"]
+    configuration = metadata.get("run_configuration")
+    if not isinstance(configuration, dict):
+        return None
+
+    model_key = configuration.get("model_key")
+    dataset_key = configuration.get("dataset_key")
+    if not isinstance(model_key, str) or not isinstance(dataset_key, str):
+        return None
+
+    options = (
+        ("--model", model_key),
+        ("--dataset", dataset_key),
+        ("--split", metadata.get("dataset_split")),
+        ("--protocol", configuration.get("protocol")),
+        ("--language", configuration.get("language", result.get("language"))),
+        ("--precision", configuration.get("precision", metadata.get("precision"))),
+        ("--device", configuration.get("device", metadata.get("device"))),
+        ("--batch-size", configuration.get("batch_size_requested")),
+        ("--seed", configuration.get("seed")),
+        ("--retrieval-variant", configuration.get("retrieval_variant")),
+        ("--embedding-dimension", configuration.get("embedding_dimension")),
+    )
+    arguments = ["uv run --locked vlbench run"]
+    for option, value in options:
+        if value is not None:
+            arguments.extend((option, _powershell_argument(str(value))))
+
+    if configuration.get("data_terms_confirmed") is True:
+        arguments.append("--confirm-data-terms")
+    if (
+        metadata.get("reproducibility_mode") == "strict"
+        or configuration.get("reproducibility_mode") == "strict"
+    ):
+        source_commit = (
+            configuration.get("expected_source_commit_sha")
+            or metadata.get("expected_source_commit_sha")
+        )
+        if not isinstance(source_commit, str) or len(source_commit) != 40:
+            raise DataIntegrityError(
+                "A strict benchmark reproduction command requires its full expected "
+                "source commit."
+            )
+        arguments.extend(
+            ("--strict-reproducibility", "--expected-source-commit", source_commit)
+        )
+    arguments.extend(
+        (
+            "--yes",
+            "--output",
+            _powershell_argument(staging_output),
+        )
+    )
+    return " ".join(arguments)
+
+
+def _report_reproduction_command(
+    input_path: Path | None,
+    output_dir: Path | None,
+    *,
+    publishable: bool,
+    lifecycle_path: Path | None,
+    expected_source_commit_sha: str | None,
+    comparison_input_paths: tuple[Path, ...] = (),
+    comparison_lifecycle_paths: tuple[Path, ...] = (),
+) -> str:
+    arguments = ["uv run --locked vlbench report"]
+    arguments.extend(
+        (
+            "--input",
+            _powershell_argument(input_path or Path("raw")),
+            "--output",
+            _powershell_argument(output_dir or Path(".")),
+        )
+    )
+    if publishable:
+        selected_lifecycle_path = lifecycle_path or (
+            (output_dir or Path(".")) / "validation" / "result-lifecycle.json"
+        )
+        arguments.extend(
+            ("--publishable", "--lifecycle", _powershell_argument(selected_lifecycle_path))
+        )
+        if expected_source_commit_sha is not None:
+            arguments.extend(
+                ("--expected-source-commit", expected_source_commit_sha)
+            )
+    for comparison_input, comparison_lifecycle in zip(
+        comparison_input_paths,
+        comparison_lifecycle_paths,
+        strict=True,
+    ):
+        arguments.extend(
+            (
+                "--comparison-input",
+                _powershell_argument(comparison_input),
+                "--comparison-lifecycle",
+                _powershell_argument(comparison_lifecycle),
+            )
+        )
+    return " ".join(arguments)
+
+
 def render_report(
     results: list[dict[str, Any]],
     plot_files: dict[str, Path] | None = None,
     validation_dir: Path | None = None,
     publication_lifecycle: dict[str, Any] | None = None,
     native_validation_report: dict[str, Any] | None = None,
+    *,
+    reproduction_input_path: Path | None = None,
+    reproduction_output_path: Path | None = None,
+    reproduction_lifecycle_path: Path | None = None,
+    reproduction_expected_source_commit_sha: str | None = None,
+    reproduction_publishable: bool = False,
+    model_comparison_rows: list[dict[str, Any]] | None = None,
+    reproduction_comparison_input_paths: tuple[Path, ...] = (),
+    reproduction_comparison_lifecycle_paths: tuple[Path, ...] = (),
 ) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
@@ -924,6 +1141,32 @@ def render_report(
                 "",
             ]
         )
+    dinotxt_results = [
+        result
+        for result in results
+        if _configuration(result).get("model_key") == "dinov2_dinotxt"
+    ]
+    if dinotxt_results:
+        completed_dinotxt = sum(
+            result["status"] == "completed" for result in dinotxt_results
+        )
+        blocked_dinotxt = sum(
+            result["status"] == "blocked" for result in dinotxt_results
+        )
+        lines.extend(
+            [
+                "## DINO.txt campaign notes",
+                "",
+                f"- Completed DINO.txt measurements: {completed_dinotxt}.",
+                f"- Preserved blocked DINO.txt attempts: {blocked_dinotxt}; these are "
+                "separate historical records and contribute no numeric metrics.",
+                "- The local scientific-use licensing determination is documented in "
+                "[dinotxt-license-review.md](../../docs/dinotxt-license-review.md).",
+                "- Japanese DINO.txt retrieval is exploratory; the original Japanese "
+                "captions were evaluated without translation.",
+                "",
+            ]
+        )
     lines.extend(["## English zero-shot classification", ""])
     lines.extend(
         _render_task_language_section(
@@ -955,6 +1198,8 @@ def render_report(
     )
     lines.extend(_render_paired_language_section(completed))
     lines.extend(_render_performance_section(completed))
+    if model_comparison_rows:
+        lines.extend(render_model_comparison_section(model_comparison_rows))
     lines.extend(
         render_embedding_dimension_section(
             completed,
@@ -978,24 +1223,28 @@ def render_report(
                     f"### {status.capitalize()}",
                     "",
                     "| Model | Dataset | Language | Protocol | Retrieval variant | "
-                    "Reason | Run ID |",
-                    "|---|---|---|---|---|---|---|",
+                    "Model weight license | Reason | Run ID |",
+                    "|---|---|---|---|---|---|---|---|",
                 ]
             )
             for row in status_items:
+                keys = (
+                    "model",
+                    "dataset",
+                    "language",
+                    "protocol",
+                    "retrieval_variant",
+                    "model_weight_license_status",
+                    "reason",
+                    "run_id",
+                )
                 lines.append(
                     "| "
                     + " | ".join(
-                        _markdown_cell(row[key])
-                        for key in (
-                            "model",
-                            "dataset",
-                            "language",
-                            "protocol",
-                            "retrieval_variant",
-                            "reason",
-                            "run_id",
-                        )
+                        _raw_result_link(row[key])
+                        if key == "run_id"
+                        else _markdown_cell(row[key])
+                        for key in keys
                     )
                     + " |"
                 )
@@ -1013,6 +1262,7 @@ def render_report(
     validation_artifacts = (
         "historical-results-audit.json",
         "model-smoke-tests.json",
+        "checkpoint-integrity.json",
         "official-cifar10-parity.json",
         "official-xm3600-openclip-ja.json",
         "official-xm3600-parity.json",
@@ -1020,6 +1270,8 @@ def render_report(
         "result-lifecycle.json",
         "clean-xm3600-reproducibility-audit.json",
         "embedding-dimension-audit.json",
+        "model-comparison-audit.json",
+        "dinotxt-cuda-smoke.json",
     )
     available_validation_artifacts = [
         f"[{name}](validation/{name})"
@@ -1031,8 +1283,9 @@ def render_report(
             "## Validation and reproducibility",
             "",
             "Each raw result is schema-validated before aggregation. Per-run JSON records retain "
-            "the source commit, model checkpoint fingerprint, dataset checksum, ordered "
-            "candidate IDs and hashes, prompt policy, runtime, and measured metrics.",
+            "status-appropriate provenance. Checkpoint fingerprints, dataset checksums, "
+            "candidate IDs, and metrics are available only when a run reaches those stages; "
+            "runs blocked earlier intentionally leave them unset.",
         ]
     )
     if available_validation_artifacts:
@@ -1052,22 +1305,117 @@ def render_report(
             "models, languages, datasets, precisions, or retrieval variants.",
             "- Training-data contamination cannot be ruled out unless a model's pretraining "
             "corpus is independently verified.",
-            "- Dataset and model access restrictions remain in force. See "
-            "[model-and-dataset-licenses.md](../../docs/model-and-dataset-licenses.md).",
+            "- Dataset-specific access and attribution requirements remain in force; "
+            "model use remains subject to applicable component terms. See "
+            "[model-and-dataset-licenses.md](../../docs/model-and-dataset-licenses.md). "
+            "DINO.txt use in this local benchmark is covered by the specific determination "
+            "linked above; this is not a commercial-deployment or dataset-rights grant.",
             "- Missing metrics remain missing. Unsupported languages and unavailable datasets "
             "are not represented as zero scores.",
             "",
             "## Reproduction",
             "",
+            "### Execute benchmark inference",
+            "",
+            "The following `vlbench run` commands execute model inference and create new raw "
+            "runs. They do not regenerate this report. Use the recorded clean source revision "
+            "and review dataset terms before execution.",
+            "",
+        ]
+    )
+    completed_model_keys = {
+        result["benchmark_metadata"].get("run_configuration", {}).get("model_key")
+        for result in completed
+        if isinstance(result["benchmark_metadata"].get("run_configuration"), dict)
+    }
+    inference_commands: list[str] = []
+    if len(completed_model_keys) == 1:
+        model_key = next(iter(completed_model_keys))
+        if isinstance(model_key, str):
+            model = get_model(model_key)
+            sync_arguments = [
+                "uv sync --locked --group dev",
+                "--extra cuda",
+            ]
+            if model.dependency_extra:
+                sync_arguments.extend(("--extra", model.dependency_extra))
+            staging_output = (
+                Path(".cache")
+                / "benchmark-staging"
+                / (
+                    reproduction_output_path.name
+                    if reproduction_output_path is not None
+                    else "benchmark"
+                )
+            )
+            for result in completed:
+                command = _benchmark_reproduction_command(result, staging_output)
+                if command is not None and command not in inference_commands:
+                    inference_commands.append(command)
+            if inference_commands:
+                lines.extend(
+                    [
+                        "```powershell",
+                        " ".join(sync_arguments),
+                        "uv run --locked vlbench doctor --device cuda",
+                        *inference_commands,
+                        "```",
+                        "",
+                    ]
+                )
+            else:
+                lines.extend(
+                    [
+                        "No completed result includes enough run configuration to reproduce "
+                        "model inference.",
+                        "",
+                    ]
+                )
+        else:
+            lines.extend(
+                [
+                    "No completed result includes a registered model key for a reproducible "
+                    "inference command.",
+                    "",
+                ]
+            )
+    elif not completed:
+        lines.extend(
+            [
+                "No completed measurement is included, so no inference command is shown.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "This report includes multiple models. Use each measurement's exact "
+                "`run_configuration` in its raw JSON to execute inference.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "### Regenerate this report only (no inference)",
+            "",
+            "This command reads existing raw JSON and regenerates summaries, plots, and "
+            "validation outputs; it does not load model weights or run inference.",
+            "",
             "```powershell",
-            "uv sync --locked --group dev",
-            "uv run vlbench doctor --device cuda",
-            "uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0",
+            _report_reproduction_command(
+                reproduction_input_path,
+                reproduction_output_path,
+                publishable=reproduction_publishable,
+                lifecycle_path=reproduction_lifecycle_path,
+                expected_source_commit_sha=reproduction_expected_source_commit_sha,
+                comparison_input_paths=reproduction_comparison_input_paths,
+                comparison_lifecycle_paths=reproduction_comparison_lifecycle_paths,
+            ),
             "```",
             "",
-            "To reproduce a measurement, use the exact model revision, dataset checksum, split, "
-            "protocol, language, precision, batch size, seed, source commit, and lockfile hash "
-            "stored in its raw JSON.",
+            "Use the exact model revision, dataset checksum, split, protocol, language, "
+            "precision, batch size, seed, source commit, and lockfile hash recorded in each "
+            "raw result when reproducing a measurement.",
             "",
             "## Figures",
             "",
@@ -1307,6 +1655,8 @@ def generate_reports(
     expected_source_commit_sha: str | None = None,
     baseline_input_path: Path | None = None,
     baseline_lifecycle_path: Path | None = None,
+    comparison_input_paths: tuple[Path, ...] = (),
+    comparison_lifecycle_paths: tuple[Path, ...] = (),
 ) -> dict[str, Path]:
     if (baseline_input_path is None) != (baseline_lifecycle_path is None):
         raise ValueError(
@@ -1316,14 +1666,26 @@ def generate_reports(
         raise ValueError(
             "Historical baseline comparison is supported only for publishable reports."
         )
+    if len(comparison_input_paths) != len(comparison_lifecycle_paths):
+        raise ValueError(
+            "Matched model comparison requires one lifecycle path for each comparison input."
+        )
+    if comparison_input_paths and not publishable:
+        raise ValueError(
+            "Matched model comparison is supported only for publishable reports."
+        )
 
     all_results = load_results(input_path)
     results = all_results
+    report_results = all_results
     publication_states: dict[str, str] | None = None
     publication_lifecycle: dict[str, Any] | None = None
     validation_documents: dict[str, dict[str, Any]] = {}
     dimension_results: list[dict[str, Any]] = []
     baseline_comparison: dict[str, Any] | None = None
+    comparison_rows: list[dict[str, Any]] = []
+    comparison_plot_results: list[dict[str, Any]] = []
+    comparison_source_documents: list[dict[str, Any]] = []
     if publishable:
         selected_lifecycle_path = lifecycle_path or (
             output_dir / "validation" / "result-lifecycle.json"
@@ -1364,7 +1726,13 @@ def generate_reports(
             result
             for result in all_results
             if result["benchmark_metadata"].get("embedding_dimension") is None
+            and _configuration(result).get("embedding_dimension") is None
+            and result["benchmark_metadata"].get("global_embedding_dimension") is None
         ]
+        historical_suite_run_ids = {
+            str(result["benchmark_metadata"]["run_id"])
+            for result in historical_suite_results
+        }
         historical_suite_states = {
             result["benchmark_metadata"]["run_id"]: publication_states[
                 result["benchmark_metadata"]["run_id"]
@@ -1374,7 +1742,7 @@ def generate_reports(
         active_historical_official_runs = [
             result
             for result in active_official_runs
-            if result["benchmark_metadata"].get("embedding_dimension") is None
+            if str(result["benchmark_metadata"]["run_id"]) in historical_suite_run_ids
         ]
         if active_historical_official_runs:
             audit = build_clean_xm3600_reproducibility_audit(
@@ -1462,6 +1830,129 @@ def generate_reports(
             validation_documents["embedding-dimension-baseline-comparison.json"] = (
                 baseline_comparison
             )
+        comparison_sources: list[tuple[str, list[dict[str, Any]], dict[str, str]]] = []
+        comparison_result_lookup: dict[tuple[str, str], dict[str, Any]] = {
+            (
+                output_dir.name,
+                str(result["benchmark_metadata"]["run_id"]),
+            ): result
+            for result in results
+        }
+        for comparison_input, comparison_lifecycle_path in zip(
+            comparison_input_paths,
+            comparison_lifecycle_paths,
+            strict=True,
+        ):
+            comparison_all_results = load_results(comparison_input)
+            comparison_lifecycle = _load_publication_lifecycle(
+                comparison_lifecycle_path
+            )
+            comparison_results, comparison_states = _select_publishable_results(
+                comparison_all_results,
+                comparison_lifecycle,
+                None,
+            )
+            comparison_directory = (
+                comparison_input.parent
+                if comparison_input.is_file()
+                else comparison_input
+            )
+            comparison_campaign = (
+                comparison_directory.parent.name
+                if comparison_directory.name.lower() == "raw"
+                else comparison_directory.name
+            )
+            comparison_sources.append(
+                (comparison_campaign, comparison_results, comparison_states)
+            )
+            for result in comparison_results:
+                run_id = str(result["benchmark_metadata"]["run_id"])
+                comparison_result_lookup[(comparison_campaign, run_id)] = result
+            comparison_source_documents.append(
+                {
+                    "campaign": comparison_campaign,
+                    "raw_input": comparison_input.as_posix(),
+                    "lifecycle_path": comparison_lifecycle_path.as_posix(),
+                    "frozen_source_commit_sha": comparison_lifecycle[
+                        "frozen_source_commit_sha"
+                    ],
+                    "eligible_completed_run_count": len(comparison_results),
+                    "eligible_source_commit_shas": sorted(
+                        {
+                            str(result["benchmark_metadata"]["source_commit_sha"])
+                            for result in comparison_results
+                            if result["benchmark_metadata"].get("source_commit_sha")
+                        }
+                    ),
+                }
+            )
+        if comparison_sources:
+            if publication_states is None:
+                raise DataIntegrityError(
+                    "Matched model comparison requires the primary publication lifecycle."
+                )
+            comparison_rows = build_model_comparison_rows(
+                results,
+                publication_states,
+                output_dir.name,
+                comparison_sources,
+            )
+            comparison_plot_results = [
+                comparison_result_lookup[
+                    (str(row["campaign"]), str(row["run_id"]))
+                ]
+                for row in comparison_rows
+            ]
+            validation_documents["model-comparison-audit.json"] = {
+                "schema_version": "1.0.0",
+                "matching_fields": [
+                    "dataset checksum",
+                    "split",
+                    "task",
+                    "protocol",
+                    "language",
+                    "precision",
+                    "image/text/class/positive-pair counts",
+                    "retrieval variant",
+                ],
+                "duplicate_baseline_priority": (
+                    "active before historical; ties use the last supplied comparison input"
+                ),
+                "primary_campaign": output_dir.name,
+                "primary_frozen_source_commit_sha": lifecycle[
+                    "frozen_source_commit_sha"
+                ],
+                "comparison_sources": comparison_source_documents,
+                "comparison_row_count": len(comparison_rows),
+                "conditions": [
+                    {
+                        "condition": condition,
+                        "models": [
+                            {
+                                "model_key": row["model_key"],
+                                "run_id": row["run_id"],
+                                "campaign": row["campaign"],
+                                "publication_state": row["publication_state"],
+                                "source_commit_sha": row["source_commit_sha"],
+                            }
+                            for row in comparison_rows
+                            if row["comparison_condition"] == condition
+                        ],
+                    }
+                    for condition in sorted(
+                        {row["comparison_condition"] for row in comparison_rows}
+                    )
+                ],
+            }
+        selected_run_ids = {
+            str(result["benchmark_metadata"]["run_id"]) for result in results
+        }
+        report_results = [
+            result
+            for result in all_results
+            if result["status"] != "completed"
+            or str(result["benchmark_metadata"]["run_id"]) in selected_run_ids
+        ]
     output_dir.mkdir(parents=True, exist_ok=True)
     if validation_documents:
         validation_dir = output_dir / "validation"
@@ -1469,7 +1960,7 @@ def generate_reports(
         for filename, document in validation_documents.items():
             atomic_write_json(validation_dir / filename, document)
     native_validation_report = _load_native_mrl_validation_report(output_dir)
-    completed_rows = summary_rows(results, publication_states)
+    completed_rows = summary_rows(report_results, publication_states)
     completed_rows.sort(
         key=lambda row: (
             str(row["dataset_key"]),
@@ -1481,7 +1972,7 @@ def generate_reports(
             str(row["run_id"]),
         )
     )
-    status_rows = _status_rows(results)
+    status_rows = _status_rows(report_results)
     status_rows.sort(
         key=lambda row: (
             str(row["status"]),
@@ -1501,9 +1992,16 @@ def generate_reports(
     _write_csv(non_success_path, NON_SUCCESS_FIELDS, status_rows)
     atomic_write_json(
         metadata_path,
-        _metadata_document(results, publication_states, publication_lifecycle),
+        _metadata_document(report_results, publication_states, publication_lifecycle),
     )
-    plots = write_plots(results, output_dir / "plots")
+    plots = write_plots(report_results, output_dir / "plots")
+    if comparison_plot_results:
+        plots.update(
+            write_model_comparison_plots(
+                comparison_plot_results,
+                output_dir / "plots",
+            )
+        )
     dimension_files = write_embedding_dimension_analysis(
         results,
         output_dir,
@@ -1512,16 +2010,31 @@ def generate_reports(
     )
     report_path.write_text(
         render_report(
-            results,
+        report_results,
             plots,
             output_dir / "validation",
             publication_lifecycle,
             native_validation_report,
+            reproduction_input_path=input_path,
+            reproduction_output_path=output_dir,
+            reproduction_lifecycle_path=(
+                (
+                    lifecycle_path
+                    or output_dir / "validation" / "result-lifecycle.json"
+                )
+                if publishable
+                else None
+            ),
+            reproduction_expected_source_commit_sha=expected_source_commit_sha,
+            reproduction_publishable=publishable,
+            model_comparison_rows=comparison_rows,
+            reproduction_comparison_input_paths=comparison_input_paths,
+            reproduction_comparison_lifecycle_paths=comparison_lifecycle_paths,
         ),
         encoding="utf-8",
         newline="\n",
     )
-    return {
+    output_files = {
         "summary_csv": summary_path,
         "non_success_csv": non_success_path,
         "metadata_json": metadata_path,
@@ -1529,3 +2042,8 @@ def generate_reports(
         **dimension_files,
         **plots,
     }
+    if comparison_rows:
+        comparison_csv_path = output_dir / "model-comparison.csv"
+        _write_csv(comparison_csv_path, MODEL_COMPARISON_FIELDS, comparison_rows)
+        output_files["model_comparison_csv"] = comparison_csv_path
+    return output_files

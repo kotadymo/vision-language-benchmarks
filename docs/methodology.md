@@ -18,7 +18,8 @@ The implementation records this reference in
   Top-5 is `null` if fewer than five classes are available.
 - **P1** is a separate model-native classification comparison. EmbeddingGemma uses its
   `Classification` task prefix; SigLIP 2 uses its model-card photo template; other CLIP-family
-  adapters use a single photo template. P0 and P1 are not combined.
+  adapters use a single photo template. DINOv2+dino.txt uses the explicit template
+  `a photo of a {class}.` without a task prefix. P0 and P1 are not combined.
 - **P2** compares retrieval in English and Japanese on the same dataset. Paired plots and
   tables are emitted only when dataset checksum, model checkpoint, protocol, precision, seed,
   effective device, source commit, and ordered image IDs match. An unindexed `cuda` device is
@@ -104,6 +105,14 @@ is an independent full-dataset inference run, not a slice or reranking of anothe
 features. See the [dimension workflow](embedding-dimensions.md) for strict execution and
 validation commands, and the [verified 24-run report](../results/mrl-openclip-gemma-v0.4.0/embedding-dimension-analysis.md)
 for the measured dimension/accuracy/storage trade-offs.
+
+DINOv2+dino.txt is a separate fixed-width model family: both global modalities are 2048D, and
+the adapter does not expose MRL truncation. Its image transform and CLIP tokenizer come from
+OpenVLCLIP v0.6.0; no task prefix is added. P0 uses the standard 18 templates, while P1 uses
+`a photo of a {class}.` Japanese evaluation is exploratory. Model loading is currently blocked
+because the reviewed upstream materials do not state licenses for the external dino.txt Vision
+Head and Text Encoder weights; there are no DINOv2+dino.txt accuracy or throughput results.
+See the [integration status](dinotxt-integration.md).
 
 Native API equivalence was validated separately on a deterministic sample of 2 CIFAR-10 images,
 38 classification prompts, and 4 XM3600 first-caption texts across English and Japanese. All

@@ -25,6 +25,7 @@ def create_adapter(
     modules = {
         "openclip": "vision_language_benchmarks.adapters.openclip",
         "embeddinggemma": "vision_language_benchmarks.adapters.openclip_gemma",
+        "dinov2_dinotxt": "vision_language_benchmarks.adapters.dinov2_dinotxt",
         "siglip2": "vision_language_benchmarks.adapters.siglip2",
         "japanese_clip": "vision_language_benchmarks.adapters.japanese_clip",
     }

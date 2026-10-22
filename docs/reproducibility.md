@@ -21,6 +21,9 @@ uv sync --locked --group dev --extra cuda --extra openclip
 # EmbeddingGemma 2
 uv sync --locked --group dev --extra cuda --extra gemma
 
+# DINOv2 + dino.txt (installing code does not authorize model-weight use)
+uv sync --locked --group dev --extra cuda --extra dinotxt
+
 # SigLIP 2
 uv sync --locked --group dev --extra cuda --extra siglip2
 
@@ -53,6 +56,26 @@ language-appropriate text inference, validates finite and dimension-compatible e
 normalized cosine similarities, records checkpoint/runtime/GPU-memory metadata, then releases
 the model before the next test. Local execution logs are written under `.cache/real-smoke/` and
 are excluded from Git.
+
+The DINOv2+dino.txt CUDA smoke test is separately opt-in. The model-level gate is
+`verified_for_benchmark_use` for local, non-redistributive scientific evaluation under the
+pinned Meta terms; review the [license determination](dinotxt-license-review.md) before
+running inference. Dataset safeguards and checkpoint hash verification remain active:
+
+```powershell
+$env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS = "1"
+$env:VLBENCH_DINOTXT_SMOKE_OUTPUT = ".cache\real-smoke\dinotxt-cuda-smoke.json"
+uv run --locked --extra cuda --extra dinotxt pytest -q -s tests/real_model/test_dinov2_dinotxt.py
+Remove-Item Env:VLBENCH_DINOTXT_SMOKE_OUTPUT
+Remove-Item Env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS
+```
+
+This opt-in test loads the official model and performs actual CUDA inference. It validates
+preprocessing and tokenizer shapes, finite and normalized 2048D image/text features,
+image-text cosine similarity, GPU memory, checkpoint hashes, and direct numerical consistency
+with the pinned official PyTorch Hub model. Japanese encoding does not establish Japanese
+semantic quality. See the
+[license and integration record](dinotxt-integration.md).
 
 To exercise the complete benchmark runner against all 3,600 authorized XM3600 images and the
 7,185 Japanese captions, run this separate, longer integration test:
@@ -87,6 +110,9 @@ uv run vlbench run --model openai_clip_b32 --dataset cifar10 --device cuda --dry
 `--dry-run` performs no dataset or checkpoint downloads. Review the output for the pinned
 checkpoint revision and size, dataset split and access state, language, protocol, precision,
 device, and output path.
+For `dinov2_dinotxt`, the plan shows model access as `available` for the documented local
+benchmark use. Dataset access and attribution checks remain independent; neither `--yes` nor
+`--confirm-data-terms` bypasses those checks.
 
 For a dataset marked `requires_user_confirmation`, review the exact terms and obtain any
 required user acceptance before passing `--confirm-data-terms`; this flag is not legal
@@ -129,6 +155,15 @@ are excluded, while blocked, skipped, failed, invalid, and incomplete attempts r
 in lifecycle/status artifacts. The report generator uses a fixed SVG hash salt and fixed
 metadata so repeated generation from the same eligible raw JSON is byte-identical.
 Automated tests cover CSV, Markdown, metadata JSON, PNG, and SVG regeneration.
+
+For matched comparisons across campaigns, repeat `--comparison-input` and
+`--comparison-lifecycle` once per historical campaign, in matching order. The report validates
+each lifecycle against its raw results and matches only the same dataset checksum, split, task,
+protocol, language, precision, counts, and retrieval variant. It emits
+`model-comparison.csv`, a comparison audit, and separate cross-model plots. Accuracy and recall
+cells include exact hit/query counts. FP32 vector-payload bytes are a derived
+`vector_count × dimension × 4` calculation, not measured on-disk size; dimensions absent from
+legacy raw records are left unreported rather than inferred.
 
 Validated, sanitized per-run metric JSON under `results/v0.1.0/raw/` may be committed. The
 private `run-manifest.json` is git-ignored. Do not commit datasets, model weights, caches,

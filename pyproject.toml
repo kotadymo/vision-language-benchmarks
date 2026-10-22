@@ -33,6 +33,9 @@ openclip = [
 gemma = [
     "openclip-gemma==0.4.0",
 ]
+dinotxt = [
+    "openvlclip[dinotxt]==0.6.0",
+]
 siglip2 = [
     "transformers==5.20.1",
 ]

@@ -15,6 +15,11 @@ from vision_language_benchmarks.errors import DataIntegrityError
 from vision_language_benchmarks.reporting.aggregate import generate_reports
 from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.lifecycle import build_result_lifecycle
+from vision_language_benchmarks.reporting.model_comparison import (
+    build_model_comparison_rows,
+    exact_hit_count,
+    render_model_comparison_section,
+)
 from vision_language_benchmarks.reporting.reproducibility_audit import (
     build_clean_official_xm3600_parity,
     build_clean_xm3600_reproducibility_audit,
@@ -71,6 +76,75 @@ def test_result_status_and_measured_metrics_must_agree() -> None:
 
     with pytest.raises(jsonschema.ValidationError):
         validate_result(blocked)
+
+
+def test_metric_hit_counts_are_exact_and_comparison_prefers_newer_active_campaign() -> None:
+    current = make_result(
+        model_key="dinov2_dinotxt",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="dino-p0",
+    )
+    current["benchmark_metadata"].update(
+        {
+            "global_embedding_dimension": 2048,
+            "model_library": "openvlclip",
+            "model_library_version": "0.6.0",
+        }
+    )
+    older_gemma = make_result(
+        model_key="embeddinggemma2",
+        dataset_key="cifar10",
+        protocol="p0",
+        embedding_dimension=768,
+        run_id="gemma-v03-p0",
+    )
+    older_gemma["benchmark_metadata"]["model_implementation_version"] = "0.3.0"
+    newer_gemma = make_result(
+        model_key="embeddinggemma2",
+        dataset_key="cifar10",
+        protocol="p0",
+        embedding_dimension=768,
+        run_id="gemma-v04-p0",
+    )
+    newer_gemma["benchmark_metadata"]["model_implementation_version"] = "0.4.0"
+
+    rows = build_model_comparison_rows(
+        [current],
+        {"dino-p0": "active"},
+        "dinov2-dinotxt-v0.6.0",
+        [
+            ("v0.1.0", [older_gemma], {"gemma-v03-p0": "active"}),
+            (
+                "mrl-openclip-gemma-v0.4.0",
+                [newer_gemma],
+                {"gemma-v04-p0": "active"},
+            ),
+        ],
+    )
+
+    assert exact_hit_count(current, "acc1", "image_count") == 5_000
+    assert [(row["model_key"], row["run_id"]) for row in rows] == [
+        ("dinov2_dinotxt", "dino-p0"),
+        ("embeddinggemma2", "gemma-v04-p0"),
+    ]
+    assert rows[0]["embedding_dimension"] == 2_048
+    assert rows[0]["fp32_bytes_per_vector"] == 8_192
+    assert rows[0]["fp32_embedding_payload_bytes"] == (10_000 + 180) * 8_192
+    assert rows[1]["embedding_dimension"] == 768
+    assert rows[1]["fp32_bytes_per_vector"] == 3_072
+    assert rows[1]["package"] == "openclip-gemma"
+    assert rows[1]["package_version"] == "0.4.0"
+    assert rows[1]["campaign"] == "mrl-openclip-gemma-v0.4.0"
+    comparison_section = "\n".join(render_model_comparison_section(rows))
+    assert "50.00% (5,000/10,000)" in comparison_section
+    assert "2,048D · 8,192 B/vector" in comparison_section
+    assert "768D · 3,072 B/vector" in comparison_section
+    assert "[model-comparison.csv](model-comparison.csv)" in comparison_section
+
+    current["metrics"]["acc1"] = 0.50001
+    with pytest.raises(DataIntegrityError, match="exact integer hit count"):
+        exact_hit_count(current, "acc1", "image_count")
 
 
 def test_historical_results_match_audit_hashes_and_keep_all_caption_assignment() -> None:
@@ -155,6 +229,24 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     ]
     results[4] = _mark_official_first_caption(results[4])
     results[5] = _mark_official_first_caption(results[5])
+    japanese_all_captions = results[3]
+    japanese_metadata = japanese_all_captions["benchmark_metadata"]
+    for metric_key in (
+        "image_retrieval_recall@1",
+        "image_retrieval_recall@5",
+        "image_retrieval_recall@10",
+        "text_retrieval_recall@1",
+        "text_retrieval_recall@5",
+        "text_retrieval_recall@10",
+    ):
+        denominator_key = (
+            "text_count" if metric_key.startswith("image_retrieval_") else "image_count"
+        )
+        denominator = japanese_metadata[denominator_key]
+        japanese_all_captions["metrics"][metric_key] = (
+            round(japanese_all_captions["metrics"][metric_key] * denominator)
+            / denominator
+        )
     input_dir = tmp_path / "raw"
     input_dir.mkdir()
     for result in results:
@@ -187,6 +279,13 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     metadata = json.loads(files["metadata_json"].read_text(encoding="utf-8"))
 
     assert len(summary) == 6
+    cifar = next(
+        row
+        for row in summary
+        if row["dataset_key"] == "cifar10" and row["protocol"] == "p0"
+    )
+    assert cifar["acc1_correct_count"] == "5000"
+    assert cifar["acc1_total_count"] == "10000"
     multilingual = next(
         row
         for row in summary
@@ -205,6 +304,10 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     assert multilingual["text_batch_size_actual"] == "2"
     assert multilingual["oom_retry_count"] == "0"
     assert multilingual["image_retrieval_recall@10_fraction"] == "0.9"
+    assert multilingual["image_retrieval_recall@1_hits"] == "3600"
+    assert multilingual["image_retrieval_recall@1_queries"] == "7200"
+    assert multilingual["text_retrieval_recall@1_hits"] == "1440"
+    assert multilingual["text_retrieval_recall@1_queries"] == "3600"
     assert [row["status"] for row in unsuccessful] == ["blocked"]
     xm3600 = next(
         dataset
@@ -214,7 +317,9 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     assert {item["confirmed"] for item in xm3600["terms_confirmations"]} == {False}
     report = files["report_markdown"].read_text(encoding="utf-8")
     assert "No values are estimated or fabricated." in report
-    assert "Top-1 | Top-5" in report
+    assert "Top-1 (correct/total)" in report
+    assert "50.00% (5,000/10,000)" in report
+    assert "50.00% (3,600/7,200)" in report
     assert "English zero-shot classification" in report
     assert "Japanese/English official-compatible XM3600 retrieval" in report
     assert "XM3600 all-caption retrieval (`all_captions`)" in report
@@ -273,6 +378,109 @@ def test_json_results_regenerate_csv_markdown_metadata_and_all_chart_types(tmp_p
     }
 
     assert second_generation == first_generation
+
+
+def test_publishable_report_keeps_non_successful_raw_records_visible(tmp_path) -> None:
+    completed = make_result(run_id="eligible-completed")
+    blocked = _mark_official_first_caption(
+        make_result(
+            model_key="openclip_multilingual_b32",
+            dataset_key="crossmodal3600",
+            language="en",
+            protocol="p2",
+            status="blocked",
+            run_id="preserved-blocked",
+            data_terms_confirmed=False,
+        )
+    )
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    for result in (completed, blocked):
+        atomic_write_json(
+            raw_dir / f"{result['benchmark_metadata']['run_id']}.json",
+            result,
+        )
+    lifecycle_path = tmp_path / "result-lifecycle.json"
+    atomic_write_json(
+        lifecycle_path,
+        build_result_lifecycle([completed, blocked], "a" * 40),
+    )
+
+    output_dir = tmp_path / "publishable"
+    files = generate_reports(
+        raw_dir,
+        output_dir,
+        publishable=True,
+        lifecycle_path=lifecycle_path,
+    )
+
+    with files["summary_csv"].open(encoding="utf-8", newline="") as stream:
+        summary = list(csv.DictReader(stream))
+    with files["non_success_csv"].open(encoding="utf-8", newline="") as stream:
+        non_success = list(csv.DictReader(stream))
+    report = files["report_markdown"].read_text(encoding="utf-8")
+    assert [row["run_id"] for row in summary] == ["eligible-completed"]
+    assert [row["run_id"] for row in non_success] == ["preserved-blocked"]
+    assert "Blocked runs: 1" in report
+    assert "[preserved-blocked](raw/preserved-blocked.json)" in report
+
+
+def test_dinotxt_official_retrieval_skips_openclip_specific_parity_audit(
+    tmp_path,
+) -> None:
+    source_commit = "b" * 40
+    results = []
+    for language in ("en", "ja"):
+        result = _mark_official_first_caption(
+            make_result(
+                model_key="dinov2_dinotxt",
+                dataset_key="crossmodal3600",
+                language=language,
+                protocol="p2",
+                run_id=f"dinotxt-{language}",
+            )
+        )
+        _mark_strict_clean_source(result, source_commit)
+        result["benchmark_metadata"].update(
+            {
+                "global_embedding_dimension": 2048,
+                "model_library": "openvlclip",
+                "model_library_version": "0.6.0",
+            }
+        )
+        results.append(result)
+
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    for result in results:
+        atomic_write_json(
+            raw_dir / f"{result['benchmark_metadata']['run_id']}.json",
+            result,
+        )
+    lifecycle_path = tmp_path / "result-lifecycle.json"
+    atomic_write_json(
+        lifecycle_path,
+        build_result_lifecycle(results, source_commit),
+    )
+    output_dir = tmp_path / "dinotxt-report"
+    validation_dir = output_dir / "validation"
+    validation_dir.mkdir(parents=True)
+    (validation_dir / "dinotxt-cuda-smoke.json").write_text("{}", encoding="utf-8")
+
+    files = generate_reports(
+        raw_dir,
+        output_dir,
+        publishable=True,
+        lifecycle_path=lifecycle_path,
+        expected_source_commit_sha=source_commit,
+    )
+
+    with files["summary_csv"].open(encoding="utf-8", newline="") as stream:
+        assert len(list(csv.DictReader(stream))) == 2
+    report = files["report_markdown"].read_text(encoding="utf-8")
+    assert "| DINOv2 ViT-L/14 + dino.txt | 2,048 |" in report
+    assert "[dinotxt-cuda-smoke.json](validation/dinotxt-cuda-smoke.json)" in report
+    assert not (output_dir / "validation" / "clean-xm3600-reproducibility-audit.json").exists()
 
 
 def test_paired_language_results_require_matching_data_and_accept_cuda_aliases() -> None:

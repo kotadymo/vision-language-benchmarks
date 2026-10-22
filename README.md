@@ -28,6 +28,27 @@ full condition identity: historical CIFAR preprocessing provenance is unavailabl
 new XM3600 records include native-dimension metadata absent from v0.3.0. See the baseline audit
 for those checks and their measured differences.
 
+## DINOv2 + dino.txt integration
+
+The OpenVLCLIP v0.6.0 adapter evaluates the official fixed-2048D DINOv2 ViT-L/14 + dino.txt
+model. The evidence-based license review supports local, non-redistributive scientific
+benchmarking; the original six license-blocked attempts remain preserved as historical
+records. Six subsequent full-dataset CUDA FP32 measurements use frozen source commit
+`28519573b78f0dcb7ab6515ead02bc6b403a92bd`.
+
+- [Campaign report](results/dinov2-dinotxt-v0.6.0/report.md) ·
+  [summary CSV](results/dinov2-dinotxt-v0.6.0/summary.csv) ·
+  [matched model-comparison CSV](results/dinov2-dinotxt-v0.6.0/model-comparison.csv)
+- [Raw results](results/dinov2-dinotxt-v0.6.0/raw/) ·
+  [run status](results/dinov2-dinotxt-v0.6.0/run-status.json) ·
+  [lifecycle audit](results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json)
+- [License determination](docs/dinotxt-license-review.md) ·
+  [integration and protocol notes](docs/dinotxt-integration.md)
+
+Japanese XM3600 retrieval is exploratory and must not be read as evidence of Japanese
+semantic capability. The campaign report keeps P0 and P1 separate and distinguishes inference
+commands from report-only regeneration commands.
+
 ## Verified v0.1.0 results
 
 The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 records on an NVIDIA

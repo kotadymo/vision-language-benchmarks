@@ -3,6 +3,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from vision_language_benchmarks.dinotxt_provenance import (
+    DINOTXT_CHECKPOINT_REVISION,
+    DINOTXT_COMPONENTS,
+    DINOTXT_MODEL_ID,
+    DINOV2_SOURCE_REVISION,
+    DinoTxtArtifact,
+)
+
 ProtocolName = Literal["p0", "p1", "p2"]
 RetrievalVariant = Literal["all_captions", "official_first_caption"]
 RETRIEVAL_VARIANTS: tuple[RetrievalVariant, ...] = (
@@ -35,6 +43,11 @@ class ModelSpec:
     checkpoint_filename: str | None = None
     checkpoint_size_bytes: int | None = None
     uses_openclip_builtin_config: bool = False
+    global_embedding_dimension: int | None = None
+    experimental_languages: tuple[str, ...] = ()
+    weight_license_status: Literal["verified", "unverified", "blocked"] | None = None
+    weight_license_reason: str | None = None
+    expected_checkpoint_components: tuple[DinoTxtArtifact, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,6 +115,40 @@ MODELS: dict[str, ModelSpec] = {
             "Uses the official Classification or SearchQuery task prompt; "
             "P0 scores are not numerically interchangeable with CLIP logits."
         ),
+    ),
+    "dinov2_dinotxt": ModelSpec(
+        key="dinov2_dinotxt",
+        name="DINOv2 ViT-L/14 + dino.txt",
+        adapter="dinov2_dinotxt",
+        model_id=DINOTXT_MODEL_ID,
+        checkpoint_revision=DINOTXT_CHECKPOINT_REVISION,
+        pretrained_tag="official",
+        license=(
+            "DINOv2 code and model weights, including the dino.txt Vision Head and Text "
+            "Encoder: Apache-2.0; CLIP BPE vocabulary: MIT; OpenVLCLIP software is separately "
+            "licensed."
+        ),
+        languages=("en", "ja"),
+        supported_tasks=("classification", "retrieval"),
+        dependency_extra="dinotxt",
+        architecture="DINOv2 ViT-L/14 reg4 with dino.txt Vision Head and Text Encoder",
+        repository_revision=DINOV2_SOURCE_REVISION,
+        tokenizer_repository="https://github.com/facebookresearch/dinov2",
+        tokenizer_revision=DINOV2_SOURCE_REVISION,
+        tokenizer_license="MIT (BPE vocabulary); Apache-2.0 (tokenizer code)",
+        compatibility_note=(
+            "Uses OpenVLCLIP v0.6.0's official dino.txt configuration and raw text without "
+            "a task prefix. The global embedding space is fixed at 2048D; MRL truncation is "
+            "not supported. Local scientific benchmark use is verified under the pinned "
+            "DINOv2 Apache-2.0 terms; see docs/dinotxt-license-review.md. Japanese evaluation "
+            "is exploratory."
+        ),
+        supports_bf16=True,
+        global_embedding_dimension=2048,
+        experimental_languages=("ja",),
+        weight_license_status="verified",
+        weight_license_reason=None,
+        expected_checkpoint_components=DINOTXT_COMPONENTS,
     ),
     "openai_clip_b32": ModelSpec(
         key="openai_clip_b32",

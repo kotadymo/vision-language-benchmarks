@@ -1063,6 +1063,28 @@ wheels = [
 ]
 
 [[package]]
+name = "openvlclip"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "torch" },
+    { name = "torchvision" },
+    { name = "transformers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f1/62/cae7c643e49f9fa428f259ce2638b176d25cc2624cb738ff10314271bce3/openvlclip-0.6.0.tar.gz", hash = "sha256:9162351f8a133dd029385c658d6304f9bb1447b05ae80fa15255d0f8adc37a3d", size = 73883, upload-time = "2026-10-22T09:58:29.323Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/a1/4c9a2ba826654df48a08b64ac0adabedaf752497ebdfd6a6e298a8a6aabe/openvlclip-0.6.0-py3-none-any.whl", hash = "sha256:a6fc193bd988df697b595ee10daaefcadabb8238d128023139bbb64bce5722aa", size = 73375, upload-time = "2026-10-22T09:58:27.869Z" },
+]
+
+[package.optional-dependencies]
+dinotxt = [
+    { name = "ftfy" },
+    { name = "regex" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1997,6 +2019,9 @@ cuda = [
     { name = "torch" },
     { name = "torchvision" },
 ]
+dinotxt = [
+    { name = "openvlclip", extra = ["dinotxt"] },
+]
 gemma = [
     { name = "openclip-gemma" },
 ]
@@ -2026,6 +2051,7 @@ requires-dist = [
     { name = "numpy", specifier = "==2.5.4" },
     { name = "open-clip-torch", marker = "extra == 'openclip'", specifier = "==3.3.0" },
     { name = "openclip-gemma", marker = "extra == 'gemma'", specifier = "==0.4.0" },
+    { name = "openvlclip", extras = ["dinotxt"], marker = "extra == 'dinotxt'", specifier = "==0.6.0" },
     { name = "pillow", specifier = "==13.0.0" },
     { name = "protobuf", marker = "extra == 'japanese-clip'", specifier = ">=3.20.3" },
     { name = "torch", marker = "extra == 'cuda'", specifier = "==2.14.1", index = "https://download.pytorch.org/whl/cu130" },
@@ -2033,7 +2059,7 @@ requires-dist = [
     { name = "transformers", marker = "extra == 'openclip'", specifier = "==5.20.1" },
     { name = "transformers", marker = "extra == 'siglip2'", specifier = "==5.20.1" },
 ]
-provides-extras = ["cuda", "openclip", "gemma", "siglip2", "japanese-clip"]
+provides-extras = ["cuda", "openclip", "gemma", "dinotxt", "siglip2", "japanese-clip"]
 
 [package.metadata.requires-dev]
 dev = [

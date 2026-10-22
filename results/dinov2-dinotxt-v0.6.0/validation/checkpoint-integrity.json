@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "validation_type": "dinotxt_checkpoint_integrity",
+  "status": "completed",
+  "model_inference_performed": false,
+  "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
+  "working_tree_dirty": false,
+  "timestamp_utc": "2026-10-22T13:23:08Z",
+  "library": "openvlclip",
+  "library_version": "0.6.0",
+  "library_version_expected": "0.6.0",
+  "model_name": "dinov2-dinotxt",
+  "model_id": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l",
+  "model_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8+backbone-36e4deffbaef061a2576705b0c36f93621e2ae20bf6274694821b0b492551b51+vision-706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5+text-13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a+bpe-924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+  "model_source_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+  "cache_location": "torch.hub/checkpoints",
+  "checkpoint_sha256": "1437692cb21e90de8b70f7eea32126f3eb90d06f5dba51137ffdf97485001cc8",
+  "runtime": {
+    "python_version": "3.12.10",
+    "torch_version": "2.14.1+cu130",
+    "cuda_runtime": "13.0",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER"
+  },
+  "components": [
+    {
+      "component": "dinov2_backbone",
+      "kind": "weight",
+      "filename": "dinov2_vitl14_reg4_pretrain.pth",
+      "sha256": "36e4deffbaef061a2576705b0c36f93621e2ae20bf6274694821b0b492551b51",
+      "size_bytes": 1217607321,
+      "license": "Apache-2.0",
+      "license_status": "verified",
+      "verified": true
+    },
+    {
+      "component": "dinotxt_vision_head",
+      "kind": "weight",
+      "filename": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_vision_head.pth",
+      "sha256": "706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5",
+      "size_bytes": 101317814,
+      "license": "Apache-2.0 (official DINOv2 README model-weight statement)",
+      "license_status": "verified",
+      "verified": true
+    },
+    {
+      "component": "dinotxt_text_encoder",
+      "kind": "weight",
+      "filename": "dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_text_encoder.pth",
+      "sha256": "13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a",
+      "size_bytes": 2152639923,
+      "license": "Apache-2.0 (official DINOv2 README model-weight statement)",
+      "license_status": "verified",
+      "verified": true
+    },
+    {
+      "component": "clip_bpe_vocabulary",
+      "kind": "tokenizer",
+      "filename": "bpe_simple_vocab_16e6.txt.gz",
+      "sha256": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+      "size_bytes": 1356917,
+      "license": "MIT",
+      "license_status": "verified",
+      "verified": true
+    }
+  ]
+}
