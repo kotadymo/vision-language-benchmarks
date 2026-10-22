@@ -6,29 +6,28 @@ preprocessing transform, and raw CLIP-tokenized text without task prefixes. The 
 and text embedding space is fixed at 2048 dimensions; this model does not expose the
 EmbeddingGemma MRL dimension option.
 
-## Current status: model use blocked
+## Current status: local benchmark use verified
 
-The reviewed OpenVLCLIP and DINOv2 source materials identify Apache-2.0 for the library/code
-and DINOv2 backbone, while the bundled CLIP BPE vocabulary is MIT-licensed. The separately
-distributed dino.txt Vision Head and Text Encoder weights do not have a license stated in the
-reviewed upstream materials. Those component rights cannot be inferred from the package or
-backbone license. OpenVLCLIP's pinned
-[dino.txt v0.6.0 reference](https://github.com/kotadymo/openvlclip/blob/v0.6.0/docs/dinotxt-v0.6.0.md#license-and-dependency-findings)
-also records that no dino.txt-specific checkpoint license is linked and requests explicit
-licensing confirmation before release.
+The pinned Meta DINOv2 README directly lists the Vision Head and Text Encoder as pretrained
+dino.txt heads, provides the official Hub loader, and states that DINOv2 code and model
+weights are Apache-2.0. Separate terms are explicitly called out for Cell-DINO and XRay-DINO,
+but not for dino.txt. The official BPE vocabulary license is MIT. Based on this source chain,
+local scientific benchmarking with no weight redistribution is registered as `verified`.
+The evidence, scope, and remaining limitation are documented in the
+[DINO.txt licensing review](dinotxt-license-review.md).
 
-Accordingly, the model is registered as `blocked`. The benchmark runner stops before dataset
-preparation, OpenVLCLIP import, checkpoint loading, and inference. CLI `--yes` and
-`--confirm-data-terms` do not override this model-level block. The requested CIFAR-10/100 P0/P1
-and XM3600 English/Japanese `official_first_caption` evaluations therefore have no scores or
-charts. Their blocked status is recorded in the
-[run report](../results/dinov2-dinotxt-v0.6.0/report.md) and
-[machine-readable status](../results/dinov2-dinotxt-v0.6.0/run-status.json).
+The model-level gate has been updated only for this verified use. It still checks the
+registered status before package import or weight loading, and it does not override dataset
+access or attribution checks. The six original blocked run records remain historical records
+of the first attempt; they are not measurements and are not relabeled as completed.
+
+CUDA smoke validation and the six requested full-dataset measurements are pending execution
+from a clean frozen source revision. No inference results are claimed by this status update.
 
 The pinned cache artifacts can be checked without loading them or running inference:
 [checkpoint integrity validation](../results/dinov2-dinotxt-v0.6.0/validation/checkpoint-integrity.json).
-That SHA-256 check establishes file identity only; it does not establish permission to use the
-two unlicensed dino.txt components.
+SHA-256 verification establishes file identity; the separate
+[license review](dinotxt-license-review.md) records the basis for the permitted local use.
 
 ## Evaluation protocol when rights are resolved
 
@@ -43,14 +42,12 @@ two unlicensed dino.txt components.
 - **Provenance:** the three weight files and BPE vocabulary are pinned separately by filename,
   byte size, and SHA-256. Successful future runs will record the actual component hashes.
 
-Before enabling inference, obtain and document clear license terms or permission for both
-external dino.txt weight files, update the model access state, and then run the real-model
-smoke test and all six full-dataset conditions from a clean committed source revision. The
-existing CLIP and EmbeddingGemma result files are not modified by this integration.
+Run the real-model smoke test and all six full-dataset conditions from a clean committed
+source revision. The existing CLIP and EmbeddingGemma result files are not modified by this
+integration.
 
 ### Upstream references
 
 - [OpenVLCLIP v0.6.0](https://github.com/kotadymo/openvlclip/tree/v0.6.0)
-- [OpenVLCLIP dino.txt license findings](https://github.com/kotadymo/openvlclip/blob/v0.6.0/docs/dinotxt-v0.6.0.md#license-and-dependency-findings)
 - [DINOv2 source revision](https://github.com/facebookresearch/dinov2/tree/7764ea0f912e53c92e82eb78a2a1631e92725fc8)
 - [DINOv2 license](https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/LICENSE)

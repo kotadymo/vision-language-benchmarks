@@ -40,8 +40,8 @@ DINOTXT_COMPONENTS: tuple[DinoTxtArtifact, ...] = (
         filename="dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_vision_head.pth",
         sha256="706fba5bcb7019d80e127f0ff123872a75e0e6099527cf1911db85bd61c88ef5",
         size_bytes=101_317_814,
-        license="Not stated in the reviewed upstream materials",
-        license_status="unverified",
+        license="Apache-2.0 (official DINOv2 README model-weight statement)",
+        license_status="verified",
     ),
     DinoTxtArtifact(
         component="dinotxt_text_encoder",
@@ -49,8 +49,8 @@ DINOTXT_COMPONENTS: tuple[DinoTxtArtifact, ...] = (
         filename="dinov2_vitl14_reg4_dinotxt_tet1280d20h24l_text_encoder.pth",
         sha256="13378274c79f67af8b47b11dd57827d659e7b1ee01e4dde58d2266422ea7846a",
         size_bytes=2_152_639_923,
-        license="Not stated in the reviewed upstream materials",
-        license_status="unverified",
+        license="Apache-2.0 (official DINOv2 README model-weight statement)",
+        license_status="verified",
     ),
     DinoTxtArtifact(
         component="clip_bpe_vocabulary",

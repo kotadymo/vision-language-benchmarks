@@ -72,12 +72,15 @@ class Adapter(TorchAdapter):
             "embedding_space_metadata",
             None,
         )
+        embedding_dimension = self.model.validate_embedding_dimension(
+            None,
+            name="global embedding dimension",
+        )
         if (
             self.embedding_space_metadata is None
             or self.embedding_space_metadata.model_id != spec.model_id
             or self.embedding_space_metadata.model_revision != spec.checkpoint_revision
-            or self.embedding_space_metadata.embedding_dimension
-            != spec.global_embedding_dimension
+            or embedding_dimension != spec.global_embedding_dimension
         ):
             raise DataIntegrityError(
                 "OpenVLCLIP returned an embedding space that does not match the "

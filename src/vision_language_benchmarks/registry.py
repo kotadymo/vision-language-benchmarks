@@ -124,9 +124,9 @@ MODELS: dict[str, ModelSpec] = {
         checkpoint_revision=DINOTXT_CHECKPOINT_REVISION,
         pretrained_tag="official",
         license=(
-            "OpenVLCLIP and DINOv2 code/backbone: Apache-2.0; CLIP BPE vocabulary: MIT; "
-            "dino.txt Vision Head and Text Encoder weight licenses are not stated in the "
-            "reviewed upstream materials."
+            "DINOv2 code and model weights, including the dino.txt Vision Head and Text "
+            "Encoder: Apache-2.0; CLIP BPE vocabulary: MIT; OpenVLCLIP software is separately "
+            "licensed."
         ),
         languages=("en", "ja"),
         supported_tasks=("classification", "retrieval"),
@@ -139,19 +139,15 @@ MODELS: dict[str, ModelSpec] = {
         compatibility_note=(
             "Uses OpenVLCLIP v0.6.0's official dino.txt configuration and raw text without "
             "a task prefix. The global embedding space is fixed at 2048D; MRL truncation is "
-            "not supported. Japanese evaluation is exploratory. Model loading is blocked "
-            "until licenses for the external Vision Head and Text Encoder weights are "
-            "confirmed."
+            "not supported. Local scientific benchmark use is verified under the pinned "
+            "DINOv2 Apache-2.0 terms; see docs/dinotxt-license-review.md. Japanese evaluation "
+            "is exploratory."
         ),
         supports_bf16=True,
         global_embedding_dimension=2048,
         experimental_languages=("ja",),
-        weight_license_status="blocked",
-        weight_license_reason=(
-            "OpenVLCLIP v0.6.0 does not state a license for the external dino.txt Vision Head "
-            "and Text Encoder weights. The package and DINOv2 backbone licenses do not "
-            "establish rights for those separately distributed weights."
-        ),
+        weight_license_status="verified",
+        weight_license_reason=None,
         expected_checkpoint_components=DINOTXT_COMPONENTS,
     ),
     "openai_clip_b32": ModelSpec(

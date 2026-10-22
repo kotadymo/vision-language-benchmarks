@@ -10,7 +10,7 @@ and does not grant rights.
 | Registry key | Checkpoint and pinned revision | Recorded license | Notes |
 | --- | --- | --- | --- |
 | `embeddinggemma2` | [`google/embeddinggemma-2`](https://huggingface.co/google/embeddinggemma-2), revision `914f7f89142e33e77833254d9c9b90c3cef7303b` | Apache-2.0 | Official model card reports Apache-2.0. The pinned model revision is recorded in each run. |
-| `dinov2_dinotxt` | OpenVLCLIP v0.6.0 official `dinov2-dinotxt` configuration; [dino.txt licensing findings](https://github.com/kotadymo/openvlclip/blob/v0.6.0/docs/dinotxt-v0.6.0.md#license-and-dependency-findings); DINOv2 source revision `7764ea0f912e53c92e82eb78a2a1631e92725fc8` | Mixed; dino.txt Vision Head and Text Encoder weights unverified | Model is blocked before import or inference until rights for both external weight files are confirmed. The backbone is Apache-2.0 and BPE vocabulary MIT; neither establishes rights for those separate weights. |
+| `dinov2_dinotxt` | OpenVLCLIP v0.6.0 official `dinov2-dinotxt` configuration; DINOv2 source revision `7764ea0f912e53c92e82eb78a2a1631e92725fc8` | Apache-2.0 for DINOv2 code and model weights, including both dino.txt weight components; MIT for the BPE vocabulary | The pinned Meta README lists both dino.txt weights as pretrained DINOv2 heads and states that DINOv2 model weights are Apache-2.0. Local scientific benchmark use without weight redistribution is verified; see the [evidence-based license review](dinotxt-license-review.md). |
 | `openai_clip_b32` | OpenCLIP `ViT-B-32`, tag `openai` ([upstream](https://github.com/openai/CLIP)) | MIT | Not revision-addressable as a Hugging Face snapshot; the actual checkpoint hash is recorded at runtime. |
 | `openclip_b32_laion2b` | [`laion/CLIP-ViT-B-32-laion2B-s34B-b79K`](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K), revision `1a25a446712ba5ee05982a381eed697ef9b435cf` | MIT | Checkpoint and model configuration are pinned. |
 | `openclip_l14_laion2b` | [`laion/CLIP-ViT-L-14-laion2B-s32B-b82K`](https://huggingface.co/laion/CLIP-ViT-L-14-laion2B-s32B-b82K), revision `1627032197142fbe2a7cfec626f4ced3ae60d07a` | MIT | Checkpoint and model configuration are pinned. |
@@ -27,9 +27,10 @@ The OpenAI CLIP model card, which the LAION CLIP cards also reference, describes
 use and lists deployment as out of scope. Review the model cards' intended-use guidance in
 addition to the license before using results outside this benchmark.
 
-For the current dino.txt block and the per-component artifact pins, see the
-[DINOv2+dino.txt integration record](dinotxt-integration.md). Matching locally cached
-checkpoint hashes is an integrity check, not a license grant.
+For the dino.txt license determination and the per-component artifact pins, see the
+[DINOv2+dino.txt license review](dinotxt-license-review.md) and
+[integration record](dinotxt-integration.md). Matching locally cached checkpoint hashes is
+an integrity check, not a license grant.
 
 ## Datasets and access policy
 

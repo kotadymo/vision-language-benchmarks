@@ -34,7 +34,11 @@ from vision_language_benchmarks.prompts import (
     retrieval_prompt_name,
 )
 from vision_language_benchmarks.registry import get_model
-from vision_language_benchmarks.reporting.aggregate import _status_rows, render_report
+from vision_language_benchmarks.reporting.aggregate import (
+    _status_rows,
+    generate_reports,
+    render_report,
+)
 from vision_language_benchmarks.reporting.schema import validate_result
 
 
@@ -89,6 +93,11 @@ def test_cached_dinotxt_component_hash_mismatch_is_rejected(tmp_path: Path) -> N
 def test_dinotxt_adapter_blocks_before_loading_unlicensed_weights(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    blocked_spec = replace(
+        get_model("dinov2_dinotxt"),
+        weight_license_status="blocked",
+        weight_license_reason="Test-only unresolved license state.",
+    )
     monkeypatch.setattr(
         dinov2_dinotxt,
         "package_version",
@@ -96,7 +105,7 @@ def test_dinotxt_adapter_blocks_before_loading_unlicensed_weights(
     )
 
     with pytest.raises(ModelAccessBlockedError, match="license is verified"):
-        dinov2_dinotxt.Adapter(get_model("dinov2_dinotxt"), "cuda", "fp32")
+        dinov2_dinotxt.Adapter(blocked_spec, "cuda", "fp32")
 
 
 class FakeTensor:
@@ -137,6 +146,16 @@ class FakeDinoTxtModel:
         self.evaluated = True
         return self
 
+    def validate_embedding_dimension(
+        self,
+        value: object | None,
+        *,
+        name: str,
+    ) -> int:
+        assert value is None
+        assert name == "global embedding dimension"
+        return 2048
+
     def encode_image(self, batch: FakeTensor, *, normalize: bool) -> FakeTensor:
         assert normalize is False
         return FakeTensor(np.ones((batch.shape[0], 2048), dtype=np.float32))
@@ -167,7 +186,6 @@ def test_dinotxt_adapter_uses_pinned_openvlclip_api_and_fixed_global_dimension(
         model.embedding_space_metadata = SimpleNamespace(
             model_id=spec.model_id,
             model_revision=spec.checkpoint_revision,
-            embedding_dimension=2048,
             embedding_strategy="dinotxt-global-cls-plus-mean-patches-v1",
             normalization="none-or-l2-global-2048-v1",
         )
@@ -262,7 +280,7 @@ def test_dinotxt_adapter_uses_pinned_openvlclip_api_and_fixed_global_dimension(
     assert metadata["preprocessing_config"]["task_prompt"] is None
     assert {
         component["license_status"] for component in metadata["checkpoint_components"]
-    } == {"verified", "unverified"}
+    } == {"verified"}
 
 
 def test_dinotxt_prompt_policy_and_dimension_are_explicit() -> None:
@@ -290,10 +308,37 @@ def test_dinotxt_model_revision_matches_pinned_upstream_identity() -> None:
     )
 
 
+def test_dinotxt_model_access_is_verified_for_all_pinned_components() -> None:
+    model = get_model("dinov2_dinotxt")
+
+    assert model.weight_license_status == "verified"
+    assert model.weight_license_reason is None
+    assert {component.license_status for component in model.expected_checkpoint_components} == {
+        "verified"
+    }
+    assert {
+        component.license
+        for component in model.expected_checkpoint_components
+        if component.component in {"dinotxt_vision_head", "dinotxt_text_encoder"}
+    } == {"Apache-2.0 (official DINOv2 README model-weight statement)"}
+
+
 def test_dinotxt_benchmark_is_persisted_as_blocked_without_dataset_or_model_loading(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    blocked_spec = replace(
+        get_model("dinov2_dinotxt"),
+        weight_license_status="blocked",
+        weight_license_reason="Test-only unresolved license state.",
+    )
+    monkeypatch.setattr(
+        runner,
+        "get_model",
+        lambda model_key: (
+            blocked_spec if model_key == "dinov2_dinotxt" else get_model(model_key)
+        ),
+    )
     monkeypatch.setattr(runner, "_source_commit_sha", lambda: "a" * 40)
     monkeypatch.setattr(runner, "_working_tree_dirty", lambda: False)
     monkeypatch.setattr(runner, "_lock_sha256", lambda: "b" * 64)
@@ -338,11 +383,11 @@ def test_dinotxt_benchmark_is_persisted_as_blocked_without_dataset_or_model_load
     assert metadata.get("embedding_dimension") is None
     assert metadata["checkpoint_components"] is None
     assert metadata["expected_checkpoint_components"]
-    assert "external dino.txt Vision Head" in metadata["reason_if_not_success"]
+    assert metadata["reason_if_not_success"] == "Test-only unresolved license state."
 
 
-def test_cli_dry_run_exposes_model_license_block(tmp_path: Path, capsys) -> None:
-    output = tmp_path / "blocked-plan"
+def test_cli_dry_run_exposes_verified_model_access(tmp_path: Path, capsys) -> None:
+    output = tmp_path / "verified-plan"
     exit_code = main(
         [
             "run",
@@ -360,8 +405,8 @@ def test_cli_dry_run_exposes_model_license_block(tmp_path: Path, capsys) -> None
     plan = json.loads(capsys.readouterr().out)
 
     assert exit_code == 0
-    assert plan["model"]["access"] == "blocked"
-    assert plan["model"]["weight_license_status"] == "blocked"
+    assert plan["model"]["access"] == "available"
+    assert plan["model"]["weight_license_status"] == "verified"
     assert plan["model"]["global_embedding_dimension"] == 2048
     assert plan["dataset"]["access"] == "available"
     assert len(plan["model"]["expected_checkpoint_components"]) == 4
@@ -373,6 +418,24 @@ def test_cli_records_blocked_model_without_download_confirmation(
     tmp_path: Path,
     capsys,
 ) -> None:
+    blocked_spec = replace(
+        get_model("dinov2_dinotxt"),
+        weight_license_status="blocked",
+        weight_license_reason="Test-only unresolved license state.",
+    )
+    monkeypatch.setattr(
+        runner,
+        "get_model",
+        lambda model_key: (
+            blocked_spec if model_key == "dinov2_dinotxt" else get_model(model_key)
+        ),
+    )
+    monkeypatch.setattr(
+        "vision_language_benchmarks.cli.get_model",
+        lambda model_key: (
+            blocked_spec if model_key == "dinov2_dinotxt" else get_model(model_key)
+        ),
+    )
     monkeypatch.setattr(runner, "_source_commit_sha", lambda: "a" * 40)
     monkeypatch.setattr(runner, "_working_tree_dirty", lambda: False)
     monkeypatch.setattr(runner, "_lock_sha256", lambda: "b" * 64)
@@ -429,13 +492,20 @@ def test_dinotxt_non_success_reporting_surfaces_license_status(
         status="blocked",
         run_id="dinotxt-blocked-report",
     )
+    result["benchmark_metadata"]["model_weight_license_status"] = "blocked"
+    result["benchmark_metadata"]["model_weight_license_reason"] = (
+        "Test-only unresolved license state."
+    )
+    result["benchmark_metadata"]["reason_if_not_success"] = (
+        "Test-only unresolved license state."
+    )
     validate_result(result)
     status_row = _status_rows([result])[0]
 
     assert result["benchmark_metadata"]["model_weight_license_status"] == "blocked"
     assert result["benchmark_metadata"]["global_embedding_dimension"] == 2048
     assert status_row["model_weight_license_status"] == "blocked"
-    assert "external dino.txt Vision Head" in status_row["model_weight_license_reason"]
+    assert status_row["model_weight_license_reason"] == "Test-only unresolved license state."
 
     validation_dir = tmp_path / "validation"
     validation_dir.mkdir()
@@ -451,3 +521,79 @@ def test_dinotxt_non_success_reporting_surfaces_license_status(
         "[checkpoint-integrity.json](validation/checkpoint-integrity.json)" in report
     )
     assert "runs blocked earlier intentionally leave them unset" in report
+
+
+def test_dinotxt_report_reproduction_uses_campaign_specific_paths(
+    tmp_path: Path,
+) -> None:
+    report_root = tmp_path / "results" / "dinov2-dinotxt-v0.6.0"
+    raw_dir = report_root / "raw"
+    result = make_result(
+        model_key="dinov2_dinotxt",
+        status="blocked",
+        run_id="dinotxt-report-path-regression",
+    )
+    raw_dir.mkdir(parents=True)
+    (raw_dir / "dinotxt-report-path-regression.json").write_text(
+        json.dumps(result),
+        encoding="utf-8",
+    )
+    report_files = generate_reports(raw_dir, report_root)
+    report = report_files["report_markdown"].read_text(encoding="utf-8")
+
+    assert (
+        "uv run --locked vlbench report --input "
+        f"{raw_dir.as_posix()} --output {report_root.as_posix()}"
+    ) in report
+    assert "results/v0.1.0/raw" not in report
+    assert "### Execute benchmark inference" in report
+    assert "### Regenerate this report only (no inference)" in report
+    assert "No completed measurement is included" in report
+
+
+def test_dinotxt_report_separates_inference_and_report_regeneration() -> None:
+    result = make_result(
+        model_key="dinov2_dinotxt",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="dinotxt-report-command",
+    )
+    metadata = result["benchmark_metadata"]
+    source_commit = "a" * 40
+    metadata["reproducibility_mode"] = "strict"
+    metadata["expected_source_commit_sha"] = source_commit
+    metadata["working_tree_dirty"] = False
+    configuration = metadata["run_configuration"]
+    configuration["device"] = "cuda:0"
+    configuration["reproducibility_mode"] = "strict"
+    configuration["expected_source_commit_sha"] = source_commit
+    input_path = Path("results/dinov2-dinotxt-v0.6.0/raw")
+    output_path = Path("results/dinov2-dinotxt-v0.6.0")
+    lifecycle_path = output_path / "validation" / "result-lifecycle.json"
+
+    report = render_report(
+        [result],
+        reproduction_input_path=input_path,
+        reproduction_output_path=output_path,
+        reproduction_lifecycle_path=lifecycle_path,
+        reproduction_expected_source_commit_sha=source_commit,
+        reproduction_publishable=True,
+    )
+    inference_section, report_section = report.split(
+        "### Regenerate this report only (no inference)",
+        maxsplit=1,
+    )
+
+    assert "uv run --locked vlbench run --model dinov2_dinotxt" in inference_section
+    assert "--strict-reproducibility --expected-source-commit " + source_commit in (
+        inference_section
+    )
+    assert "vlbench report" not in inference_section
+    assert (
+        "uv run --locked vlbench report --input "
+        "results/dinov2-dinotxt-v0.6.0/raw --output "
+        "results/dinov2-dinotxt-v0.6.0 --publishable --lifecycle "
+        "results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json "
+        "--expected-source-commit "
+        + source_commit
+    ) in report_section

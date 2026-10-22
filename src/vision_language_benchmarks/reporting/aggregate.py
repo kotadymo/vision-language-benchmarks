@@ -862,12 +862,116 @@ def _render_performance_section(results: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def _powershell_argument(value: str | Path) -> str:
+    rendered = value.as_posix() if isinstance(value, Path) else value
+    if any(character.isspace() for character in rendered):
+        return "'" + rendered.replace("'", "''") + "'"
+    return rendered
+
+
+def _benchmark_reproduction_command(
+    result: dict[str, Any],
+    staging_output: Path,
+) -> str | None:
+    metadata = result["benchmark_metadata"]
+    configuration = metadata.get("run_configuration")
+    if not isinstance(configuration, dict):
+        return None
+
+    model_key = configuration.get("model_key")
+    dataset_key = configuration.get("dataset_key")
+    if not isinstance(model_key, str) or not isinstance(dataset_key, str):
+        return None
+
+    options = (
+        ("--model", model_key),
+        ("--dataset", dataset_key),
+        ("--split", metadata.get("dataset_split")),
+        ("--protocol", configuration.get("protocol")),
+        ("--language", configuration.get("language", result.get("language"))),
+        ("--precision", configuration.get("precision", metadata.get("precision"))),
+        ("--device", configuration.get("device", metadata.get("device"))),
+        ("--batch-size", configuration.get("batch_size_requested")),
+        ("--seed", configuration.get("seed")),
+        ("--retrieval-variant", configuration.get("retrieval_variant")),
+        ("--embedding-dimension", configuration.get("embedding_dimension")),
+    )
+    arguments = ["uv run --locked vlbench run"]
+    for option, value in options:
+        if value is not None:
+            arguments.extend((option, _powershell_argument(str(value))))
+
+    if configuration.get("data_terms_confirmed") is True:
+        arguments.append("--confirm-data-terms")
+    if (
+        metadata.get("reproducibility_mode") == "strict"
+        or configuration.get("reproducibility_mode") == "strict"
+    ):
+        source_commit = (
+            configuration.get("expected_source_commit_sha")
+            or metadata.get("expected_source_commit_sha")
+        )
+        if not isinstance(source_commit, str) or len(source_commit) != 40:
+            raise DataIntegrityError(
+                "A strict benchmark reproduction command requires its full expected "
+                "source commit."
+            )
+        arguments.extend(
+            ("--strict-reproducibility", "--expected-source-commit", source_commit)
+        )
+    arguments.extend(
+        (
+            "--yes",
+            "--output",
+            _powershell_argument(staging_output),
+        )
+    )
+    return " ".join(arguments)
+
+
+def _report_reproduction_command(
+    input_path: Path | None,
+    output_dir: Path | None,
+    *,
+    publishable: bool,
+    lifecycle_path: Path | None,
+    expected_source_commit_sha: str | None,
+) -> str:
+    arguments = ["uv run --locked vlbench report"]
+    arguments.extend(
+        (
+            "--input",
+            _powershell_argument(input_path or Path("raw")),
+            "--output",
+            _powershell_argument(output_dir or Path(".")),
+        )
+    )
+    if publishable:
+        selected_lifecycle_path = lifecycle_path or (
+            (output_dir or Path(".")) / "validation" / "result-lifecycle.json"
+        )
+        arguments.extend(
+            ("--publishable", "--lifecycle", _powershell_argument(selected_lifecycle_path))
+        )
+        if expected_source_commit_sha is not None:
+            arguments.extend(
+                ("--expected-source-commit", expected_source_commit_sha)
+            )
+    return " ".join(arguments)
+
+
 def render_report(
     results: list[dict[str, Any]],
     plot_files: dict[str, Path] | None = None,
     validation_dir: Path | None = None,
     publication_lifecycle: dict[str, Any] | None = None,
     native_validation_report: dict[str, Any] | None = None,
+    *,
+    reproduction_input_path: Path | None = None,
+    reproduction_output_path: Path | None = None,
+    reproduction_lifecycle_path: Path | None = None,
+    reproduction_expected_source_commit_sha: str | None = None,
+    reproduction_publishable: bool = False,
 ) -> str:
     completed = [result for result in results if result["status"] == "completed"]
     non_success = _status_rows(results)
@@ -1088,15 +1192,105 @@ def render_report(
             "",
             "## Reproduction",
             "",
+            "### Execute benchmark inference",
+            "",
+            "The following `vlbench run` commands execute model inference and create new raw "
+            "runs. They do not regenerate this report. Use the recorded clean source revision "
+            "and review dataset terms before execution.",
+            "",
+        ]
+    )
+    completed_model_keys = {
+        result["benchmark_metadata"].get("run_configuration", {}).get("model_key")
+        for result in completed
+        if isinstance(result["benchmark_metadata"].get("run_configuration"), dict)
+    }
+    inference_commands: list[str] = []
+    if len(completed_model_keys) == 1:
+        model_key = next(iter(completed_model_keys))
+        if isinstance(model_key, str):
+            model = get_model(model_key)
+            sync_arguments = [
+                "uv sync --locked --group dev",
+                "--extra cuda",
+            ]
+            if model.dependency_extra:
+                sync_arguments.extend(("--extra", model.dependency_extra))
+            staging_output = (
+                Path(".cache")
+                / "benchmark-staging"
+                / (
+                    reproduction_output_path.name
+                    if reproduction_output_path is not None
+                    else "benchmark"
+                )
+            )
+            for result in completed:
+                command = _benchmark_reproduction_command(result, staging_output)
+                if command is not None and command not in inference_commands:
+                    inference_commands.append(command)
+            if inference_commands:
+                lines.extend(
+                    [
+                        "```powershell",
+                        " ".join(sync_arguments),
+                        "uv run --locked vlbench doctor --device cuda",
+                        *inference_commands,
+                        "```",
+                        "",
+                    ]
+                )
+            else:
+                lines.extend(
+                    [
+                        "No completed result includes enough run configuration to reproduce "
+                        "model inference.",
+                        "",
+                    ]
+                )
+        else:
+            lines.extend(
+                [
+                    "No completed result includes a registered model key for a reproducible "
+                    "inference command.",
+                    "",
+                ]
+            )
+    elif not completed:
+        lines.extend(
+            [
+                "No completed measurement is included, so no inference command is shown.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "This report includes multiple models. Use each measurement's exact "
+                "`run_configuration` in its raw JSON to execute inference.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "### Regenerate this report only (no inference)",
+            "",
+            "This command reads existing raw JSON and regenerates summaries, plots, and "
+            "validation outputs; it does not load model weights or run inference.",
+            "",
             "```powershell",
-            "uv sync --locked --group dev",
-            "uv run vlbench doctor --device cuda",
-            "uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0",
+            _report_reproduction_command(
+                reproduction_input_path,
+                reproduction_output_path,
+                publishable=reproduction_publishable,
+                lifecycle_path=reproduction_lifecycle_path,
+                expected_source_commit_sha=reproduction_expected_source_commit_sha,
+            ),
             "```",
             "",
-            "To reproduce a measurement, use the exact model revision, dataset checksum, split, "
-            "protocol, language, precision, batch size, seed, source commit, and lockfile hash "
-            "stored in its raw JSON.",
+            "Use the exact model revision, dataset checksum, split, protocol, language, "
+            "precision, batch size, seed, source commit, and lockfile hash recorded in each "
+            "raw result when reproducing a measurement.",
             "",
             "## Figures",
             "",
@@ -1546,6 +1740,18 @@ def generate_reports(
             output_dir / "validation",
             publication_lifecycle,
             native_validation_report,
+            reproduction_input_path=input_path,
+            reproduction_output_path=output_dir,
+            reproduction_lifecycle_path=(
+                (
+                    lifecycle_path
+                    or output_dir / "validation" / "result-lifecycle.json"
+                )
+                if publishable
+                else None
+            ),
+            reproduction_expected_source_commit_sha=expected_source_commit_sha,
+            reproduction_publishable=publishable,
         ),
         encoding="utf-8",
         newline="\n",

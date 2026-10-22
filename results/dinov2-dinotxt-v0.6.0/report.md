@@ -67,13 +67,21 @@ Each raw result is schema-validated before aggregation. Per-run JSON records ret
 
 ## Reproduction
 
+### Execute benchmark inference
+
+The following `vlbench run` commands execute model inference and create new raw runs. They do not regenerate this report. Use the recorded clean source revision and review dataset terms before execution.
+
+No completed measurement is included, so no inference command is shown.
+
+### Regenerate this report only (no inference)
+
+This command reads existing raw JSON and regenerates summaries, plots, and validation outputs; it does not load model weights or run inference.
+
 ```powershell
-uv sync --locked --group dev
-uv run vlbench doctor --device cuda
-uv run vlbench report --input results/v0.1.0/raw --output results/v0.1.0
+uv run --locked vlbench report --input results/dinov2-dinotxt-v0.6.0/raw --output results/dinov2-dinotxt-v0.6.0
 ```
 
-To reproduce a measurement, use the exact model revision, dataset checksum, split, protocol, language, precision, batch size, seed, source commit, and lockfile hash stored in its raw JSON.
+Use the exact model revision, dataset checksum, split, protocol, language, precision, batch size, seed, source commit, and lockfile hash recorded in each raw result when reproducing a measurement.
 
 ## Figures
 

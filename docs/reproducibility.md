@@ -57,17 +57,24 @@ normalized cosine similarities, records checkpoint/runtime/GPU-memory metadata, 
 the model before the next test. Local execution logs are written under `.cache/real-smoke/` and
 are excluded from Git.
 
-The DINOv2+dino.txt CUDA smoke test is separately gated. Do not set its opt-in environment
-variable until rights for both external dino.txt weight files are confirmed:
+The DINOv2+dino.txt CUDA smoke test is separately opt-in. The model-level gate is
+`verified_for_benchmark_use` for local, non-redistributive scientific evaluation under the
+pinned Meta terms; review the [license determination](dinotxt-license-review.md) before
+running inference. Dataset safeguards and checkpoint hash verification remain active:
 
 ```powershell
 $env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS = "1"
+$env:VLBENCH_DINOTXT_SMOKE_OUTPUT = ".cache\real-smoke\dinotxt-cuda-smoke.json"
 uv run --locked --extra cuda --extra dinotxt pytest -q -s tests/real_model/test_dinov2_dinotxt.py
+Remove-Item Env:VLBENCH_DINOTXT_SMOKE_OUTPUT
 Remove-Item Env:VLBENCH_RUN_DINOTXT_REAL_MODEL_TESTS
 ```
 
-The registered model currently remains blocked, so explicitly enabling this test fails before
-OpenVLCLIP imports or weights load. See the
+This opt-in test loads the official model and performs actual CUDA inference. It validates
+preprocessing and tokenizer shapes, finite and normalized 2048D image/text features,
+image-text cosine similarity, GPU memory, checkpoint hashes, and direct numerical consistency
+with the pinned official PyTorch Hub model. Japanese encoding does not establish Japanese
+semantic quality. See the
 [license and integration record](dinotxt-integration.md).
 
 To exercise the complete benchmark runner against all 3,600 authorized XM3600 images and the
@@ -103,8 +110,9 @@ uv run vlbench run --model openai_clip_b32 --dataset cifar10 --device cuda --dry
 `--dry-run` performs no dataset or checkpoint downloads. Review the output for the pinned
 checkpoint revision and size, dataset split and access state, language, protocol, precision,
 device, and output path.
-For `dinov2_dinotxt`, the plan shows a model-level `blocked` access state until both external
-weight licenses are confirmed. Neither `--yes` nor `--confirm-data-terms` overrides it.
+For `dinov2_dinotxt`, the plan shows model access as `available` for the documented local
+benchmark use. Dataset access and attribution checks remain independent; neither `--yes` nor
+`--confirm-data-terms` bypasses those checks.
 
 For a dataset marked `requires_user_confirmation`, review the exact terms and obtain any
 required user acceptance before passing `--confirm-data-terms`; this flag is not legal
