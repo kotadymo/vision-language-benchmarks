@@ -106,6 +106,7 @@ def test_classification_normalizes_mean_prompt_features(
             preprocessing_seconds=0.0,
             inference_seconds=0.0,
             batch_inference_ms=[],
+            batch_metadata=[],
         )
 
     def fake_load_cifar_dataset(dataset_key: str) -> SyntheticDataset:

@@ -36,6 +36,10 @@ gemma = [
 dinotxt = [
     "openvlclip[dinotxt]==0.6.0",
 ]
+openvlclip07 = [
+    "openvlclip[qwen3vl]==0.7.0",
+    "transformers==5.20.1",
+]
 siglip2 = [
     "transformers==5.20.1",
 ]
@@ -61,6 +65,12 @@ torchvision = { index = "pytorch-cu130" }
 
 [tool.uv]
 override-dependencies = ["sentencepiece==0.2.1"]
+conflicts = [
+    [
+        { extra = "dinotxt" },
+        { extra = "openvlclip07" },
+    ],
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

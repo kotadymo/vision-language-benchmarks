@@ -40,6 +40,7 @@ from vision_language_benchmarks.hardware import doctor_report
 from vision_language_benchmarks.paths import PROJECT_ROOT, RESULTS_ROOT
 from vision_language_benchmarks.prompts import (
     classification_prompt_name,
+    model_input_policy,
     retrieval_prompt_name,
 )
 from vision_language_benchmarks.registry import (
@@ -189,6 +190,7 @@ def _make_result(
         if dataset.task == "classification"
         else retrieval_prompt_name(model.key)
     )
+    input_policy = model_input_policy(model.key, dataset.task, protocol)
     preprocessing_config = adapter_metadata.get("preprocessing_config")
     if not isinstance(preprocessing_config, dict):
         preprocessing_config = {
@@ -212,6 +214,8 @@ def _make_result(
         "dataset_checksum": record.get("dataset_checksum"),
         "data_terms_confirmed": data_terms_confirmed,
     }
+    if input_policy is not None:
+        run_configuration["model_input_policy"] = input_policy
     if embedding_dimension is not None:
         run_configuration["embedding_dimension"] = embedding_dimension
     if retrieval_variant is not None:
@@ -235,7 +239,10 @@ def _make_result(
         "model_repo": model.hf_repository or model.model_id,
         "checkpoint_revision": model.checkpoint_revision,
         "model_checkpoint_filename": model.checkpoint_filename,
-        "model_checkpoint_size_bytes": model.checkpoint_size_bytes,
+        "model_checkpoint_size_bytes": adapter_metadata.get(
+            "model_checkpoint_size_bytes",
+            model.checkpoint_size_bytes,
+        ),
         "model_languages": list(model.languages),
         "model_repository_revision": model.repository_revision,
         "model_architecture": model.architecture,
@@ -263,6 +270,8 @@ def _make_result(
         "preprocessing_version": preprocessing_version,
         "preprocessing_config": preprocessing_config,
         "preprocessing_config_sha256": content_hash(preprocessing_config),
+        "preprocessing_identity": adapter_metadata.get("preprocessing_identity"),
+        "tokenizer_config_sha256": adapter_metadata.get("tokenizer_config_sha256"),
         "tokenizer_implementation_version": adapter_metadata.get(
             "tokenizer_implementation_version",
             adapter_metadata.get("implementation_version"),
@@ -305,6 +314,10 @@ def _make_result(
             "class_count",
             record.get("class_count", dataset.expected_classes),
         ),
+        "text_encoding_count": evaluation.get("text_encoding_count"),
+        "valid_patch_counts": evaluation.get("valid_patch_counts"),
+        "valid_patch_counts_sha256": evaluation.get("valid_patch_counts_sha256"),
+        "max_num_patches": adapter_metadata.get("max_num_patches"),
         "retrieval_variant": retrieval_variant,
         "retrieval_variant_reference_commit": evaluation.get(
             "retrieval_variant_reference_commit"
@@ -323,6 +336,7 @@ def _make_result(
         "original_language_code": language_code,
         "prompt_policy": evaluation.get("prompt_policy"),
         "prompt_name": evaluation.get("prompt_name", default_prompt_name),
+        "model_input_policy": input_policy,
         "task_prompt": evaluation.get("task_prompt"),
         "template_hash": evaluation.get("template_hash"),
         "classnames_hash": evaluation.get("classnames_hash"),
@@ -485,6 +499,13 @@ def _write_skipped_or_blocked(
         "source_commit_sha": source_sha,
         "uv_lock_sha256": lock_sha,
     }
+    input_policy = model_input_policy(
+        model_key,
+        get_dataset(dataset_key).task,
+        protocol,
+    )
+    if input_policy is not None:
+        configuration["model_input_policy"] = input_policy
     if embedding_dimension is not None:
         configuration["embedding_dimension"] = embedding_dimension
     if retrieval_variant is not None:
@@ -659,7 +680,9 @@ def _final_metrics(metadata: dict[str, Any]) -> dict[str, Any]:
     image_seconds = float(metadata.get("image_inference_seconds", 0.0))
     text_seconds = float(metadata.get("text_inference_seconds", 0.0))
     image_count = int(metadata.get("image_count", 0))
-    text_count = int(metadata.get("text_count", 0))
+    text_count = int(
+        metadata.get("text_encoding_count", metadata.get("text_count", 0))
+    )
     return {
         "throughput_images_per_sec": image_count / image_seconds if image_seconds > 0 else None,
         "throughput_texts_per_sec": text_count / text_seconds if text_seconds > 0 else None,
@@ -967,6 +990,9 @@ def run_benchmark(
         "source_commit_sha": source_sha,
         "uv_lock_sha256": lock_sha,
     }
+    input_policy = model_input_policy(model.key, dataset.task, protocol)
+    if input_policy is not None:
+        configuration["model_input_policy"] = input_policy
     if resolved_embedding_dimension is not None:
         configuration["embedding_dimension"] = resolved_embedding_dimension
     if resolved_retrieval_variant is not None:

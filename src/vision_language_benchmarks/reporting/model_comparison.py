@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
@@ -17,6 +18,7 @@ _PACKAGE_NAMES = {
     "open_clip": "open-clip-torch",
     "openclip_gemma": "openclip-gemma",
     "openvlclip_dinotxt": "openvlclip",
+    "openvlclip_v07": "openvlclip",
     "transformers_siglip2": "transformers",
 }
 
@@ -34,6 +36,9 @@ MODEL_COMPARISON_FIELDS = (
     "dataset_key",
     "task",
     "protocol",
+    "prompt_policy",
+    "prompt_name",
+    "model_input_policy",
     "language",
     "retrieval_variant",
     "precision",
@@ -41,6 +46,7 @@ MODEL_COMPARISON_FIELDS = (
     "dataset_checksum",
     "image_count",
     "text_count",
+    "text_encoding_count",
     "class_count",
     "model_key",
     "model",
@@ -261,6 +267,7 @@ def _comparison_row(
     except ValueError:
         model_name = str(result.get("model", model_key))
     package, package_version = _package_info(metadata)
+    input_policy = metadata.get("model_input_policy")
     raw_result_path = (
         f"raw/{metadata['run_id']}.json"
         if campaign == current_campaign
@@ -272,6 +279,13 @@ def _comparison_row(
         "dataset_key": result.get("dataset"),
         "task": result.get("task"),
         "protocol": configuration.get("protocol"),
+        "prompt_policy": metadata.get("prompt_policy"),
+        "prompt_name": metadata.get("prompt_name"),
+        "model_input_policy": (
+            json.dumps(input_policy, ensure_ascii=False, sort_keys=True)
+            if isinstance(input_policy, dict)
+            else None
+        ),
         "language": result.get("language"),
         "retrieval_variant": retrieval_variant_info(result)[0],
         "precision": precision,
@@ -279,6 +293,10 @@ def _comparison_row(
         "dataset_checksum": metadata.get("dataset_checksum"),
         "image_count": image_count,
         "text_count": text_count,
+        "text_encoding_count": metadata.get(
+            "text_encoding_count",
+            text_count,
+        ),
         "class_count": metadata.get("class_count"),
         "model_key": model_key,
         "model": model_name,
@@ -452,13 +470,27 @@ def render_model_comparison_section(rows: list[dict[str, Any]]) -> list[str]:
     lines = [
         "## Matched historical model comparisons",
         "",
-        "Rows are matched to each new DINO.txt run by dataset checksum, split, task, "
+        "Rows are matched to each new benchmark run by dataset checksum, split, task, "
         "protocol, language, precision, sample/candidate counts, and retrieval variant. "
-        "Only lifecycle-eligible completed historical results are included.",
-        "Machine-readable rows: [model-comparison.csv](model-comparison.csv); selection "
-        "details: [model-comparison-audit.json](validation/model-comparison-audit.json).",
-        "",
+        "Only lifecycle-eligible completed historical results are included. Matching "
+        "protocol labels do not imply identical model-side preprocessing or instructions.",
     ]
+    lines.append(
+        "P0 keeps the common 18-template candidate-text protocol; P1 remains model-specific."
+    )
+    if any(row.get("model_key") == "openvlclip_qwen3_vl_embedding_2b" for row in rows):
+        lines.append(
+            "Qwen's fixed classification instruction and separate retrieval query/document "
+            "instructions are recorded in the comparison CSV and raw JSON. Qwen retrieval "
+            "throughput counts both text-encoding passes."
+        )
+    lines.extend(
+        [
+            "Machine-readable rows: [model-comparison.csv](model-comparison.csv); selection "
+            "details: [model-comparison-audit.json](validation/model-comparison-audit.json).",
+            "",
+        ]
+    )
     for key, items in sorted(grouped.items()):
         dataset_key, task, protocol, language, variant = key
         title = (
@@ -534,16 +566,16 @@ def render_model_comparison_section(rows: list[dict[str, Any]]) -> list[str]:
             "- The payload column is derived as `(image count + text/prompt count) × "
             "embedding dimension × 4 bytes`; it is an FP32 vector payload calculation, "
             "not a measured on-disk file size, and excludes indexes/metadata.",
-            "- DINO.txt's 2048D vectors require 8,192 bytes per vector in FP32; the matched "
-            "EmbeddingGemma 2 768D vectors require 3,072 bytes. Their embedding spaces are "
-            "different and are not interchangeable.",
+            "- Equal embedding dimensions do not make model spaces interchangeable. "
+            "Storage calculations describe vector payload only, not cross-model index "
+            "compatibility.",
             "- Legacy raw results that do not record an embedding dimension are left blank "
             "for storage calculations rather than inferred from the model name.",
             "- Throughput and memory are actual recorded values. The historical campaigns "
             "used the same GPU and FP32 here, but batch sizes, software revisions, and "
             "source commits differ; consult the CSV and raw records for details.",
-            "- Japanese captions were evaluated as supplied, without translation. DINO.txt "
-            "Japanese retrieval is exploratory and is not evidence of Japanese semantic quality.",
+            "- Japanese captions were evaluated as supplied, without translation. Japanese "
+            "XM3600 retrieval is exploratory and is not evidence of Japanese semantic quality.",
             "",
         ]
     )

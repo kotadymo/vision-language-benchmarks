@@ -42,6 +42,7 @@ class EncodedBatches:
     preprocessing_seconds: float
     inference_seconds: float
     batch_inference_ms: list[float]
+    batch_metadata: list[dict[str, Any]]
 
 
 @dataclass(slots=True)
@@ -113,6 +114,7 @@ def _encode_batched(
             reset_image_batch_stats()
         blocks: list[NDArray[np.float32]] = []
         batch_inference_ms: list[float] = []
+        batch_metadata: list[dict[str, Any]] = []
         data_loading_seconds = 0.0
         preprocessing_seconds = 0.0
         inference_seconds = 0.0
@@ -140,6 +142,20 @@ def _encode_batched(
                 try:
                     preprocess_started = time.perf_counter()
                     prepared = preprocess_batch(batch)
+                    if modality == "images":
+                        collect_batch_metadata = getattr(
+                            adapter,
+                            "image_batch_metadata",
+                            None,
+                        )
+                        if callable(collect_batch_metadata):
+                            details = collect_batch_metadata(prepared)
+                            if not isinstance(details, dict):
+                                raise DataIntegrityError(
+                                    "Image batch metadata must be a dictionary."
+                                )
+                            if details:
+                                batch_metadata.append(details)
                     _synchronize(adapter)
                     preprocessing_seconds += time.perf_counter() - preprocess_started
 
@@ -202,8 +218,27 @@ def _encode_batched(
             preprocessing_seconds=preprocessing_seconds,
             inference_seconds=inference_seconds,
             batch_inference_ms=batch_inference_ms,
+            batch_metadata=batch_metadata,
         )
     raise RuntimeError("The batch-size fallback loop ended unexpectedly.")
+
+
+def _image_batch_metadata(encoded: EncodedBatches) -> dict[str, Any]:
+    patch_counts = [
+        count
+        for details in encoded.batch_metadata
+        for count in details.get("valid_patch_counts", [])
+    ]
+    if not patch_counts:
+        return {}
+    if len(patch_counts) != encoded.features.shape[0]:
+        raise DataIntegrityError(
+            "Image preprocessing metadata does not contain one patch count per image."
+        )
+    return {
+        "valid_patch_counts": patch_counts,
+        "valid_patch_counts_sha256": content_hash(patch_counts),
+    }
 
 
 def evaluate_classification(
@@ -277,6 +312,7 @@ def evaluate_classification(
     metadata = {
         "image_count": image_count,
         "text_count": len(flattened_prompts),
+        "text_encoding_count": len(flattened_prompts),
         "prompt_count": len(flattened_prompts),
         "class_count": len(classnames),
         "dataset_manifest_loading_seconds": dataset_manifest_loading_seconds,
@@ -305,6 +341,7 @@ def evaluate_classification(
         "image_batch_inference_ms": image_encoded.batch_inference_ms,
         "text_batch_inference_ms": text_encoded.batch_inference_ms,
         "retrieval_aggregation_seconds": 0.0,
+        **_image_batch_metadata(image_encoded),
     }
     return EvaluationOutput(metrics=metrics, metadata=metadata)
 
@@ -362,20 +399,73 @@ def evaluate_retrieval(
         adapter,
         image_encoded.batch_size_actual,
     )
-    text_encoded = _encode_batched(
-        count=len(candidates.text_values),
-        load_batch=lambda start, end: candidates.text_values[start:end],
-        preprocess_batch=lambda texts: adapter.preprocess_texts(
-            texts,
-            "retrieval",
-            language,
-        ),
-        encode_batch=lambda tokens: adapter.encode_texts(tokens, "retrieval", language),
-        batch_size=batch_size,
-        adapter=adapter,
-        modality="captions",
-        progress=progress,
+    preprocess_retrieval_texts = getattr(adapter, "preprocess_retrieval_texts", None)
+    encode_retrieval_texts = getattr(adapter, "encode_retrieval_texts", None)
+    directional_retrieval = (
+        getattr(adapter, "supports_directional_retrieval", False)
+        and callable(preprocess_retrieval_texts)
+        and callable(encode_retrieval_texts)
     )
+    query_text_encoded: EncodedBatches | None = None
+    if directional_retrieval:
+        query_text_encoded = _encode_batched(
+            count=len(candidates.text_values),
+            load_batch=lambda start, end: candidates.text_values[start:end],
+            preprocess_batch=lambda texts: preprocess_retrieval_texts(
+                texts,
+                "query",
+                language,
+            ),
+            encode_batch=lambda tokens: encode_retrieval_texts(
+                tokens,
+                "query",
+                language,
+            ),
+            batch_size=batch_size,
+            adapter=adapter,
+            modality="retrieval queries",
+            progress=progress,
+        )
+        text_encoded = _encode_batched(
+            count=len(candidates.text_values),
+            load_batch=lambda start, end: candidates.text_values[start:end],
+            preprocess_batch=lambda texts: preprocess_retrieval_texts(
+                texts,
+                "document",
+                language,
+            ),
+            encode_batch=lambda tokens: encode_retrieval_texts(
+                tokens,
+                "document",
+                language,
+            ),
+            batch_size=batch_size,
+            adapter=adapter,
+            modality="retrieval documents",
+            progress=progress,
+        )
+    else:
+        text_encoded = _encode_batched(
+            count=len(candidates.text_values),
+            load_batch=lambda start, end: candidates.text_values[start:end],
+            preprocess_batch=lambda texts: adapter.preprocess_texts(
+                texts,
+                "retrieval",
+                language,
+            ),
+            encode_batch=lambda tokens: adapter.encode_texts(
+                tokens,
+                "retrieval",
+                language,
+            ),
+            batch_size=batch_size,
+            adapter=adapter,
+            modality="captions",
+            progress=progress,
+        )
+    text_encoded_runs = [text_encoded]
+    if query_text_encoded is not None:
+        text_encoded_runs.append(query_text_encoded)
 
     aggregation_started = time.perf_counter()
     metrics = retrieval_metrics(
@@ -384,8 +474,25 @@ def evaluate_retrieval(
         candidates.positive_images_per_text,
         ks=(1, 5, 10),
         block_size=256,
+        text_query_features=(
+            query_text_encoded.features if query_text_encoded is not None else None
+        ),
     )
     aggregation_seconds = time.perf_counter() - aggregation_started
+    text_preprocessing_seconds = sum(
+        encoded.preprocessing_seconds for encoded in text_encoded_runs
+    )
+    text_inference_seconds = sum(
+        encoded.inference_seconds for encoded in text_encoded_runs
+    )
+    text_batch_inference_ms = [
+        value
+        for encoded in text_encoded_runs
+        for value in encoded.batch_inference_ms
+    ]
+    text_oom_history = [
+        item for encoded in text_encoded_runs for item in encoded.oom_history
+    ]
     metadata = {
         "retrieval_variant": retrieval_variant,
         "retrieval_variant_reference_commit": (
@@ -405,6 +512,9 @@ def evaluate_retrieval(
         ),
         "image_count": len(candidates.image_ids),
         "text_count": len(candidates.text_values),
+        "text_encoding_count": sum(
+            encoded.features.shape[0] for encoded in text_encoded_runs
+        ),
         "candidate_counts": {
             "images": len(candidates.image_ids),
             "texts": len(candidates.text_values),
@@ -437,31 +547,39 @@ def evaluate_retrieval(
         "caption_count_per_image_max": max(candidates.caption_counts_per_image),
         "positive_pair_count": len(candidates.positive_images_per_text),
         "prompt_policy": (
-            "embeddinggemma_searchquery_task"
-            if retrieval_prompt_name(adapter.spec.key)
-            else "model_native_caption_text"
+            "qwen3_vl_directional_retrieval_instructions"
+            if query_text_encoded is not None
+            else (
+                "embeddinggemma_searchquery_task"
+                if retrieval_prompt_name(adapter.spec.key)
+                else "model_native_caption_text"
+            )
         ),
         "prompt_name": retrieval_prompt_name(adapter.spec.key),
         "task_prompt": retrieval_prompt_name(adapter.spec.key),
         "template_hash": None,
         "classnames_hash": None,
-        "batch_size_actual": min(image_batch_size_actual, text_encoded.batch_size_actual),
+        "batch_size_actual": min(
+            image_batch_size_actual,
+            *(encoded.batch_size_actual for encoded in text_encoded_runs),
+        ),
         "image_batch_size_actual": image_batch_size_actual,
-        "text_batch_size_actual": text_encoded.batch_size_actual,
-        "oom_history": image_encoded.oom_history + text_encoded.oom_history,
+        "text_batch_size_actual": min(
+            encoded.batch_size_actual for encoded in text_encoded_runs
+        ),
+        "oom_history": image_encoded.oom_history + text_oom_history,
         "data_loading_seconds": image_encoded.data_loading_seconds,
         "preprocessing_seconds": (
-            image_encoded.preprocessing_seconds + text_encoded.preprocessing_seconds
+            image_encoded.preprocessing_seconds + text_preprocessing_seconds
         ),
-        "inference_seconds": image_encoded.inference_seconds + text_encoded.inference_seconds,
+        "inference_seconds": image_encoded.inference_seconds + text_inference_seconds,
         "image_inference_seconds": image_encoded.inference_seconds,
-        "text_inference_seconds": text_encoded.inference_seconds,
-        "batch_inference_ms": (
-            image_encoded.batch_inference_ms + text_encoded.batch_inference_ms
-        ),
+        "text_inference_seconds": text_inference_seconds,
+        "batch_inference_ms": image_encoded.batch_inference_ms + text_batch_inference_ms,
         "image_batch_inference_ms": image_encoded.batch_inference_ms,
-        "text_batch_inference_ms": text_encoded.batch_inference_ms,
+        "text_batch_inference_ms": text_batch_inference_ms,
         "retrieval_aggregation_seconds": aggregation_seconds,
+        **_image_batch_metadata(image_encoded),
     }
     return EvaluationOutput(metrics=metrics, metadata=metadata)
 

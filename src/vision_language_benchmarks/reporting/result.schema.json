@@ -444,6 +444,13 @@
           ],
           "minimum": 0
         },
+        "text_encoding_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
         "retrieval_variant": {
           "enum": [
             null,
@@ -625,6 +632,50 @@
             "string",
             "null"
           ]
+        },
+        "model_input_policy": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "preprocessing_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tokenizer_config_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "max_num_patches": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "valid_patch_counts": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "valid_patch_counts_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
         },
         "prompt_name": {
           "type": [
