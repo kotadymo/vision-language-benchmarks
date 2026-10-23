@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 import pytest
-import torch
 from PIL import Image
 
 from vision_language_benchmarks.adapters import japanese_clip, openclip_gemma, siglip2
@@ -349,18 +348,25 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     processor_paths: list[str] = []
     text_calls: list[dict[str, Any]] = []
 
+    class FakeInputIds:
+        def __init__(self, shape: tuple[int, int]) -> None:
+            self.shape = shape
+
+        def to(self, device: str) -> FakeInputIds:
+            del device
+            return self
+
     class FakeProcessor:
         def __init__(self) -> None:
             self.image_processor = SimpleNamespace(size=SimpleNamespace(height=224, width=224))
 
-        def __call__(self, **kwargs: Any) -> dict[str, torch.Tensor]:
+        def __call__(self, **kwargs: Any) -> dict[str, FakeInputIds]:
             text_calls.append(kwargs)
             texts = kwargs["text"]
             max_length = kwargs["max_length"]
             assert isinstance(texts, list)
             assert isinstance(max_length, int)
-            input_ids = torch.zeros((len(texts), max_length), dtype=torch.long)
-            input_ids[:, 0] = 1
+            input_ids = FakeInputIds((len(texts), max_length))
             return {"input_ids": input_ids}
 
     processor = FakeProcessor()
@@ -406,7 +412,7 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     patch_torch_adapter(monkeypatch, siglip2)
 
     adapter = siglip2.Adapter(spec, "cpu", "fp32")
-    adapter.torch.Tensor = torch.Tensor
+    adapter.torch.Tensor = FakeInputIds
     metadata = adapter.metadata()
     text_inputs = adapter.preprocess_texts(
         ["a test prompt"],
