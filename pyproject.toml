@@ -40,6 +40,11 @@ openvlclip07 = [
     "openvlclip[qwen3vl]==0.7.0",
     "transformers==5.20.1",
 ]
+# Experimental, unreleased source: v0.7.0 tag plus the SigLIP 2 mask fix only.
+openvlclip07-siglip2-corrected = [
+    "openvlclip @ git+https://github.com/kotadymo/openvlclip.git@8596295c1f519506eda5842e0322b2fbc8ad8daa",
+    "transformers==5.20.1",
+]
 siglip2 = [
     "transformers==5.20.1",
 ]
@@ -69,6 +74,7 @@ conflicts = [
     [
         { extra = "dinotxt" },
         { extra = "openvlclip07" },
+        { extra = "openvlclip07-siglip2-corrected" },
     ],
 ]
 
