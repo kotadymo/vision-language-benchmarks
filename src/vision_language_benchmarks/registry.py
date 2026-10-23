@@ -11,6 +11,8 @@ from vision_language_benchmarks.dinotxt_provenance import (
     DinoTxtArtifact,
 )
 
+OPENVLCLIP_V07_SOURCE_REVISION = "81c8e1df9cb02d6b9f13c4ebda9ac605a54b62eb"
+
 ProtocolName = Literal["p0", "p1", "p2"]
 RetrievalVariant = Literal["all_captions", "official_first_caption"]
 RETRIEVAL_VARIANTS: tuple[RetrievalVariant, ...] = (
@@ -222,6 +224,82 @@ MODELS: dict[str, ModelSpec] = {
             "Uses the Transformers SigLIP 2 processor and feature methods; "
             "CLIP logit-scale assumptions are not applied."
         ),
+    ),
+    "openvlclip_siglip2_base": ModelSpec(
+        key="openvlclip_siglip2_base",
+        name="OpenVLCLIP SigLIP 2 Base/16 FixRes",
+        adapter="openvlclip_v07",
+        model_id="google/siglip2-base-patch16-224",
+        checkpoint_revision="75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+        pretrained_tag="official",
+        license="Apache-2.0",
+        languages=("en", "ja"),
+        supported_tasks=("classification", "retrieval"),
+        dependency_extra="openvlclip07",
+        architecture="SigLIP 2 Base/16 FixRes 224",
+        hf_repository="google/siglip2-base-patch16-224",
+        repository_revision=OPENVLCLIP_V07_SOURCE_REVISION,
+        tokenizer_repository="google/siglip2-base-patch16-224",
+        tokenizer_revision="75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+        tokenizer_license="Apache-2.0",
+        compatibility_note=(
+            "Uses OpenVLCLIP v0.7.0's pinned FixRes processor and tokenizer; "
+            "the existing Transformers adapter remains a separate parity baseline."
+        ),
+        global_embedding_dimension=768,
+        experimental_languages=("ja",),
+        weight_license_status="verified",
+    ),
+    "openvlclip_siglip2_naflex_base": ModelSpec(
+        key="openvlclip_siglip2_naflex_base",
+        name="OpenVLCLIP SigLIP 2 Base/16 NaFlex",
+        adapter="openvlclip_v07",
+        model_id="google/siglip2-base-patch16-naflex",
+        checkpoint_revision="b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+        pretrained_tag="official",
+        license="Apache-2.0",
+        languages=("en", "ja"),
+        supported_tasks=("classification", "retrieval"),
+        dependency_extra="openvlclip07",
+        architecture="SigLIP 2 Base/16 NaFlex",
+        hf_repository="google/siglip2-base-patch16-naflex",
+        repository_revision=OPENVLCLIP_V07_SOURCE_REVISION,
+        tokenizer_repository="google/siglip2-base-patch16-naflex",
+        tokenizer_revision="b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+        tokenizer_license="Apache-2.0",
+        compatibility_note=(
+            "Uses OpenVLCLIP v0.7.0's processor-aware NaFlex inputs, retaining "
+            "pixel_attention_mask and spatial_shapes; Japanese retrieval is exploratory."
+        ),
+        global_embedding_dimension=768,
+        experimental_languages=("ja",),
+        weight_license_status="verified",
+    ),
+    "openvlclip_qwen3_vl_embedding_2b": ModelSpec(
+        key="openvlclip_qwen3_vl_embedding_2b",
+        name="OpenVLCLIP Qwen3-VL-Embedding-2B",
+        adapter="openvlclip_v07",
+        model_id="Qwen/Qwen3-VL-Embedding-2B",
+        checkpoint_revision="9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+        pretrained_tag="official",
+        license="Apache-2.0",
+        languages=("en", "ja"),
+        supported_tasks=("classification", "retrieval"),
+        dependency_extra="openvlclip07",
+        architecture="Qwen3-VL-Embedding-2B",
+        hf_repository="Qwen/Qwen3-VL-Embedding-2B",
+        repository_revision=OPENVLCLIP_V07_SOURCE_REVISION,
+        tokenizer_repository="Qwen/Qwen3-VL-Embedding-2B",
+        tokenizer_revision="9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+        tokenizer_license="Apache-2.0",
+        compatibility_note=(
+            "Uses OpenVLCLIP v0.7.0 encode_texts() with the official processor, "
+            "chat template, attention mask, and frozen role instructions; Japanese "
+            "retrieval is exploratory."
+        ),
+        global_embedding_dimension=2048,
+        experimental_languages=("ja",),
+        weight_license_status="verified",
     ),
     "rinna_ja_clip_b16": ModelSpec(
         key="rinna_ja_clip_b16",

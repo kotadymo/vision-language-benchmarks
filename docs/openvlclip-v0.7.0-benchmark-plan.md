@@ -1,16 +1,16 @@
 # Benchmark plan: OpenVLCLIP v0.7.0 new models
 
-- **Status:** planned; no new adapter, measurements, or results are claimed by this document
+- **Status:** three adapters are implemented and passed real CUDA smoke checks; full-dataset measurements and publication remain pending
 - **Date:** 2026-10-23
 - **Benchmark repository baseline:** [vision-language-benchmarks main](https://github.com/kotadymo/vision-language-benchmarks/tree/main), inspected at `d9be684fea9702fdfe722aa6beb137bae8ce2952`
 - **Model-library release:** [openvlclip==0.7.0](https://github.com/kotadymo/openvlclip/releases/tag/v0.7.0) ([release notes](https://github.com/kotadymo/openvlclip/blob/v0.7.0/docs/release-notes-v0.7.0.md), [model provenance](https://github.com/kotadymo/openvlclip/blob/v0.7.0/docs/model-provenance-v0.7.0.md))
-- **Scope of this change:** documentation only, pushed directly to `docs/` on `main`. Do not change benchmark code, `uv.lock`, CI, historical results, or model weights in this commit.
+- **Original planning-document scope:** the initial plan was documentation-only. Implementation and measurement changes are tracked separately; historical results and model weights remain unchanged.
 
 ## 1. Goal and exact model scope
 
 Add reproducible, full-dataset **image↔text** classification/retrieval measurements for the three checkpoints introduced in **OpenVLCLIP v0.7.0**, while preserving the existing evaluation protocols and historical results:
 
-| Proposed benchmark registry key (not implemented) | OpenVLCLIP model name | Official pinned checkpoint | Global dimension | New evaluation path |
+| Registry key | OpenVLCLIP model name | Official pinned checkpoint | Global dimension | New evaluation path |
 | --- | --- | --- | ---: | --- |
 | `openvlclip_siglip2_base` | `siglip2-base` | `google/siglip2-base-patch16-224` @ `75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2` | 768 | FixRes 224 image/text |
 | `openvlclip_siglip2_naflex_base` | `siglip2-naflex-base` | `google/siglip2-base-patch16-naflex` @ `b53b807d3a2d5e2b3911292f2d69e5341cdc064c` | 768 | variable-resolution image/text |
@@ -97,7 +97,7 @@ Qwen3-VL-Embedding-2B provides `encode_video()` and `encode_multimodal()`, but t
 
 ## 9. Reproducibility and comparison rules
 
-1. Use `vlbench doctor --reproducibility` followed by `vlbench run --strict-reproducibility --expected-source-commit <full SHA>` on a **clean, committed** checkout. Write in-progress output under ignored `.cache/` (or outside the repository); publish only after validation. The exact commands/model keys in this plan are **targets, not current runnable CLI commands**.
+1. Use `vlbench doctor --reproducibility` followed by `vlbench run --strict-reproducibility --expected-source-commit <full SHA>` on a **clean, committed** checkout. Write in-progress output under ignored `.cache/` (or outside the repository); publish only after validation. The three model keys in this plan are registered CLI choices.
 2. Match dataset split/checksum, class and candidate order, normalization, protocol, language, retrieval variant, dimension, instruction/role policy, precision, and device before comparing model results. Disclose differences in model version/preprocessing/prompt/hardware even when metrics are presented together.
 3. Preserve all historical `results/v0.1.0/`, `results/mrl-openclip-gemma-v0.4.0/` and `results/dinov2-dinotxt-v0.6.0/` JSON and reports byte-for-byte; do not reuse an old run ID for an implementation-change run.
 4. Publish **Top-1/Top-5** for classification, **R@1/R@5/R@10** in both retrieval directions, and **actual** inference/preprocessing timings, throughput and peak VRAM separately. Exclude incomplete/failed/blocked/superseded runs from leaderboards, but preserve status records.

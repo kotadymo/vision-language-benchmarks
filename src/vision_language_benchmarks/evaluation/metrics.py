@@ -124,12 +124,22 @@ def retrieval_metrics(
     positive_images_per_text: Sequence[int | Sequence[int]],
     ks: tuple[int, ...] = (1, 5, 10),
     block_size: int = 256,
+    *,
+    text_query_features: object | None = None,
 ) -> dict[str, float]:
     images = normalize_features(image_features, "image_features")
     texts = normalize_features(text_features, "text_features")
-    if images.shape[1] != texts.shape[1]:
+    text_queries = (
+        texts
+        if text_query_features is None
+        else normalize_features(text_query_features, "text_query_features")
+    )
+    if images.shape[1] != texts.shape[1] or images.shape[1] != text_queries.shape[1]:
         raise ValueError("Image and text features must have the same embedding dimension.")
-    if len(positive_images_per_text) != texts.shape[0]:
+    if (
+        len(positive_images_per_text) != texts.shape[0]
+        or len(positive_images_per_text) != text_queries.shape[0]
+    ):
         raise ValueError("Provide one positive-image mapping for every text feature.")
     if block_size < 1:
         raise ValueError("block_size must be positive.")
@@ -156,7 +166,13 @@ def retrieval_metrics(
             f"first missing index {missing[0]}."
         )
 
-    text_to_image = _blocked_hit_rate(texts, images, text_positives, ks, block_size)
+    text_to_image = _blocked_hit_rate(
+        text_queries,
+        images,
+        text_positives,
+        ks,
+        block_size,
+    )
     image_to_text = _blocked_hit_rate(images, texts, image_positives, ks, block_size)
     metrics: dict[str, float] = {}
     for k in ks:
