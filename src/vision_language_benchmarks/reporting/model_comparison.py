@@ -352,27 +352,35 @@ def build_model_comparison_rows(
     comparison_sources: Sequence[ComparisonSource],
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
+    primary_groups: dict[tuple[Any, ...], list[Result]] = defaultdict(list)
     for primary in primary_results:
         if primary.get("status") != "completed" or not _is_comparable_condition(primary):
             continue
         primary_metadata = _metadata(primary)
         primary_run_id = str(primary_metadata["run_id"])
         primary_key = _condition_key(primary)
-        primary_model_key = _configuration(primary).get("model_key")
         current_state = primary_states.get(primary_run_id)
         if current_state not in {"active", "historical"}:
             raise DataIntegrityError(
                 f"Primary comparison run {primary_run_id} has no eligible publication state."
             )
+        primary_groups[primary_key].append(primary)
+
+    for primary_key, primary_group in primary_groups.items():
         condition_rows = [
             _comparison_row(
                 primary,
                 campaign=primary_campaign,
                 current_campaign=primary_campaign,
-                publication_state=current_state,
+                publication_state=primary_states[
+                    str(_metadata(primary)["run_id"])
+                ],
             )
+            for primary in primary_group
         ]
-
+        primary_model_keys = {
+            _configuration(primary).get("model_key") for primary in primary_group
+        }
         selected: dict[
             tuple[Any, int | None],
             tuple[tuple[int, int], Result, str, str],
@@ -402,7 +410,7 @@ def build_model_comparison_rows(
                     )
                 dimension = _dimension(candidate)
                 if (
-                    candidate_model_key == primary_model_key
+                    candidate_model_key in primary_model_keys
                     or (
                         candidate_model_key == "embeddinggemma2"
                         and dimension != 768
@@ -478,6 +486,17 @@ def render_model_comparison_section(rows: list[dict[str, Any]]) -> list[str]:
     lines.append(
         "P0 keeps the common 18-template candidate-text protocol; P1 remains model-specific."
     )
+    if any(row.get("model_key") == "siglip2_base_224" for row in rows):
+        lines.append(
+            "The historical direct Transformers SigLIP 2 CIFAR results predate the "
+            "PAD-derived attention mask used by OpenVLCLIP v0.7.0. On the same first "
+            "128 CIFAR-10 P0 images and 180 prompts, OpenVLCLIP features matched the "
+            "current masked direct adapter exactly, while the legacy unmasked text "
+            "features differed (maximum absolute difference 6.9498; mean prompt "
+            "cosine 0.6882). The historical 93.62% Top-1 result is retained unchanged "
+            "as context, not a controlled like-for-like quality comparison. The subset "
+            "diagnostic is `validation/siglip2-p0-parity.json`."
+        )
     if any(row.get("model_key") == "openvlclip_qwen3_vl_embedding_2b" for row in rows):
         lines.append(
             "Qwen's fixed classification instruction and separate retrieval query/document "

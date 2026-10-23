@@ -1,0 +1,1070 @@
+{
+  "manifest_schema_version": "1.0.0",
+  "updated_at_utc": "2026-10-23T17:34:22Z",
+  "suite": "openvlclip-v0.7.0",
+  "status": "completed",
+  "benchmark_source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+  "expected_condition_count": 18,
+  "successful_condition_count": 18,
+  "failed_condition_count": 0,
+  "blocked_condition_count": 0,
+  "skipped_condition_count": 0,
+  "failed_attempts": [],
+  "historical_blocked_attempt_count": 0,
+  "model_run_counts": {
+    "openvlclip_qwen3_vl_embedding_2b": 6,
+    "openvlclip_siglip2_base": 6,
+    "openvlclip_siglip2_naflex_base": 6
+  },
+  "hardware": {
+    "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "gpu_vram_bytes": 17170956288,
+    "driver_version": "610.88",
+    "torch_version": "2.14.1+cu130",
+    "torch_cuda_version": "13.0",
+    "python_version": "3.12.10",
+    "precision": "fp32",
+    "seed": 0,
+    "requested_batch_size_by_model": {
+      "openvlclip_siglip2_base": 16,
+      "openvlclip_siglip2_naflex_base": 16,
+      "openvlclip_qwen3_vl_embedding_2b": 1
+    },
+    "devices_recorded": [
+      "cuda",
+      "cuda:0"
+    ]
+  },
+  "model_weights_loaded": true,
+  "dataset_prepared": true,
+  "inference_performed": true,
+  "metrics_published": true,
+  "full_dataset_coverage": {
+    "cifar10_test_images_per_condition": 10000,
+    "cifar100_test_images_per_condition": 10000,
+    "xm3600_images_and_captions_per_language": 3600,
+    "xm3600_retrieval_variant": "official_first_caption"
+  },
+  "protocol_notes": {
+    "p0": "Common 18-template candidate-text protocol.",
+    "p1": "Model-specific prompts; reported separately from P0.",
+    "japanese_xm3600": "Exploratory; not evidence of certified Japanese-language quality.",
+    "siglip2_historical_direct_comparison": "Legacy direct Transformers raw results predate the PAD-derived attention mask used by OpenVLCLIP v0.7.0; see validation/siglip2-p0-parity.json."
+  },
+  "runs": [
+    {
+      "run_id": "026e74e2db5b6144",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "en",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/026e74e2db5b6144.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 7200,
+      "prompt_policy": "qwen3_vl_directional_retrieval_instructions",
+      "model_input_policy": {
+        "name": "qwen3_vl_directional_retrieval_instructions_v1",
+        "text_to_image": {
+          "role": "query",
+          "instruction": "Retrieve images or text relevant to the user's query."
+        },
+        "image_to_text": {
+          "role": "document",
+          "instruction": "Represent the user's input."
+        }
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.5577777777777778,
+        "text_retrieval_recall@1": 0.5794444444444444,
+        "image_retrieval_recall@5": 0.7958333333333333,
+        "text_retrieval_recall@5": 0.8230555555555555,
+        "image_retrieval_recall@10": 0.8666666666666667,
+        "text_retrieval_recall@10": 0.8925
+      },
+      "throughput_images_per_sec": 4.331383151072053,
+      "throughput_texts_per_sec": 17.213348839167633,
+      "inference_ms_median": 61.35115004144609,
+      "gpu_peak_allocated_bytes": 8602642432,
+      "gpu_peak_reserved_bytes": 8747220992,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "10a1bb028a2f5318",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/10a1bb028a2f5318.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 100,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "ed7a207d3b0d05dc5fa11000db1037fc19b698fbe5f0865d854d0fbf532dcda0",
+      "text_encoding_count": 100,
+      "prompt_policy": "qwen3_vl_default_instruction_spaced_labels",
+      "model_input_policy": {
+        "name": "qwen3_vl_p1_plain_labels_v1",
+        "instruction": "Represent the user's input.",
+        "label_rendering": "replace underscores with spaces"
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.573,
+        "acc5": 0.7931
+      },
+      "throughput_images_per_sec": 4.1220287985925985,
+      "throughput_texts_per_sec": 17.326007896358696,
+      "inference_ms_median": 113.27635002089664,
+      "gpu_peak_allocated_bytes": 8527518720,
+      "gpu_peak_reserved_bytes": 8657043456,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "1e814e0b64df8a09",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/1e814e0b64df8a09.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 1800,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "216271a12629cd408afb63c6a93948a2db41277ea30a7888e1808387e3c46b37",
+      "text_encoding_count": 1800,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": {
+        "name": "qwen3_vl_p0_common_templates_v1",
+        "instruction": "Represent the user's input.",
+        "label_rendering": "dataset class names unchanged"
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.5766,
+        "acc5": 0.8099
+      },
+      "throughput_images_per_sec": 8.453694701016216,
+      "throughput_texts_per_sec": 8.484491458010458,
+      "inference_ms_median": 109.0392000041902,
+      "gpu_peak_allocated_bytes": 8527518720,
+      "gpu_peak_reserved_bytes": 8657043456,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "265a5e3112c0d2b4",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/265a5e3112c0d2b4.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 180,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "da28a72fada3b9551111c3e7d3e7805efe449d03c27589f773fdf63249f28e8d",
+      "text_encoding_count": 180,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.553,
+        "acc5": 0.9481
+      },
+      "throughput_images_per_sec": 245.2073115309648,
+      "throughput_texts_per_sec": 4.999060496034915,
+      "inference_ms_median": 64.63939999230206,
+      "gpu_peak_allocated_bytes": 1673052160,
+      "gpu_peak_reserved_bytes": 1824522240,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "3595fa7c8edbf265",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/3595fa7c8edbf265.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 180,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "da28a72fada3b9551111c3e7d3e7805efe449d03c27589f773fdf63249f28e8d",
+      "text_encoding_count": 180,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.5714,
+        "acc5": 0.946
+      },
+      "throughput_images_per_sec": 293.11560206508756,
+      "throughput_texts_per_sec": 7.646711755254342,
+      "inference_ms_median": 54.768199915997684,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1790967808,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "35f85add213561f9",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/35f85add213561f9.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 100,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "1acbf82566b64796b461ffc7c4dd3926740ee51faf082c0d8c5cac3067315def",
+      "text_encoding_count": 100,
+      "prompt_policy": "openvlclip_siglip2_naflex_model_card_photo_prompt",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.255,
+        "acc5": 0.5991
+      },
+      "throughput_images_per_sec": 241.79745651679357,
+      "throughput_texts_per_sec": 4.832728279796465,
+      "inference_ms_median": 65.16600004397333,
+      "gpu_peak_allocated_bytes": 1673052160,
+      "gpu_peak_reserved_bytes": 1824522240,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "3d21c3b372fb4491",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/3d21c3b372fb4491.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 10,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "b9ad80941013e142d86295a53d1475c063f1f5d6833ce3aea905677cc96eabc7",
+      "text_encoding_count": 10,
+      "prompt_policy": "openvlclip_siglip2_naflex_model_card_photo_prompt",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.7828,
+        "acc5": 0.987
+      },
+      "throughput_images_per_sec": 240.23331402439956,
+      "throughput_texts_per_sec": 3.6675831712698357,
+      "inference_ms_median": 65.34380000084639,
+      "gpu_peak_allocated_bytes": 1673052160,
+      "gpu_peak_reserved_bytes": 1820327936,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "4008d7997a0def30",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "en",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/4008d7997a0def30.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 3600,
+      "prompt_policy": "model_native_caption_text",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.0019444444444444444,
+        "text_retrieval_recall@1": 0.009444444444444445,
+        "image_retrieval_recall@5": 0.008888888888888889,
+        "text_retrieval_recall@5": 0.025555555555555557,
+        "image_retrieval_recall@10": 0.0175,
+        "text_retrieval_recall@10": 0.04027777777777778
+      },
+      "throughput_images_per_sec": 234.79047366063148,
+      "throughput_texts_per_sec": 7.288725235381874,
+      "inference_ms_median": 915.4310500016436,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1772093440,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "44ca47e7559432f0",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/44ca47e7559432f0.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 180,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "da28a72fada3b9551111c3e7d3e7805efe449d03c27589f773fdf63249f28e8d",
+      "text_encoding_count": 180,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": {
+        "name": "qwen3_vl_p0_common_templates_v1",
+        "instruction": "Represent the user's input.",
+        "label_rendering": "dataset class names unchanged"
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.8758,
+        "acc5": 0.9868
+      },
+      "throughput_images_per_sec": 5.260884073903391,
+      "throughput_texts_per_sec": 9.249580125581874,
+      "inference_ms_median": 197.03154999297112,
+      "gpu_peak_allocated_bytes": 8527518720,
+      "gpu_peak_reserved_bytes": 8657043456,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "5fb3917ec73989e4",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/5fb3917ec73989e4.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 100,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "1acbf82566b64796b461ffc7c4dd3926740ee51faf082c0d8c5cac3067315def",
+      "text_encoding_count": 100,
+      "prompt_policy": "openvlclip_siglip2_fixres_model_card_photo_prompt",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.1313,
+        "acc5": 0.4002
+      },
+      "throughput_images_per_sec": 304.30614991153794,
+      "throughput_texts_per_sec": 7.8139432597555345,
+      "inference_ms_median": 52.75615002028644,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1790967808,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "a123010f08059e2f",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "ja",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/a123010f08059e2f.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 7200,
+      "prompt_policy": "qwen3_vl_directional_retrieval_instructions",
+      "model_input_policy": {
+        "name": "qwen3_vl_directional_retrieval_instructions_v1",
+        "text_to_image": {
+          "role": "query",
+          "instruction": "Retrieve images or text relevant to the user's query."
+        },
+        "image_to_text": {
+          "role": "document",
+          "instruction": "Represent the user's input."
+        }
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.7780555555555555,
+        "text_retrieval_recall@1": 0.7225,
+        "image_retrieval_recall@5": 0.9358333333333333,
+        "text_retrieval_recall@5": 0.9122222222222223,
+        "image_retrieval_recall@10": 0.9647222222222223,
+        "text_retrieval_recall@10": 0.9516666666666667
+      },
+      "throughput_images_per_sec": 4.211047083431581,
+      "throughput_texts_per_sec": 15.126353271511517,
+      "inference_ms_median": 69.94585000211373,
+      "gpu_peak_allocated_bytes": 8602642432,
+      "gpu_peak_reserved_bytes": 8747220992,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "b0d09dd268d8159e",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "ja",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/b0d09dd268d8159e.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 3600,
+      "prompt_policy": "model_native_caption_text",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.0038888888888888888,
+        "text_retrieval_recall@1": 0.013888888888888888,
+        "image_retrieval_recall@5": 0.015833333333333335,
+        "text_retrieval_recall@5": 0.03388888888888889,
+        "image_retrieval_recall@10": 0.028333333333333332,
+        "text_retrieval_recall@10": 0.05
+      },
+      "throughput_images_per_sec": 256.77883827791845,
+      "throughput_texts_per_sec": 5.2439573228629754,
+      "inference_ms_median": 959.1797000030056,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1772093440,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "b602850fd3d77ccd",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_qwen3_vl_embedding_2b",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 2048
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/b602850fd3d77ccd.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 10,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "feb528d8ad763e4c89a96910f8ed9ea0113aa59fe89528e3f8804b4ae9b0d2e5",
+      "text_encoding_count": 10,
+      "prompt_policy": "qwen3_vl_default_instruction_spaced_labels",
+      "model_input_policy": {
+        "name": "qwen3_vl_p1_plain_labels_v1",
+        "instruction": "Represent the user's input.",
+        "label_rendering": "replace underscores with spaces"
+      },
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1"
+        }
+      ],
+      "batch_size_requested": 1,
+      "image_batch_size_actual": 1,
+      "text_batch_size_actual": 1,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.8708,
+        "acc5": 0.9868
+      },
+      "throughput_images_per_sec": 4.950314772756413,
+      "throughput_texts_per_sec": 19.13955452961256,
+      "inference_ms_median": 199.6676999842748,
+      "gpu_peak_allocated_bytes": 8527518720,
+      "gpu_peak_reserved_bytes": 8657043456,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "d35c9c3f4583635a",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/d35c9c3f4583635a.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 1800,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "216271a12629cd408afb63c6a93948a2db41277ea30a7888e1808387e3c46b37",
+      "text_encoding_count": 1800,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.2978,
+        "acc5": 0.57
+      },
+      "throughput_images_per_sec": 250.6526104048521,
+      "throughput_texts_per_sec": 8.014722892781625,
+      "inference_ms_median": 64.37425001058728,
+      "gpu_peak_allocated_bytes": 1673052160,
+      "gpu_peak_reserved_bytes": 1820327936,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "d7302c99a73e813f",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "cifar100",
+        "task": "classification",
+        "protocol": "p0",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/d7302c99a73e813f.json",
+      "dataset_checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "image_count": 10000,
+      "text_count": 1800,
+      "class_count": 100,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "216271a12629cd408afb63c6a93948a2db41277ea30a7888e1808387e3c46b37",
+      "text_encoding_count": 1800,
+      "prompt_policy": "clip_benchmark_zeroshot_templates",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.2445,
+        "acc5": 0.5126
+      },
+      "throughput_images_per_sec": 306.1555875135156,
+      "throughput_texts_per_sec": 8.36282553835475,
+      "inference_ms_median": 53.093899972736835,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1784676352,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "deef20de60c0e3a1",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "en",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/deef20de60c0e3a1.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 3600,
+      "prompt_policy": "model_native_caption_text",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.003611111111111111,
+        "text_retrieval_recall@1": 0.01361111111111111,
+        "image_retrieval_recall@5": 0.01972222222222222,
+        "text_retrieval_recall@5": 0.041944444444444444,
+        "image_retrieval_recall@10": 0.034444444444444444,
+        "text_retrieval_recall@10": 0.06944444444444445
+      },
+      "throughput_images_per_sec": 162.53981024014044,
+      "throughput_texts_per_sec": 5.542462061134325,
+      "inference_ms_median": 943.9649999840185,
+      "gpu_peak_allocated_bytes": 1674100736,
+      "gpu_peak_reserved_bytes": 1811939328,
+      "device": "cuda",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "e603831c0064f67a",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_base",
+        "dataset": "cifar10",
+        "task": "classification",
+        "protocol": "p1",
+        "language": "en",
+        "retrieval_variant": null,
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/e603831c0064f67a.json",
+      "dataset_checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "image_count": 10000,
+      "text_count": 10,
+      "class_count": 10,
+      "candidate_counts": null,
+      "positive_pair_count": null,
+      "image_id_order_hash": "a74675bfed3834ac1c3140b2d7fb7d93d90a76608cc08515a5019a1cb2075ff4",
+      "text_id_order_hash": "b9ad80941013e142d86295a53d1475c063f1f5d6833ce3aea905677cc96eabc7",
+      "text_encoding_count": 10,
+      "prompt_policy": "openvlclip_siglip2_fixres_model_card_photo_prompt",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "acc1": 0.5539,
+        "acc5": 0.9495
+      },
+      "throughput_images_per_sec": 304.1363695692791,
+      "throughput_texts_per_sec": 6.0329564727168465,
+      "inference_ms_median": 52.76609997963533,
+      "gpu_peak_allocated_bytes": 1634514432,
+      "gpu_peak_reserved_bytes": 1772093440,
+      "device": "cuda:0",
+      "precision": "fp32"
+    },
+    {
+      "run_id": "ea34cf1a5133f4c7",
+      "status": "completed",
+      "condition": {
+        "model_key": "openvlclip_siglip2_naflex_base",
+        "dataset": "crossmodal3600",
+        "task": "retrieval",
+        "protocol": "p2",
+        "language": "ja",
+        "retrieval_variant": "official_first_caption",
+        "embedding_dimension": 768
+      },
+      "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+      "working_tree_dirty": false,
+      "raw_result": "raw/ea34cf1a5133f4c7.json",
+      "dataset_checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "image_count": 3600,
+      "text_count": 3600,
+      "class_count": null,
+      "candidate_counts": {
+        "images": 3600,
+        "texts": 3600
+      },
+      "positive_pair_count": 3600,
+      "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+      "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+      "text_encoding_count": 3600,
+      "prompt_policy": "model_native_caption_text",
+      "model_input_policy": null,
+      "model_library": "openvlclip",
+      "model_library_version": "0.7.0",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "checkpoint_files": [
+        {
+          "path": "model.safetensors",
+          "sha256": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+        }
+      ],
+      "batch_size_requested": 16,
+      "image_batch_size_actual": 16,
+      "text_batch_size_actual": 16,
+      "oom_history": [],
+      "metrics": {
+        "image_retrieval_recall@1": 0.0044444444444444444,
+        "text_retrieval_recall@1": 0.008055555555555555,
+        "image_retrieval_recall@5": 0.012222222222222223,
+        "text_retrieval_recall@5": 0.023333333333333334,
+        "image_retrieval_recall@10": 0.023333333333333334,
+        "text_retrieval_recall@10": 0.03305555555555555
+      },
+      "throughput_images_per_sec": 181.66200753355986,
+      "throughput_texts_per_sec": 5.430652197611259,
+      "inference_ms_median": 935.4163500247523,
+      "gpu_peak_allocated_bytes": 1674100736,
+      "gpu_peak_reserved_bytes": 1811939328,
+      "device": "cuda",
+      "precision": "fp32"
+    }
+  ]
+}

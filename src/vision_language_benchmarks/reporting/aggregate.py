@@ -1327,18 +1327,46 @@ def render_report(
         result["benchmark_metadata"].get("run_configuration", {}).get("model_key")
         for result in completed
         if isinstance(result["benchmark_metadata"].get("run_configuration"), dict)
+        and isinstance(
+            result["benchmark_metadata"]["run_configuration"].get("model_key"),
+            str,
+        )
     }
-    inference_commands: list[str] = []
-    if len(completed_model_keys) == 1:
-        model_key = next(iter(completed_model_keys))
-        if isinstance(model_key, str):
-            model = get_model(model_key)
+    if not completed:
+        lines.extend(
+            [
+                "No completed measurement is included, so no inference command is shown.",
+                "",
+            ]
+        )
+    elif not completed_model_keys:
+        lines.extend(
+            [
+                "No completed result includes a registered model key for a reproducible "
+                "inference command.",
+                "",
+            ]
+        )
+    else:
+        models = [get_model(model_key) for model_key in sorted(completed_model_keys)]
+        dependency_extras = {model.dependency_extra for model in models}
+        if len(dependency_extras) != 1:
+            lines.extend(
+                [
+                    "This report includes models with different optional dependency extras. "
+                    "Reproduce each measurement in its own locked environment using the exact "
+                    "`run_configuration` in its raw JSON.",
+                    "",
+                ]
+            )
+        else:
             sync_arguments = [
                 "uv sync --locked --group dev",
                 "--extra cuda",
             ]
-            if model.dependency_extra:
-                sync_arguments.extend(("--extra", model.dependency_extra))
+            dependency_extra = next(iter(dependency_extras))
+            if dependency_extra:
+                sync_arguments.extend(("--extra", dependency_extra))
             staging_output = (
                 Path(".cache")
                 / "benchmark-staging"
@@ -1348,6 +1376,7 @@ def render_report(
                     else "benchmark"
                 )
             )
+            inference_commands = []
             for result in completed:
                 command = _benchmark_reproduction_command(result, staging_output)
                 if command is not None and command not in inference_commands:
@@ -1371,29 +1400,6 @@ def render_report(
                         "",
                     ]
                 )
-        else:
-            lines.extend(
-                [
-                    "No completed result includes a registered model key for a reproducible "
-                    "inference command.",
-                    "",
-                ]
-            )
-    elif not completed:
-        lines.extend(
-            [
-                "No completed measurement is included, so no inference command is shown.",
-                "",
-            ]
-        )
-    else:
-        lines.extend(
-            [
-                "This report includes multiple models. Use each measurement's exact "
-                "`run_configuration` in its raw JSON to execute inference.",
-                "",
-            ]
-        )
     lines.extend(
         [
             "### Regenerate this report only (no inference)",

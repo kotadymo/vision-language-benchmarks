@@ -1,6 +1,6 @@
 # Benchmark plan: OpenVLCLIP v0.7.0 new models
 
-- **Status:** three adapters are implemented and passed real CUDA smoke checks; full-dataset measurements and publication remain pending
+- **Status:** completed; all 18 full-dataset measurements and publication artifacts are verified in [the campaign report](../results/openvlclip-v0.7.0/report.md)
 - **Date:** 2026-10-23
 - **Benchmark repository baseline:** [vision-language-benchmarks main](https://github.com/kotadymo/vision-language-benchmarks/tree/main), inspected at `d9be684fea9702fdfe722aa6beb137bae8ce2952`
 - **Model-library release:** [openvlclip==0.7.0](https://github.com/kotadymo/openvlclip/releases/tag/v0.7.0) ([release notes](https://github.com/kotadymo/openvlclip/blob/v0.7.0/docs/release-notes-v0.7.0.md), [model provenance](https://github.com/kotadymo/openvlclip/blob/v0.7.0/docs/model-provenance-v0.7.0.md))
@@ -42,7 +42,7 @@ Run the **native embedding dimension** of each of the three new adapter paths un
 | XM3600 official first caption | P2, `official_first_caption` | en | 3,600 images and 3,600 first captions | T→I and I→T R@1/5/10 | 1 |
 | XM3600 official first caption | P2, `official_first_caption` | ja | same ordered 3,600 images and 3,600 Japanese first captions | T→I and I→T R@1/5/10 | 1 |
 
-**Core target: 3 adapters × 6 conditions = 18 completed full-dataset runs.** Use a distinct result campaign such as `results/openvlclip-v0.7.0/`; there are no results there yet. Do not commit empty report rows or placeholder plots. P0 and P1 must be shown separately. Japanese XM3600 measures observed behavior, not certified Japanese-language competence; do not assert translation or language equivalence. Match IDs/candidate order/dataset checksums before any bilingual delta or baseline comparison.
+**Core target: 3 adapters × 6 conditions = 18 completed full-dataset runs.** The campaign is published in `results/openvlclip-v0.7.0/` from frozen source commit `23b469da312efc17f64aae7119b74ceeeb10f42d`. P0 and P1 are shown separately. Japanese XM3600 measures observed behavior, not certified Japanese-language competence; do not assert translation or language equivalence. Match IDs/candidate order/dataset checksums before any bilingual delta or baseline comparison.
 
 For the direct Transformers `siglip2_base_224` baseline, **reuse existing validated raw scores**, not a redundant full rerun, unless a controlled same-environment throughput/parity comparison truly requires fresh inference. Show any historical hardware, source, tokenizer, or implementation differences beside the comparison.
 
@@ -102,16 +102,17 @@ Qwen3-VL-Embedding-2B provides `encode_video()` and `encode_multimodal()`, but t
 3. Preserve all historical `results/v0.1.0/`, `results/mrl-openclip-gemma-v0.4.0/` and `results/dinov2-dinotxt-v0.6.0/` JSON and reports byte-for-byte; do not reuse an old run ID for an implementation-change run.
 4. Publish **Top-1/Top-5** for classification, **R@1/R@5/R@10** in both retrieval directions, and **actual** inference/preprocessing timings, throughput and peak VRAM separately. Exclude incomplete/failed/blocked/superseded runs from leaderboards, but preserve status records.
 5. Compare FixRes OpenVLCLIP against direct SigLIP 2 as an **implementation validation**, not a distinct model-quality challenger. NaFlex versus FixRes is a valid checkpoint/preprocessing comparison only with the difference identified; Qwen prompt/instruction choices must appear alongside its score.
+6. The historical direct Transformers SigLIP 2 CIFAR results were generated before a PAD-derived attention mask was passed. OpenVLCLIP v0.7.0 derives and applies that mask; the focused P0 parity audit is published at [siglip2-p0-parity.json](../results/openvlclip-v0.7.0/validation/siglip2-p0-parity.json). Keep the old raw results unchanged and treat them as historical context, not controlled like-for-like quality comparisons.
 
 ## 10. Definition of done for the eventual benchmark campaign
 
-- [ ] Registry offers exactly the three additional OpenVLCLIP model *paths* (while retaining all current keys).
-- [ ] All checkpoints, library versions, tokenizer and processor policies, dataset permissions and licenses are pinned/audited.
-- [ ] Real CUDA image/text smoke and targeted model-specific correctness checks pass.
-- [ ] Primary 18 full-dataset native-dimension runs complete or each unsuccessful condition is transparently recorded (no fabricated completeness).
-- [ ] P0/P1, EN/JA, T→I/I→T, and any instruction-dependent variants are not conflated.
-- [ ] Clean-source, model-space, run-identity and raw-result lifecycle checks pass.
-- [ ] Publication report + raw JSON + CSV + figures exist only for verified results, with model speed/memory evidence.
-- [ ] Historical results and unrelated CI remain unchanged.
+- [x] Registry offers exactly the three additional OpenVLCLIP model *paths* (while retaining all current keys).
+- [x] All checkpoints, library versions, tokenizer and processor policies, dataset permissions and licenses are pinned/audited.
+- [x] Real CUDA image/text smoke and targeted model-specific correctness checks pass.
+- [x] All 18 full-dataset native-dimension runs completed; no unsuccessful condition is counted as successful.
+- [x] P0/P1, EN/JA, T→I/I→T, and instruction-dependent variants are reported separately.
+- [x] Clean-source, model-space, run-identity and raw-result lifecycle checks pass.
+- [x] Publication report, raw JSON, CSV, figures, and measured speed/memory evidence are available.
+- [x] Historical results remain unchanged.
 
 **Source documents:** [benchmark methodology](methodology.md), [benchmark specification](benchmark-specification.md), [embedding dimensions](embedding-dimensions.md), [DINO integration precedent](dinotxt-integration.md), [model/dataset licenses](model-and-dataset-licenses.md), [OpenVLCLIP v0.7.0 release notes](https://github.com/kotadymo/openvlclip/blob/v0.7.0/docs/release-notes-v0.7.0.md).

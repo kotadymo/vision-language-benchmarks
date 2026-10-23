@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "status": "completed",
+  "purpose": "Explain the input-mask difference between the OpenVLCLIP v0.7.0 FixRes path and the historical direct Transformers SigLIP 2 CIFAR baseline.",
+  "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+  "model": {
+    "model_key": "openvlclip_siglip2_base",
+    "model_id": "google/siglip2-base-patch16-224",
+    "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+    "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+    "openvlclip_version": "0.7.0",
+    "transformers_version": "5.20.1"
+  },
+  "diagnostic": {
+    "dataset": "cifar10",
+    "split": "test",
+    "image_selection": "first 128 images in official test-set order",
+    "protocol": "p0",
+    "text_prompt_count": 180,
+    "comparison": "OpenVLCLIP official API vs current direct Transformers adapter with a PAD-derived attention mask vs historical direct adapter behavior without an explicit mask",
+    "transformers_processor_output_keys": [
+      "input_ids"
+    ],
+    "historical_direct_source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+    "historical_direct_source_passed_explicit_attention_mask": false,
+    "openvlclip_vs_current_masked_direct": {
+      "image_feature_max_absolute_difference": 0.0,
+      "text_feature_max_absolute_difference": 0.0,
+      "top1_correct": 67,
+      "top1_total": 128,
+      "top5_correct": 121,
+      "top5_total": 128
+    },
+    "openvlclip_vs_historical_unmasked_direct": {
+      "text_feature_max_absolute_difference": 6.94984245300293,
+      "mean_per_prompt_cosine_similarity": 0.6881818771362305,
+      "top1_correct": 124,
+      "top1_total": 128,
+      "top5_correct": 128,
+      "top5_total": 128
+    }
+  },
+  "historical_full_dataset_result": {
+    "run_id": "38b1a8be68ae509c",
+    "raw_result": "../../v0.1.0/raw/38b1a8be68ae509c.json",
+    "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+    "top1": 0.9362,
+    "top5": 0.9985,
+    "raw_result_modified": false,
+    "interpretation": "Retained as historical context; the input-mask difference means this is not a controlled like-for-like model-quality comparison."
+  },
+  "limitations": [
+    "This is a focused 128-image diagnostic, not a full-dataset benchmark result.",
+    "The subset scores do not quantify the full-dataset effect of the mask difference.",
+    "No published benchmark measurements were changed."
+  ]
+}

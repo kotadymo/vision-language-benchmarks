@@ -12,7 +12,7 @@ import pytest
 from tests.helpers import make_result
 from vision_language_benchmarks.atomic import atomic_write_json
 from vision_language_benchmarks.errors import DataIntegrityError
-from vision_language_benchmarks.reporting.aggregate import generate_reports
+from vision_language_benchmarks.reporting.aggregate import generate_reports, render_report
 from vision_language_benchmarks.reporting.comparison import paired_language_results
 from vision_language_benchmarks.reporting.lifecycle import build_result_lifecycle
 from vision_language_benchmarks.reporting.model_comparison import (
@@ -145,6 +145,143 @@ def test_metric_hit_counts_are_exact_and_comparison_prefers_newer_active_campaig
     current["metrics"]["acc1"] = 0.50001
     with pytest.raises(DataIntegrityError, match="exact integer hit count"):
         exact_hit_count(current, "acc1", "image_count")
+
+
+def test_historical_siglip_comparison_discloses_attention_mask_difference() -> None:
+    current = make_result(
+        model_key="openvlclip_siglip2_base",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="openvlclip-fixres-p0",
+    )
+    historical = make_result(
+        model_key="siglip2_base_224",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="historical-siglip2-p0",
+    )
+
+    rows = build_model_comparison_rows(
+        [current],
+        {"openvlclip-fixres-p0": "active"},
+        "openvlclip-v0.7.0",
+        [
+            (
+                "v0.1.0",
+                [historical],
+                {"historical-siglip2-p0": "active"},
+            )
+        ],
+    )
+
+    comparison_section = "\n".join(render_model_comparison_section(rows))
+
+    assert "PAD-derived attention mask" in comparison_section
+    assert "not a controlled like-for-like quality comparison" in comparison_section
+    assert "`validation/siglip2-p0-parity.json`" in comparison_section
+
+
+def test_matched_historical_rows_are_not_duplicated_for_multiple_current_models() -> None:
+    current_fixres = make_result(
+        model_key="openvlclip_siglip2_base",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="openvlclip-fixres-p0",
+    )
+    current_naflex = make_result(
+        model_key="openvlclip_siglip2_naflex_base",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="openvlclip-naflex-p0",
+    )
+    historical = make_result(
+        model_key="siglip2_base_224",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="historical-siglip2-p0",
+    )
+
+    rows = build_model_comparison_rows(
+        [current_fixres, current_naflex],
+        {
+            "openvlclip-fixres-p0": "active",
+            "openvlclip-naflex-p0": "active",
+        },
+        "openvlclip-v0.7.0",
+        [
+            (
+                "v0.1.0",
+                [historical],
+                {"historical-siglip2-p0": "active"},
+            )
+        ],
+    )
+
+    run_ids = [row["run_id"] for row in rows]
+    assert len(rows) == 3
+    assert run_ids.count("openvlclip-fixres-p0") == 1
+    assert run_ids.count("openvlclip-naflex-p0") == 1
+    assert run_ids.count("historical-siglip2-p0") == 1
+
+
+def test_multi_model_report_emits_exact_inference_commands_and_quotes_xm3600_split() -> None:
+    fixres = make_result(
+        model_key="openvlclip_siglip2_base",
+        dataset_key="cifar10",
+        protocol="p0",
+        run_id="openvlclip-fixres-p0",
+    )
+    qwen = make_result(
+        model_key="openvlclip_qwen3_vl_embedding_2b",
+        dataset_key="crossmodal3600",
+        language="ja",
+        protocol="p2",
+        run_id="openvlclip-qwen-ja-p2",
+        retrieval_variant="official_first_caption",
+    )
+    source_commit = "a" * 40
+    for result in (fixres, qwen):
+        metadata = result["benchmark_metadata"]
+        metadata["reproducibility_mode"] = "strict"
+        metadata["expected_source_commit_sha"] = source_commit
+        metadata["working_tree_dirty"] = False
+        metadata["run_configuration"].update(
+            {
+                "device": "cuda",
+                "reproducibility_mode": "strict",
+                "expected_source_commit_sha": source_commit,
+            }
+        )
+    qwen["benchmark_metadata"]["dataset_split"] = "all 3,600 images"
+
+    report = render_report(
+        [fixres, qwen],
+        reproduction_input_path=Path("results/openvlclip-v0.7.0/raw"),
+        reproduction_output_path=Path("results/openvlclip-v0.7.0"),
+        reproduction_expected_source_commit_sha=source_commit,
+        reproduction_publishable=True,
+    )
+    inference_section = report.split(
+        "### Regenerate this report only (no inference)",
+        maxsplit=1,
+    )[0]
+
+    assert "uv sync --locked --group dev --extra cuda --extra openvlclip07" in (
+        inference_section
+    )
+    assert (
+        "uv run --locked vlbench run --model openvlclip_siglip2_base --dataset "
+        "cifar10 --split test --protocol p0"
+    ) in inference_section
+    assert (
+        "--dataset crossmodal3600 --split 'all 3,600 images' --protocol p2 "
+        "--language ja"
+    ) in inference_section
+    assert (
+        "--strict-reproducibility --expected-source-commit "
+        + source_commit
+    ) in inference_section
+    assert "Regenerate this report only (no inference)" not in inference_section
 
 
 def test_historical_results_match_audit_hashes_and_keep_all_caption_assignment() -> None:

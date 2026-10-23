@@ -49,6 +49,38 @@ Japanese XM3600 retrieval is exploratory and must not be read as evidence of Jap
 semantic capability. The campaign report keeps P0 and P1 separate and distinguishes inference
 commands from report-only regeneration commands.
 
+## OpenVLCLIP v0.7.0 model benchmarks
+
+The OpenVLCLIP `0.7.0` integration covers SigLIP 2 FixRes, SigLIP 2 NaFlex, and
+Qwen3-VL-Embedding-2B. All 18 full-dataset CUDA FP32 runs use the same clean frozen source
+commit, `23b469da312efc17f64aae7119b74ceeeb10f42d`, and pinned checkpoint revisions. CIFAR
+results use all 10,000 test images; XM3600 uses 3,600 images and official first captions per
+language.
+
+**P0 · common 18-template protocol · Top-1 / Top-5; XM3600 R@1 · T→I / I→T (%)**
+
+| Model | CIFAR-10 | CIFAR-100 | XM3600 English | XM3600 Japanese |
+|---|---:|---:|---:|---:|
+| SigLIP 2 FixRes | 57.14 / 94.60 | 24.45 / 51.26 | 0.19 / 0.94 | 0.39 / 1.39 |
+| SigLIP 2 NaFlex | 55.30 / 94.81 | 29.78 / 57.00 | 0.36 / 1.36 | 0.44 / 0.81 |
+| Qwen3-VL-Embedding-2B | 87.58 / 98.68 | 57.66 / 80.99 | 55.78 / 57.94 | 77.81 / 72.25 |
+
+P0 and model-specific P1 are separate protocols; see the report for P1 scores, all retrieval
+Recall@5/Recall@10 values, throughput, memory, and exact run metadata. Japanese XM3600 is
+exploratory, not a claim of certified Japanese-language quality. The historical direct
+Transformers SigLIP 2 CIFAR result used no explicit PAD-derived attention mask, unlike the
+OpenVLCLIP v0.7.0 path. The [focused parity audit](results/openvlclip-v0.7.0/validation/siglip2-p0-parity.json)
+explains why that historical result is context rather than a controlled quality comparison.
+
+- [Campaign report](results/openvlclip-v0.7.0/report.md) ·
+  [summary CSV](results/openvlclip-v0.7.0/summary.csv) ·
+  [matched model-comparison CSV](results/openvlclip-v0.7.0/model-comparison.csv)
+- [Raw JSON results](results/openvlclip-v0.7.0/raw/) ·
+  [run status](results/openvlclip-v0.7.0/run-status.json) ·
+  [result lifecycle](results/openvlclip-v0.7.0/validation/result-lifecycle.json)
+- [Classification and retrieval plots](results/openvlclip-v0.7.0/plots/) ·
+  [model and dataset license notes](docs/model-and-dataset-licenses.md)
+
 ## Verified v0.1.0 results
 
 The v0.1.0 raw archive contains 45 completed full-dataset CUDA FP32 records on an NVIDIA
