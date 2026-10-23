@@ -103,14 +103,10 @@ class Adapter(TorchAdapter):
             return_tensors="pt",
         )
         input_ids = inputs.get("input_ids")
-        tokenizer = getattr(self.processor, "tokenizer", None)
-        pad_token_id = getattr(tokenizer, "pad_token_id", None)
         if not isinstance(input_ids, self.torch.Tensor):
             raise TypeError("The SigLIP 2 tokenizer must return tensor input_ids.")
-        if isinstance(pad_token_id, bool) or not isinstance(pad_token_id, int):
-            raise TypeError("The SigLIP 2 tokenizer must define an integer PAD token.")
-        inputs["attention_mask"] = input_ids.ne(pad_token_id)
-        return move_to_device(inputs, str(self.device_object))
+        # Match the official fixed-length SigLIP 2 path: do not mask padding.
+        return move_to_device({"input_ids": input_ids}, str(self.device_object))
 
     def encode_texts(
         self,

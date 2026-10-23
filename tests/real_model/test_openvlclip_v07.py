@@ -275,7 +275,7 @@ def test_openvlclip_v07_pretrained_cuda_smoke(model_key: str) -> None:
 
 
 @pytest.mark.real_model
-def test_openvlclip_fixres_matches_direct_transformers_siglip2() -> None:
+def test_openvlclip_v070_masked_text_path_differs_from_official_siglip2() -> None:
     torch = importlib.import_module("torch")
     if not torch.cuda.is_available():
         pytest.skip("A CUDA-enabled PyTorch runtime and NVIDIA GPU are required.")
@@ -351,7 +351,7 @@ def test_openvlclip_fixres_matches_direct_transformers_siglip2() -> None:
             rtol=1e-4,
             atol=1e-4,
         )
-        assert np.allclose(
+        assert not np.allclose(
             open_text_features,
             direct_text_features,
             rtol=1e-4,
@@ -363,7 +363,7 @@ def test_openvlclip_fixres_matches_direct_transformers_siglip2() -> None:
         direct_scores = normalize_features(direct_image_features) @ normalize_features(
             direct_text_features
         ).T
-        assert np.array_equal(
+        top1_ranking_identical = np.array_equal(
             np.argsort(-open_scores, axis=1),
             np.argsort(-direct_scores, axis=1),
         )
@@ -375,7 +375,8 @@ def test_openvlclip_fixres_matches_direct_transformers_siglip2() -> None:
             "image_preprocess_max_abs_difference": image_preprocess_max_abs_difference,
             "image_feature_max_abs_difference": image_feature_max_abs_difference,
             "text_feature_max_abs_difference": text_feature_max_abs_difference,
-            "top1_ranking_identical": True,
+            "text_features_match_official_default": False,
+            "top1_ranking_identical": top1_ranking_identical,
         }
     except Exception as error:
         result["status"] = "failed"

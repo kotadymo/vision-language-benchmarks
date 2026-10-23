@@ -346,16 +346,38 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     model = FakeModel()
     model_paths: list[str] = []
     processor_paths: list[str] = []
+    text_calls: list[dict[str, Any]] = []
+
+    class FakeInputIds:
+        def __init__(self, shape: tuple[int, int]) -> None:
+            self.shape = shape
+
+        def to(self, device: str) -> FakeInputIds:
+            del device
+            return self
+
+    class FakeProcessor:
+        def __init__(self) -> None:
+            self.image_processor = SimpleNamespace(size=SimpleNamespace(height=224, width=224))
+
+        def __call__(self, **kwargs: Any) -> dict[str, FakeInputIds]:
+            text_calls.append(kwargs)
+            texts = kwargs["text"]
+            max_length = kwargs["max_length"]
+            assert isinstance(texts, list)
+            assert isinstance(max_length, int)
+            input_ids = FakeInputIds((len(texts), max_length))
+            return {"input_ids": input_ids}
+
+    processor = FakeProcessor()
 
     def load_model(path: str) -> FakeModel:
         model_paths.append(path)
         return model
 
-    def load_processor(path: str) -> object:
+    def load_processor(path: str) -> FakeProcessor:
         processor_paths.append(path)
-        return SimpleNamespace(
-            image_processor=SimpleNamespace(size=SimpleNamespace(height=224, width=224))
-        )
+        return processor
 
     def fake_import_module(name: str) -> object:
         if name == "transformers":
@@ -390,7 +412,13 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     patch_torch_adapter(monkeypatch, siglip2)
 
     adapter = siglip2.Adapter(spec, "cpu", "fp32")
+    adapter.torch.Tensor = FakeInputIds
     metadata = adapter.metadata()
+    text_inputs = adapter.preprocess_texts(
+        ["a test prompt"],
+        "classification",
+        "en",
+    )
 
     assert model.evaluated
     assert model_paths == [str(snapshot)]
@@ -400,6 +428,17 @@ def test_siglip_adapter_loads_pinned_local_snapshot(
     assert content_hash(metadata["preprocessing_config"])
     assert metadata["tokenizer_repository"] == spec.hf_repository
     assert metadata["tokenizer_revision"] == spec.checkpoint_revision
+    assert text_calls == [
+        {
+            "text": ["a test prompt"],
+            "padding": "max_length",
+            "max_length": 64,
+            "truncation": True,
+            "return_tensors": "pt",
+        }
+    ]
+    assert set(text_inputs) == {"input_ids"}
+    assert text_inputs["input_ids"].shape == (1, 64)
 
 
 def test_japanese_clip_adapter_uses_pinned_model_and_tokenizer(
