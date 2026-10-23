@@ -1,0 +1,583 @@
+{
+  "schema_version": "1.0.0",
+  "result_file_count": 18,
+  "status_counts": {
+    "completed": 18
+  },
+  "source_commit_shas": [
+    "23b469da312efc17f64aae7119b74ceeeb10f42d"
+  ],
+  "datasets": [
+    {
+      "dataset_id": "cifar10",
+      "name": "CIFAR-10",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "265a5e3112c0d2b4",
+          "confirmed": false
+        },
+        {
+          "run_id": "3595fa7c8edbf265",
+          "confirmed": false
+        },
+        {
+          "run_id": "3d21c3b372fb4491",
+          "confirmed": false
+        },
+        {
+          "run_id": "44ca47e7559432f0",
+          "confirmed": false
+        },
+        {
+          "run_id": "b602850fd3d77ccd",
+          "confirmed": false
+        },
+        {
+          "run_id": "e603831c0064f67a",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 10,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "cifar100",
+      "name": "CIFAR-100",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "10a1bb028a2f5318",
+          "confirmed": false
+        },
+        {
+          "run_id": "1e814e0b64df8a09",
+          "confirmed": false
+        },
+        {
+          "run_id": "35f85add213561f9",
+          "confirmed": false
+        },
+        {
+          "run_id": "5fb3917ec73989e4",
+          "confirmed": false
+        },
+        {
+          "run_id": "d35c9c3f4583635a",
+          "confirmed": false
+        },
+        {
+          "run_id": "d7302c99a73e813f",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 100,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "crossmodal3600",
+      "name": "Crossmodal-3600 (XM3600)",
+      "split": "all 3,600 images",
+      "revision": "Crossmodal-3600 official web-data release",
+      "checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "license": "Google LLC licenses the XM3600 annotations under CC BY 4.0. The official image-attribution CSV lists all 3,600 images as CC BY 2.0; preserve attribution and do not redistribute the images.",
+      "license_status": "verified_attribution_required",
+      "terms_confirmations": [
+        {
+          "run_id": "026e74e2db5b6144",
+          "confirmed": false
+        },
+        {
+          "run_id": "4008d7997a0def30",
+          "confirmed": false
+        },
+        {
+          "run_id": "a123010f08059e2f",
+          "confirmed": false
+        },
+        {
+          "run_id": "b0d09dd268d8159e",
+          "confirmed": false
+        },
+        {
+          "run_id": "deef20de60c0e3a1",
+          "confirmed": false
+        },
+        {
+          "run_id": "ea34cf1a5133f4c7",
+          "confirmed": false
+        }
+      ],
+      "image_count": 3600,
+      "expected_text_counts_by_language": {
+        "en": 7200,
+        "ja": 7185
+      },
+      "class_count": null,
+      "retrieval_variant_evaluations": [
+        {
+          "run_id": "026e74e2db5b6144",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+          "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+          "preprocessing_config_sha256": "9e9e32b9c2345c46592912f3131d874bf06a345350cdcf3812ce1e70e5e3d185"
+        },
+        {
+          "run_id": "4008d7997a0def30",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": "763e970bcdb91f816b170b7cb1ddc9586aa15d755e20bd87827e0184e0982692"
+        },
+        {
+          "run_id": "deef20de60c0e3a1",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+          "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+          "preprocessing_config_sha256": "dec62d01bd4199cfd1fa1cc615c35f3ff009d5a45d287439d6fda292a47b1cb7"
+        },
+        {
+          "run_id": "a123010f08059e2f",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+          "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+          "preprocessing_config_sha256": "9e9e32b9c2345c46592912f3131d874bf06a345350cdcf3812ce1e70e5e3d185"
+        },
+        {
+          "run_id": "b0d09dd268d8159e",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": "763e970bcdb91f816b170b7cb1ddc9586aa15d755e20bd87827e0184e0982692"
+        },
+        {
+          "run_id": "ea34cf1a5133f4c7",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+          "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+          "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+          "preprocessing_config_sha256": "dec62d01bd4199cfd1fa1cc615c35f3ff009d5a45d287439d6fda292a47b1cb7"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "OpenVLCLIP Qwen3-VL-Embedding-2B",
+      "model_id": "Qwen/Qwen3-VL-Embedding-2B",
+      "repository": "Qwen/Qwen3-VL-Embedding-2B",
+      "checkpoint_revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "checkpoint_size_bytes": 4255140312,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "ca02427a144e4c6ff6e962abc7b9a66429388faf80abcddaa0b882f46094a1e8",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "tokenizer_license": "Apache-2.0",
+      "parameter_count": 2127532032
+    },
+    {
+      "name": "OpenVLCLIP SigLIP 2 Base/16 FixRes",
+      "model_id": "google/siglip2-base-patch16-224",
+      "repository": "google/siglip2-base-patch16-224",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_size_bytes": 1500800904,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "tokenizer_license": "Apache-2.0",
+      "parameter_count": 375187970
+    },
+    {
+      "name": "OpenVLCLIP SigLIP 2 Base/16 NaFlex",
+      "model_id": "google/siglip2-base-patch16-naflex",
+      "repository": "google/siglip2-base-patch16-naflex",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_size_bytes": 1500985224,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "tokenizer_license": "Apache-2.0",
+      "parameter_count": 375234050
+    }
+  ],
+  "environments": [
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    },
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda:0",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "265a5e3112c0d2b4",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "3595fa7c8edbf265",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "44ca47e7559432f0",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "3d21c3b372fb4491",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "b602850fd3d77ccd",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "e603831c0064f67a",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "1e814e0b64df8a09",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "d35c9c3f4583635a",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "d7302c99a73e813f",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "10a1bb028a2f5318",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "35f85add213561f9",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "5fb3917ec73989e4",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "026e74e2db5b6144",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "4008d7997a0def30",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "deef20de60c0e3a1",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "a123010f08059e2f",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "b0d09dd268d8159e",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "ea34cf1a5133f4c7",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    }
+  ],
+  "publication_lifecycle": {
+    "frozen_source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+    "state_counts": {
+      "active": 18,
+      "blocked": 0,
+      "failed": 0,
+      "historical": 0,
+      "incomplete": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "superseded": 0
+    },
+    "attempt_count": 0
+  }
+}

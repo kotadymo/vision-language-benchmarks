@@ -1,0 +1,469 @@
+{
+  "schema_version": "1.0.0",
+  "matching_fields": [
+    "dataset checksum",
+    "split",
+    "task",
+    "protocol",
+    "language",
+    "precision",
+    "image/text/class/positive-pair counts",
+    "retrieval variant"
+  ],
+  "duplicate_baseline_priority": "active before historical; ties use the last supplied comparison input",
+  "primary_campaign": "openvlclip-v0.7.0",
+  "primary_frozen_source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d",
+  "comparison_sources": [
+    {
+      "campaign": "v0.1.0",
+      "raw_input": "results/v0.1.0/raw",
+      "lifecycle_path": "results/v0.1.0/validation/result-lifecycle.json",
+      "frozen_source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01",
+      "eligible_completed_run_count": 38,
+      "eligible_source_commit_shas": [
+        "2993187c2b960e6e6690c97205b22838d18a36a3",
+        "60a61259c95e7c387e896b23084e3c3d0fc375f5",
+        "9d170b6071eecd75d7100ca70092d44d86650f01",
+        "d72e4e462d137e9b77581a507e42897ff427eaf1"
+      ]
+    },
+    {
+      "campaign": "mrl-openclip-gemma-v0.4.0",
+      "raw_input": "results/mrl-openclip-gemma-v0.4.0/raw",
+      "lifecycle_path": "results/mrl-openclip-gemma-v0.4.0/validation/result-lifecycle.json",
+      "frozen_source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c",
+      "eligible_completed_run_count": 24,
+      "eligible_source_commit_shas": [
+        "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+      ]
+    },
+    {
+      "campaign": "dinov2-dinotxt-v0.6.0",
+      "raw_input": "results/dinov2-dinotxt-v0.6.0/raw",
+      "lifecycle_path": "results/dinov2-dinotxt-v0.6.0/validation/result-lifecycle.json",
+      "frozen_source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd",
+      "eligible_completed_run_count": 6,
+      "eligible_source_commit_shas": [
+        "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+      ]
+    }
+  ],
+  "comparison_row_count": 55,
+  "conditions": [
+    {
+      "condition": "cifar100:p0:en:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "1e814e0b64df8a09",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "d7302c99a73e813f",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "d35c9c3f4583635a",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "f0b3f208c3f8f151",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "b08c9f0fbe719961",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openai_clip_b32",
+          "run_id": "5a8886b0fab54729-30d1b401",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_b32_laion2b",
+          "run_id": "35dfb13b0aa46c57-54e65389",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_l14_laion2b",
+          "run_id": "1de2d2b7854b5e80-30c3f626",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "e4c4922a8b419fc2-ac4a43b4",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "d59181f45a441ab9-1a33071f",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        }
+      ]
+    },
+    {
+      "condition": "cifar100:p1:en:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "10a1bb028a2f5318",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "5fb3917ec73989e4",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "35f85add213561f9",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "37ce26e54de28445",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "820f9a84ba7355e3",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openai_clip_b32",
+          "run_id": "c08f92332ebe01a4-2815d62c",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_b32_laion2b",
+          "run_id": "a54f8b8dfb17227b-8e3ad59c",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_l14_laion2b",
+          "run_id": "5cd03bacdf1e5b06-43791242",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "d4721f7c31f9d23c-e083b306",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "38a8be7d4b997457-8dbcaf34",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        }
+      ]
+    },
+    {
+      "condition": "cifar10:p0:en:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "44ca47e7559432f0",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "3595fa7c8edbf265",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "265a5e3112c0d2b4",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "7d2fd70c52399af1",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "b8214ecb970362c9",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openai_clip_b32",
+          "run_id": "35cef7e32f8afb13",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_b32_laion2b",
+          "run_id": "649c7b44763ebc72",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_l14_laion2b",
+          "run_id": "c8faef3bbd4c2779",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "931adb237a72e7b9",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "38b1a8be68ae509c",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        }
+      ]
+    },
+    {
+      "condition": "cifar10:p1:en:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "b602850fd3d77ccd",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "e603831c0064f67a",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "3d21c3b372fb4491",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "0f885e751a90a8ef",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "6950817bdd99d973",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openai_clip_b32",
+          "run_id": "c542f4a0ea8ac9a8",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_b32_laion2b",
+          "run_id": "c3350bf4370a58b8",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_l14_laion2b",
+          "run_id": "9c075a8286dd1604",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "013541e887452604",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "ddcae56da141ed7f",
+          "campaign": "v0.1.0",
+          "publication_state": "historical",
+          "source_commit_sha": "60a61259c95e7c387e896b23084e3c3d0fc375f5"
+        }
+      ]
+    },
+    {
+      "condition": "crossmodal3600:p2:en:official_first_caption:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "026e74e2db5b6144",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "4008d7997a0def30",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "deef20de60c0e3a1",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "d8c51bd44857ee04",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "02b17361f1a3a0ef",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "b5b51e1810e20bc1",
+          "campaign": "v0.1.0",
+          "publication_state": "active",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "25b6a90b6a8e0c82",
+          "campaign": "v0.1.0",
+          "publication_state": "active",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01"
+        }
+      ]
+    },
+    {
+      "condition": "crossmodal3600:p2:ja:official_first_caption:fp32",
+      "models": [
+        {
+          "model_key": "openvlclip_qwen3_vl_embedding_2b",
+          "run_id": "a123010f08059e2f",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_base",
+          "run_id": "b0d09dd268d8159e",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "openvlclip_siglip2_naflex_base",
+          "run_id": "ea34cf1a5133f4c7",
+          "campaign": "openvlclip-v0.7.0",
+          "publication_state": "active",
+          "source_commit_sha": "23b469da312efc17f64aae7119b74ceeeb10f42d"
+        },
+        {
+          "model_key": "dinov2_dinotxt",
+          "run_id": "347bf1161cfb1180",
+          "campaign": "dinov2-dinotxt-v0.6.0",
+          "publication_state": "active",
+          "source_commit_sha": "28519573b78f0dcb7ab6515ead02bc6b403a92bd"
+        },
+        {
+          "model_key": "embeddinggemma2",
+          "run_id": "5e1276cab5ecb4e8",
+          "campaign": "mrl-openclip-gemma-v0.4.0",
+          "publication_state": "active",
+          "source_commit_sha": "a9909fbe1b15dc66b44bca51a41651f8f3a5d30c"
+        },
+        {
+          "model_key": "openclip_multilingual_b32",
+          "run_id": "ae4e1863504978e0",
+          "campaign": "v0.1.0",
+          "publication_state": "active",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01"
+        },
+        {
+          "model_key": "rinna_ja_clip_b16",
+          "run_id": "8bcce7f11a428163",
+          "campaign": "v0.1.0",
+          "publication_state": "active",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01"
+        },
+        {
+          "model_key": "siglip2_base_224",
+          "run_id": "f001095d25c36cb3",
+          "campaign": "v0.1.0",
+          "publication_state": "active",
+          "source_commit_sha": "9d170b6071eecd75d7100ca70092d44d86650f01"
+        }
+      ]
+    }
+  ]
+}
