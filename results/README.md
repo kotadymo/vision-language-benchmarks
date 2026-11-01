@@ -1,5 +1,13 @@
 # Benchmark Results
 
+## SigLIP 2 corrected-source validation based on OpenVLCLIP v0.7.0
+
+The separate [campaign report](openvlclip-v0.7.0-siglip2-corrected-source/report.md) contains
+12 full-dataset FixRes/NaFlex measurements, matched comparisons with prior results, and raw run
+records. These results use the **unpublished correction source based on v0.7.0**, not the
+official PyPI `openvlclip==0.7.0` distribution. See the [campaign README](openvlclip-v0.7.0-siglip2-corrected-source/README.md)
+and [source provenance](openvlclip-v0.7.0-siglip2-corrected-source/validation/source-provenance.json).
+
 ## EmbeddingGemma 2 native Matryoshka dimensions
 
 The separate [v0.4.0 report](mrl-openclip-gemma-v0.4.0/report.md) and
