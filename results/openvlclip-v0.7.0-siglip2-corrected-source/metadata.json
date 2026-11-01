@@ -1,0 +1,414 @@
+{
+  "schema_version": "1.0.0",
+  "result_file_count": 12,
+  "status_counts": {
+    "completed": 12
+  },
+  "source_commit_shas": [
+    "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae"
+  ],
+  "datasets": [
+    {
+      "dataset_id": "cifar10",
+      "name": "CIFAR-10",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "04f85d8307897f41",
+          "confirmed": false
+        },
+        {
+          "run_id": "98b0802263ec6f4c",
+          "confirmed": false
+        },
+        {
+          "run_id": "adea66ba17455b4b",
+          "confirmed": false
+        },
+        {
+          "run_id": "d3ef005049f56d7c",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 10,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "cifar100",
+      "name": "CIFAR-100",
+      "split": "test",
+      "revision": "CIFAR official python archive",
+      "checksum": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f",
+      "license": "The official University of Toronto page publishes the Python archive and requests citation of the dataset technical report; no separate acceptance agreement is displayed. This benchmark performs evaluation only and does not redistribute the archive.",
+      "license_status": "public_download_citation_required",
+      "terms_confirmations": [
+        {
+          "run_id": "2c8d507fcc3fa129",
+          "confirmed": false
+        },
+        {
+          "run_id": "3ca50611538ca5da",
+          "confirmed": false
+        },
+        {
+          "run_id": "8bda121d4a8e9e0c",
+          "confirmed": false
+        },
+        {
+          "run_id": "b1cc0c8b4149e1b1",
+          "confirmed": false
+        }
+      ],
+      "image_count": 10000,
+      "expected_text_counts_by_language": {
+        "en": null
+      },
+      "class_count": 100,
+      "retrieval_variant_evaluations": []
+    },
+    {
+      "dataset_id": "crossmodal3600",
+      "name": "Crossmodal-3600 (XM3600)",
+      "split": "all 3,600 images",
+      "revision": "Crossmodal-3600 official web-data release",
+      "checksum": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce",
+      "license": "Google LLC licenses the XM3600 annotations under CC BY 4.0. The official image-attribution CSV lists all 3,600 images as CC BY 2.0; preserve attribution and do not redistribute the images.",
+      "license_status": "verified_attribution_required",
+      "terms_confirmations": [
+        {
+          "run_id": "1aab08bebc0b122f",
+          "confirmed": false
+        },
+        {
+          "run_id": "1f68a1ca616f9819-0544d6b3",
+          "confirmed": false
+        },
+        {
+          "run_id": "97b6d69758693acc",
+          "confirmed": false
+        },
+        {
+          "run_id": "f0417644516402eb",
+          "confirmed": false
+        }
+      ],
+      "image_count": 3600,
+      "expected_text_counts_by_language": {
+        "en": 7200,
+        "ja": 7185
+      },
+      "class_count": null,
+      "retrieval_variant_evaluations": [
+        {
+          "run_id": "1aab08bebc0b122f",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+          "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+          "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+          "preprocessing_config_sha256": "dec62d01bd4199cfd1fa1cc615c35f3ff009d5a45d287439d6fda292a47b1cb7"
+        },
+        {
+          "run_id": "97b6d69758693acc",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "en",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "30a6547f233ae07790f9815ecd3f1c0f84f65558bd81ca788a4fe891ce792351",
+          "source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": "763e970bcdb91f816b170b7cb1ddc9586aa15d755e20bd87827e0184e0982692"
+        },
+        {
+          "run_id": "1f68a1ca616f9819-0544d6b3",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+          "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+          "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+          "preprocessing_config_sha256": "763e970bcdb91f816b170b7cb1ddc9586aa15d755e20bd87827e0184e0982692"
+        },
+        {
+          "run_id": "f0417644516402eb",
+          "status": "completed",
+          "protocol": "p2",
+          "precision": "fp32",
+          "embedding_dimension": null,
+          "language": "ja",
+          "retrieval_variant": "official_first_caption",
+          "retrieval_variant_source": "run_configuration",
+          "image_count": 3600,
+          "text_count": 3600,
+          "candidate_counts": {
+            "images": 3600,
+            "texts": 3600
+          },
+          "positive_pair_count": 3600,
+          "image_id_order_hash": "da0f6363692e680b85303ad510a7296fffb78b137744169fbef92e040f50adf5",
+          "text_id_order_hash": "544f56d541aec33ff83763f1636f2273214a8c02ab7f77c1aca58db061a79afb",
+          "text_content_sha256": "05701ea7a0b4b7bd59fb8ab7ce98c2fb987a2dbc5fa5131624d29939f667dd7c",
+          "source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+          "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+          "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+          "preprocessing_config_sha256": "dec62d01bd4199cfd1fa1cc615c35f3ff009d5a45d287439d6fda292a47b1cb7"
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "OpenVLCLIP SigLIP 2 Base/16 FixRes",
+      "model_id": "google/siglip2-base-patch16-224",
+      "repository": "google/siglip2-base-patch16-224",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "checkpoint_size_bytes": 1500800904,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "5a074c08ae416f7af68e3e8e8e8fea5396d6dd359b978795f22f1ea112d64180",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "tokenizer_license": "Apache-2.0",
+      "parameter_count": 375187970
+    },
+    {
+      "name": "OpenVLCLIP SigLIP 2 Base/16 NaFlex",
+      "model_id": "google/siglip2-base-patch16-naflex",
+      "repository": "google/siglip2-base-patch16-naflex",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "checkpoint_size_bytes": 1500985224,
+      "supported_languages": [
+        "en",
+        "ja"
+      ],
+      "checkpoint_sha256": "b4580068fab24a71fde3594b055274a2bfae88eab464ab0de2ad9227f6fe9b3a",
+      "pretrained_tag": "official",
+      "license": "Apache-2.0",
+      "tokenizer_license": "Apache-2.0",
+      "parameter_count": 375234050
+    }
+  ],
+  "environments": [
+    {
+      "python_version": "3.12.10",
+      "torch_version": "2.14.1+cu130",
+      "torch_cuda_version": "13.0",
+      "device": "cuda:0",
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+      "driver_version": "610.88",
+      "precision": "fp32"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "04f85d8307897f41",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "adea66ba17455b4b",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "98b0802263ec6f4c",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "d3ef005049f56d7c",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar10",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "2c8d507fcc3fa129",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "8bda121d4a8e9e0c",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p0",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "3ca50611538ca5da",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "b1cc0c8b4149e1b1",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "cifar100",
+      "language": "en",
+      "protocol": "p1",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "1aab08bebc0b122f",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "97b6d69758693acc",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "en",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "1f68a1ca616f9819-0544d6b3",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-224",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    },
+    {
+      "run_id": "f0417644516402eb",
+      "publication_state": "active",
+      "reproducibility_mode": "strict",
+      "status": "completed",
+      "model": "google/siglip2-base-patch16-naflex",
+      "dataset": "crossmodal3600",
+      "language": "ja",
+      "protocol": "p2",
+      "precision": "fp32",
+      "embedding_dimension": null
+    }
+  ],
+  "publication_lifecycle": {
+    "frozen_source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+    "state_counts": {
+      "active": 12,
+      "blocked": 0,
+      "failed": 0,
+      "historical": 0,
+      "incomplete": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "superseded": 0
+    },
+    "attempt_count": 0
+  }
+}

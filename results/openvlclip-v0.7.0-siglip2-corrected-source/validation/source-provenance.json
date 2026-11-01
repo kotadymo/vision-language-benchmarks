@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "campaign": "openvlclip-v0.7.0-siglip2-corrected-source",
+  "publication_status": "v0.7.0を基にした未公開の修正ソース",
+  "official_pypi_openvlclip_0_7_0": false,
+  "claim_boundary": "These measurements are not performance results for the official PyPI openvlclip==0.7.0 distribution. The unchanged package version string is not source identity.",
+  "openvlclip_source": {
+    "repository": "https://github.com/kotadymo/openvlclip",
+    "base_tag": "v0.7.0",
+    "base_commit_sha": "81c8e1df9cb02d6b9f13c4ebda9ac605a54b62eb",
+    "corrected_source_commit_sha": "8596295c1f519506eda5842e0322b2fbc8ad8daa",
+    "corrected_source_parent_sha": "81c8e1df9cb02d6b9f13c4ebda9ac605a54b62eb",
+    "experiment_branch": "experiment/v0.7.0-siglip2-corrected",
+    "changed_files": [
+      "src/openvlclip/backends/siglip2.py"
+    ],
+    "change_summary": "Retain token validation but omit the PAD-derived attention_mask when calling SigLIP 2 get_text_features(), matching the official Transformers default path.",
+    "source_diff_file": "openvlclip-v0.7.0-to-corrected.patch",
+    "source_diff_sha256": "45bd528f2be8aa1df19eee05b776c679892cce5b411380ec59c134865abf10f8",
+    "prior_fix_pr": "https://github.com/kotadymo/openvlclip/pull/58"
+  },
+  "dependency_resolution": {
+    "distribution_name": "openvlclip",
+    "distribution_version_metadata": "0.7.0",
+    "source_type": "git",
+    "source_url": "https://github.com/kotadymo/openvlclip.git",
+    "requested_revision": "8596295c1f519506eda5842e0322b2fbc8ad8daa",
+    "resolved_commit_sha": "8596295c1f519506eda5842e0322b2fbc8ad8daa",
+    "direct_url_json_verified": true,
+    "lock_file": "uv.lock",
+    "lock_sha256": "9f3f1993dd528c4c0d421357995da051d7f452ce32efb2cd9f306722ebfa6763"
+  },
+  "benchmark_source": {
+    "repository": "https://github.com/kotadymo/vision-language-benchmarks",
+    "experiment_branch": "experiment/openvlclip-v0.7.0-siglip2-corrected",
+    "source_commit_sha": "60bb3c6a10fa827e190954b4f74c6dd82b74e2ae",
+    "working_tree_dirty": false,
+    "strict_reproducibility": true
+  },
+  "models": {
+    "openvlclip_siglip2_base": {
+      "model_repository": "google/siglip2-base-patch16-224",
+      "checkpoint_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "tokenizer_repository": "google/siglip2-base-patch16-224",
+      "tokenizer_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "processor_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "tokenizer_class": "GemmaTokenizer",
+      "image_processor_class": "SiglipImageProcessor",
+      "embedding_dimension": 768
+    },
+    "openvlclip_siglip2_naflex_base": {
+      "model_repository": "google/siglip2-base-patch16-naflex",
+      "checkpoint_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "tokenizer_repository": "google/siglip2-base-patch16-naflex",
+      "tokenizer_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "processor_revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+      "tokenizer_class": "Siglip2Tokenizer",
+      "image_processor_class": "Siglip2ImageProcessor",
+      "embedding_dimension": 768
+    }
+  },
+  "datasets": {
+    "cifar10": {
+      "images": 10000,
+      "sha256": "744e4b130af776f7a1c7a19427963e1f6d1c63984a1bb2bc2ceb4da2ba54c470"
+    },
+    "cifar100": {
+      "images": 10000,
+      "sha256": "e5b40f8042fe89ad338c43b208464e0001bcb4ffba8a6827ed0da83562323a1f"
+    },
+    "crossmodal3600": {
+      "images": 3600,
+      "official_first_caption_candidates_per_language": 3600,
+      "languages": [
+        "en",
+        "ja"
+      ],
+      "sha256": "ed934a9782286a688ca79d4594aec679ca4accb8d738186f986c831711545fce"
+    }
+  },
+  "prompt_conditions": {
+    "classification_p0": "clip_benchmark_zeroshot_templates",
+    "classification_p1": {
+      "openvlclip_siglip2_base": "openvlclip_siglip2_fixres_model_card_photo_prompt",
+      "openvlclip_siglip2_naflex_base": "openvlclip_siglip2_naflex_model_card_photo_prompt"
+    },
+    "xm3600_protocol": "p2",
+    "xm3600_prompt_policy": "model_native_caption_text",
+    "xm3600_retrieval_variant": "official_first_caption"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "pytorch": "2.14.1+cu130",
+    "cuda": "13.0",
+    "transformers": "5.20.1",
+    "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "gpu_vram_bytes": 17170956288,
+    "driver": "610.88",
+    "device": "cuda:0",
+    "precision": "fp32",
+    "seed": 0,
+    "batch_size_requested": 16,
+    "batch_size_actual": 16
+  },
+  "128_image_parity_validation": {
+    "reused_prior_validation": true,
+    "fixres_correct_before": 67,
+    "fixres_correct_after": 124,
+    "naflex_correct_before": 62,
+    "naflex_correct_after": 118,
+    "images": 128,
+    "embedding_dimension": 768,
+    "maximum_absolute_embedding_difference_from_official_transformers_path": 0.0,
+    "scope_note": "Small parity diagnostic; not a full-dataset benchmark result."
+  },
+  "completed_run_count": 12,
+  "qwen3_vl_embedding_2b_rerun": false
+}
